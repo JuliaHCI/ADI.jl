@@ -1,14 +1,13 @@
 module ADI
 
-export design,
-       PCA,
-       NMF,
-       Pairet,
-       Median,
-       Mean
-    
+using HCIToolbox
+import MultivariateStats
+
+const mvs = MultivariateStats
+
+export pca
 
 # The core decomposition routines
-include("decomposition.jl")
+include("pca.jl")
 
 end

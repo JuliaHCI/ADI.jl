@@ -5,58 +5,11 @@ using NMF: nnmf
 
 const mvs = MultivariateStats
 
-abstract type HCIAlgorithm end
 
-"""
-    design(::Type{<:HCIAlgorithm}, cube, args...; kwargs...)
 
-Create a design matrix and weights from the given `cube`. The `args` and `kwargs` will vary based on the design algorithm.
-
-# Returns
-The output of a design matrix will be a named tuple with 3 parameters:
-* `A` - The design Matrix
-* `w` - The weight vector (the transform of our data cube)
-* `S` - The reconstruction of our data cube (usually `A * w`)
-"""
-design
 
 # ------------------------------------------------------------------------------
 
-"""
-    PCA
-
-Use principal component analysis (PCA) to reduce data cube.
-
-Uses [`MultivariateStats.PCA`](https://multivariatestatsjl.readthedocs.io/en/stable/pca.html) for decomposition. See [`MultivariateStats.fit(PCA; ...)`](https://multivariatestatsjl.readthedocs.io/en/stable/pca.html#fit) for keyword arguments
-
-# Arguments
-* `ncomps::Int` - The number of components to keep. Cannot be larger than the number of frames in the input cube (default).
-
-# Examples
-
-```jldoctest
-julia> cube = ones(30, 100, 100);
-
-julia> design(PCA, cube)
-(A = [-0.18257418583505536; -0.18257418583505536; … ; -0.18257418583505447; -0.18257418583505555], w = [-5.477225575051664 -5.477225575051664 … -5.477225575051664 -5.477225575051664], S = [1.0000000000000004 1.0000000000000004 … 1.0000000000000004 1.0000000000000004; 1.0000000000000004 1.0000000000000004 … 1.0000000000000004 1.0000000000000004; … ; 0.9999999999999956 0.9999999999999956 … 0.9999999999999956 0.9999999999999956; 1.0000000000000016 1.0000000000000016 … 1.0000000000000016 1.0000000000000016])
-
-julia> design(PCA, cube, 5)
-(A = [-0.18257418583505536; -0.18257418583505536; … ; -0.18257418583505447; -0.18257418583505555], w = [-5.477225575051664 -5.477225575051664 … -5.477225575051664 -5.477225575051664], S = [1.0000000000000004 1.0000000000000004 … 1.0000000000000004 1.0000000000000004; 1.0000000000000004 1.0000000000000004 … 1.0000000000000004 1.0000000000000004; … ; 0.9999999999999956 0.9999999999999956 … 0.9999999999999956 0.9999999999999956; 1.0000000000000016 1.0000000000000016 … 1.0000000000000016 1.0000000000000016])
-
-```
-"""
-struct PCA <: HCIAlgorithm end
-
-function design(::Type{<:PCA}, cube::AbstractArray{T,3}, ncomps::Integer = size(cube, 1); kwargs...) where T
-    flat_cube = flatten(cube)
-
-    pca = mvs.fit(mvs.PCA, flat_cube; mean = 0, maxoutdim = ncomps)
-
-    A = mvs.projection(pca)
-    weights = mvs.transform(pca, flat_cube)
-    reconstructed = mvs.reconstruct(pca, weights)
-    return (A = A, w = weights, S = reconstructed)
-end
 
 # ------------------------------------------------------------------------------
 
@@ -111,7 +64,7 @@ function design(::Type{Pairet{<:D}}, cube::AbstractArray{T,3}, ncomps::Integer =
 
     X = flatten(cube)
 
-    initial_pca = mvs.fit(mvs.PCA, X; maxoutdim = 1)
+initial_pca = mvs.fit(mvs.PCA, X; maxoutdim = 1)
     # TODO
 end
 
@@ -169,20 +122,3 @@ end
 
 # ------------------------------------------------------------------------------
 
-"""
-    reduce(::Type{<:HCIAlgorithm}, cube, angles, args...; method=median, kwargs...)
-
-Using a given `HCIAlgorithm`, will reduce the cube by first finding the approximate reconstruction with [`design`](@ref) and then derotating and combining (using whichever function specified by `method`). Any `kwargs` will be passed to [`design`](@ref).
-"""
-function Base.reduce(D::Type{<:HCIAlgorithm},
-    cube::AbstractArray{T,3},
-    angles::AbstractVector,
-    args...;
-    method = median,
-    kwargs...) where T
-    des = design(D, cube, args...; kwargs...)
-
-    flat_residuals = flatten(cube) .- des.S
-    cube_residuals = expand(flat_residuals)
-    return combine(derotate!(cube_residuals, angles), method = method)
-end
