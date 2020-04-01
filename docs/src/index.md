@@ -4,7 +4,7 @@ CurrentModule = ADI
 
 # ADI.jl
 
-[![GitHub](https://img.shields.io/badge/Repo-GitHub-black.svg)](https://github.com/juliahci/ADI.jl)
+[![GitHub](https://img.shields.io/badge/Code-GitHub-black.svg)](https://github.com/juliahci/ADI.jl)
 [![Build Status](https://github.com/juliahci/ADI.jl/workflows/CI/badge.svg?branch=master)](https://github.com/juliahci/ADI.jl/actions)
 [![Coverage](https://codecov.io/gh/juliahci/ADI.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/juliahci/ADI.jl)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
