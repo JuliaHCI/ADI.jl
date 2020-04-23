@@ -6,9 +6,9 @@ using Statistics
 
 const mvs = MultivariateStats
 
-export pca, transform, reconstruct
+export pca, pairet, transform, reconstruct
 
-abstract type ADIDesign end
+abstract type ADIDesign{T<:AbstractArray, V<:AbstractVector} end
 
 """
     transform(::ADIDesign, cube)
@@ -30,7 +30,7 @@ Reduces an ADI Design matrix by computing the residual cube and collapsing it. T
 function Base.reduce(d::ADIDesign, cube::AbstractArray{T,3}, angles::AbstractVector; kwargs...) where T
     w = transform(d, cube)
     S = reshape(reconstruct(d, w), size(cube))
-    R = _cube .- S
+    R = cube .- S
     return collapse!(R, angles; kwargs...)
 end
 
@@ -39,5 +39,6 @@ Base.reduce(d::ADIDesign; kwargs...) = collapse!(d._cube .- d.S, d._angs; kwargs
 
 # The core decomposition routines
 include("pca.jl")
+include("pairet.jl")
 
 end

@@ -1,6 +1,6 @@
 using Statistics
 
-struct PCADesign{T<:AbstractArray, V<:AbstractVector} <: ADIDesign
+struct PCADesign{T<:AbstractArray, V<:AbstractVector} <: ADIDesign{T, V}
     pca::mvs.PCA
     S::T
     _cube::T
@@ -11,10 +11,10 @@ function Base.show(io::IO, d::PCADesign{T}) where T
     n = mvs.indim(d.pca)
     p = mvs.outdim(d.pca)
     pr = mvs.principalratio(d.pca)
-    print("PCADesign{$T}(ncomps=$p, N=$n, pratio=$pr)")
+    print("PCADesign{$T}(ncomps=$p, D=$n, pratio=$pr)")
 end
 
-transform(d::PCADesign, arr::AbstractMatrix) = mvs.transform(d.pcas, arr)
+transform(d::PCADesign, arr::AbstractMatrix) = mvs.transform(d.pca, arr)
 reconstruct(d::PCADesign, w::AbstractMatrix) = mvs.reconstruct(d.pca, w)
 
 
@@ -23,12 +23,11 @@ reconstruct(d::PCADesign, w::AbstractMatrix) = mvs.reconstruct(d.pca, w)
 
 Use principal component analysis (PCA) to reduce data cube.
 """
-function pca(cube::AbstractArray, angles::AbstractVector; ncomps, pratio = 1)
+function pca(cube::AbstractArray, angles::AbstractVector; ncomps, pratio = 1, mean=0)
     # transform cube
     nf, ny, nx = size(cube)
     X = reshape(cube, nf, ny * nx)
-    
-    P = mvs.fit(mvs.PCA, X; maxoutdim = ncomps, pratio = pratio, mean = 0)
+    P = mvs.fit(mvs.PCA, X; maxoutdim = ncomps, pratio = pratio, mean = mean)
     w = mvs.transform(P, X)
     S = mvs.reconstruct(P, w)
     size(w, 1) < ncomps && @info "$pratio prinicpal ratio achieved with only $(size(w, 1)) components"
