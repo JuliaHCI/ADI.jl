@@ -6,35 +6,29 @@ using Statistics
 
 const mvs = MultivariateStats
 
-export pca, pairet, transform, reconstruct
+export pca, pairet, transform, reconstruct, projection
 
 abstract type ADIDesign{T<:AbstractArray, V<:AbstractVector} end
 
 """
-    transform(::ADIDesign, cube)
-    transform(::ADIDesign, matrix)
+    reconstruct(::ADIDesign, cube) -> cube
+    reconstruct(::ADIDesign, matrix) -> matrix
 """
-transform(d::ADIDesign, cube::AbstractArray{T, 3}) where T = transform(d, flatten(cube))
+reconstruct(d::ADIDesign, cube::AbstractArray{T, 3}) where T = reconstruct(d, flatten(cube)) |> expand
 
 """
-    reconstruct(::ADIDesign, weights)
-"""
-reconstruct
-
-
-"""
-    reduce(::ADIDesign, [cube, angles]; method=median, deweight=true, fill=0)
+    reduce(::ADIDesign; method=median, deweight=true, fill=0)
+    reduce(::ADIDesign, cube, [angles]; method=median, deweight=true, fill=0)
 
 Reduces an ADI Design matrix by computing the residual cube and collapsing it. The keyword arguments will be passed to `HCIToolbox.collapse!`. If `cube` and `angles` are provided, they will be used for calculating the residual. Otherwise, the cube and angles used to create the design will be used.
 """
-function Base.reduce(d::ADIDesign, cube::AbstractArray{T,3}, angles::AbstractVector; kwargs...) where T
-    w = transform(d, cube)
-    S = reshape(reconstruct(d, w), size(cube))
-    R = cube .- S
+function Base.reduce(d::ADIDesign, cube::AbstractArray{T,3}, angles::AbstractVector=d.angles; kwargs...) where T
+    reconstructed = reconstruct(d, cube)
+    R = cube .- reconstructed
     return collapse!(R, angles; kwargs...)
 end
 
-Base.reduce(d::ADIDesign; kwargs...) = collapse!(d._cube .- d.S, d._angs; kwargs...)
+Base.reduce(d::ADIDesign; kwargs...) = collapse(d.S, d.angles; kwargs...)
 
 
 # The core decomposition routines

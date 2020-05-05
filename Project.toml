@@ -6,6 +6,7 @@ version = "0.1.0"
 [deps]
 HCIToolbox = "b6cd55e5-4d02-4e12-b82c-005f67e784bf"
 ImageTransformations = "02fcd773-0e25-5acc-982a-7f6622650795"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MultivariateStats = "6f286f6a-111f-5878-ab1e-185364afe411"
 NMF = "6ef6ca0d-6ad7-5ff6-b225-e928bfa0a386"

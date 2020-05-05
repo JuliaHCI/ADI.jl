@@ -1,59 +1,49 @@
 using ProgressLogging
 
-# struct PairetDesign{D<:ADIDesign,T<:AbstractArray,V<:AbstractVector} <: ADIDesign{T, V}
-#     des::D{T, V}
-# end
+"""
+    pairet([alg=pca], cube, angles; ncomps, threshold=0, kwargs...)
 
-# function Base.show(io::IO, d::PairetDesign{D,T}) where {D,T}
-#     n = mvs.indim(d.des.pca)
-#     p = mvs.outdim(d.des.pca)
-#     pr = mvs.principalratio(d.des.pca)
-#     print("PairetDesign{$(D.name){$T}}(ncomps=$p, D=$n, pratio=$pr)")
-# end
+Performs the bootstrapping algorithm defined in Pairet et al. 2018.
 
+This method is an iterative approach to standard ADI reduction which seeks to minimze over-subtracting signal in the low-rank approximation of `cube`.
 
-pairet(cube::AbstractArray, angles::AbstractVector; ncomps, threshold=0) = 
-    pairet(:pca, cube, angles; ncomps=ncomps, threshold=threshold)
+`ncomps` can be an integer, which will iterate over `1:ncomps`, otherwise it can be any sub-type of `AbstractRange{<:Int}`. As part of the Pairet algorithm, the low-rank approximation at each iteration will be min-clipped at `threshold`.
 
-pairet(s::Symbol, cube, angles; ncomps, threshold=0) = 
-    pairet(Val(s), cube, angles; ncomps=ncomps, threshold=threshold)
+Any extra keyword arguments will be passed to `reduce(::ADIDesign)`.
 
+# Algorithms
+Although the original paper explicitly uses PCA, we allow use of any ADI algorithm that is characterized by `ncomps`. By default, uses [`pca`](@ref).
+* [`pca`](@ref)
+* `nmf` (not yet implemented)
 
-function pairet(::Union{Val{:pca}, Val{:PCA}}, cube::AbstractArray, angles::AbstractVector; ncomps, threshold=0)
-    des = pca(cube, angles, ncomps=1, mean=nothing)
-    @progress for n in 1:ncomps
-        red = reduce(des, cube, des._angs)
-        R = cube .- _pairet_theta(red, des._angs, threshold)
-        des = pca(R, des._angs, ncomps=n, mean=nothing)
-        des.S .= _pairet_cube_est(des, cube)
+### References
+1. [Pairet et al. 2018 "Reference-less algorithm for circumstellar disks imaging"](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P)
+"""
+function pairet(alg, cube::AbstractArray, angles::AbstractVector; ncomps, threshold=0, kwargs...)
+    design = alg(cube, angles, ncomps=1)
+    red = reduce(design; kwargs...)
+
+    @progress for n in _get_range(ncomps)
+        resid = cube .- _pairet_theta(red, design.angles, threshold)
+        design = alg(cube, resid, angles; ncomps=n)
+        red .= reduce(design; kwargs...)
     end
-    des._cube .= cube
-    return des
+    return design
 end
+
+pairet(cube::AbstractArray, angles::AbstractVector; ncomps, threshold=0, kwargs...) = pairet(pca, cube, angles; ncomps=ncomps, threshold=threshold, kwargs...)
+
+_get_range(n::Integer) = 1:n
+_get_range(n::AbstractRange{<:Int}) = n
 
 # takes a frame, expands it into a cube, rotates it clockwise by angles, 
 # and min-clips at threshold
 function _pairet_theta(frame, angles, threshold)
     N = length(angles)
+    _frame = @. ifelse(frame > threshold, frame, threshold)
     cube = similar(frame, N, size(frame)...)
     for idx in axes(cube, 1)
-        @. cube[idx, :, :] = frame
+        cube[idx, :, :] .= _frame
     end
-    @. cube[cube ≤ threshold] = 0
     return derotate!(cube, -angles)
 end
-
-function _pairet_cube_est(des, cube)
-    m = mean(des._cube, dims=1)
-    target = flatten(cube .- m)
-    zvectors = mvs.transform(des.pca, flatten(cube))
-
-    best_cube = similar(target)
-    for i in axes(best_cube, 1)
-        v11 = sum(zvectors .* target[i:i, :], dims=2)
-        best_cube[i, :] .= vec(v11' * zvectors)
-    end
-    return m .+ expand(best_cube)
-end
-
-# pairet(cube::AbstractArray, angles::AbstractVector; ncomps) = pairet(pca, cube, angles; ncomps=ncomps)
