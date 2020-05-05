@@ -7,7 +7,7 @@ Performs the bootstrapping algorithm defined in Pairet et al. 2018.
 
 This method is an iterative approach to standard ADI reduction which seeks to minimze over-subtracting signal in the low-rank approximation of `cube`.
 
-`ncomps` can be an integer, which will iterate over `1:ncomps`, otherwise it can be any sub-type of `AbstractRange{<:Int}`. As part of the Pairet algorithm, the low-rank approximation at each iteration will be min-clipped at `threshold`.
+`ncomps` can be an integer, which will iterate over `1:ncomps`, otherwise it can be any sub-type of `AbstractRange{<:Int}`. As part of the Pairet algorithm, the low-rank approximation at each iteration will be min-clipped at `threshold`.        
 
 Any extra keyword arguments will be passed to `reduce(::ADIDesign)`.
 

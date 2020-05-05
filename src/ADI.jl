@@ -1,10 +1,7 @@
 module ADI
 
 using HCIToolbox
-import MultivariateStats
 using Statistics
-
-const mvs = MultivariateStats
 
 export pca, pairet, transform, reconstruct, projection
 
@@ -29,7 +26,6 @@ function Base.reduce(d::ADIDesign, cube::AbstractArray{T,3}, angles::AbstractVec
 end
 
 Base.reduce(d::ADIDesign; kwargs...) = collapse(d.S, d.angles; kwargs...)
-
 
 # The core decomposition routines
 include("pca.jl")
