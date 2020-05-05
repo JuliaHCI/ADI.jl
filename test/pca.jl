@@ -33,7 +33,7 @@
         data = randn(30, 512, 512)
         angles = sort!(90randn(30)) |> normalize_par_angles
         
-        design = pca(data, zeros(size(data)), angles; ncomps=1)
+        design = pca(data, zeros(10, 512, 512), angles; ncomps=1)
         @test design.S ≈ data rtol=1e-2
     end
 end
