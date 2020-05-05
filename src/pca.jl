@@ -40,18 +40,21 @@ function pca(cube::AbstractArray, ref::AbstractArray, angles::AbstractVector; nc
     # transform cube
     X_ref = flatten(ref)
     X = flatten(cube)
-    # fit SVD to get principal subspace
+
+    # fit SVD to get principal subspace of reference
     U, S, = svd(X_ref')
-    pratio = cumsum(S ./ sum(S))
+
     # get the minimum number comps to explain `pratio`
-    pr_n = findfirst(p -> p ≥ pratio, pratio)
-    nc = pr_n === nothing ? ncomps : min(ncomps, pr_n)
+    pr = cumsum(S ./ sum(S))
+    pr_n = findfirst(p -> p ≥ pratio, pr)
+    nc = pr_n === nothing ? min(ncomps, size(U, 2)) : min(ncomps, pr_n, size(U, 2))
+
     # Get the principal components (principal subspace)
-    P = U[:, 1:nc]'
+    P = U[:, 1:nc]' |> collect
     # reconstruct X using prinicipal subspace
     weights = P * X'
     reconstructed = weights' * P |> expand
-
     S = cube .- reconstructed
-    return PCADesign(promote(P, weights)..., S, normalize_par_angles(angles), pratio[nc])
+
+    return PCADesign(promote(P, weights)..., S, normalize_par_angles(angles), pr[nc])
 end

@@ -1,4 +1,5 @@
 using ADI
+using HCIToolbox
 using Test
 using Statistics
 using LinearAlgebra
