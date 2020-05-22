@@ -26,6 +26,7 @@ function Base.show(io::IO, d::PCADesign{T}) where T
     return nothing
 end
 
+reconstruct(d::PCADesign) = reconstruct(d, d.cube)
 reconstruct(d::PCADesign, X::AbstractMatrix) = (X * d.A') * d.A
 
 """

@@ -19,8 +19,8 @@ Reconstrucst an approximation of the input using the design.
 reconstruct(d::ADIDesign, cube::AbstractArray{T, 3}) where T = reconstruct(d, flatten(cube)) |> expand
 
 """
-    reduce(::ADIDesign; method=median, deweight=true, fill=0) -> matrix
-    reduce(::ADIDesign, cube, [angles]; method=median, deweight=true, fill=0) -> matrix
+    reduce(::ADIDesign; method=:deweight, fill=0) -> matrix
+    reduce(::ADIDesign, cube, [angles]; method=:deweight, fill=0) -> matrix
 
 Reduces an ADI Design matrix by computing the residual of the reconstructed cube and the target cube, then collapsing it. The keyword arguments will be passed to `HCIToolbox.collapse!`. 
 
