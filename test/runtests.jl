@@ -3,9 +3,13 @@ using HCIToolbox
 using Test
 using Statistics
 using LinearAlgebra
-using Random
-Random.seed!(8799)
+using StableRNGs
 
-@testset "ADI.jl" begin
-    include("pca.jl")
-end
+rng = StableRNG(8799)
+
+@testset "Median" begin include("median.jl") end
+
+# @testset "ADI.jl" begin
+#     include("pca.jl")
+#     include("klip.jl")
+# end

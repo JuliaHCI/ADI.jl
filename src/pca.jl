@@ -2,43 +2,41 @@ using Statistics
 using LinearAlgebra
 
 """
-    PCADesign(A, w, reconstructed, S, angles, pratio)
+    PCADesign(cube, [ref], angles; ncomps, pratio=1)
 
-A container for PCA-based ADI algorithm output.
+Create an object containing the decomposition of a cube (or reference) using principal component analysis (PCA) to form the approximate reconstruction of the systematics.
 
-`A` is the principal subspace, `w` are the weights used to reconstruct to the target cube. The residual from reconstruction is stored in `S` as a cube. The parallactic-angles are stored in `angles`. Finally, the principal ratio (the ratio of explained variance per component to the total explained variance) is stored in `pratio`. 
+This will create a design matrix (the principal subspace) of the cube (or reference) truncated to either `ncomps` or until the prinicpal ratio is equal to `pratio` (whichever is fewer). As `ncomps` (or `pratio`) increase, more structure is removed from the cube, thus it is possible to over-subtract signal when choosing the size of the principal subpspace.
 
 # See Alse
 [`pca`](@ref), [`pairet`](@ref)
 """
-struct PCADesign{T<:AbstractArray,M<:AbstractMatrix,V<:AbstractVector,F<:AbstractFloat} <: ADIDesign{T, V}
-    A::M
-    w::M
-    S::T
-    cube::T
+struct PCADesign{T,C<:AbstractArray{T},M<:AbstractMatrix{T},V<:AbstractVector,N<:NamedTuple} <: ADIDesign{T, C, V}
+    pcs::M
+    weights::M
+    S::C
+    cube::C
     angles::V
-    pratio::F
+    metadata::N
 end
 
 function Base.show(io::IO, d::PCADesign{T}) where T
-    p, n = size(d.w)
-    print("PCADesign{$T}(ncomps=$p, D=$n, pratio=$(d.pratio))")
+    p, n = size(d.weights)
+    print(io, "PCADesign{$T}(ncomps=$p, D=$n)")
+    for (key, val) in pairs(d.metadata)
+        print(io, "\n  $key: $val")
+    end
     return nothing
 end
 
+design(d::PCADesign) = d.pcs'
+weights(d::PCADesign) = d.weights
 reconstruct(d::PCADesign) = reconstruct(d, d.cube)
-reconstruct(d::PCADesign, X::AbstractMatrix) = (X * d.A') * d.A
+reconstruct(d::PCADesign, X::AbstractMatrix) = (X * d.pcs') * d.pcs
 
-"""
-    pca(cube, [ref], angles; ncomps, pratio=1)::PCADesign
+PCADesign(cube::AbstractArray, angles::AbstractVector; kwargs...) = PCADesign(cube, cube, angles; kwargs...)
 
-Decomposes a cube (or reference) using principal component analysis (PCA) to form the approximate reconstruction of the systematic noise.
-
-This will create a design matrix (the principal subspace) of the cube (or reference) truncated to either `ncomps` or until the prinicpal ratio is equal to `pratio` (whichever is fewer). As `ncomps` (or `pratio`) increase, more structure is removed from the cube, thus it is possible to over-subtract signal when choosing the size of the principal subpspace.
-"""
-pca(cube::AbstractArray, angles::AbstractVector; ncomps, pratio = 1) = pca(cube, cube, angles; ncomps=ncomps, pratio=pratio)
-
-function pca(cube::AbstractArray, ref::AbstractArray, angles::AbstractVector; ncomps, pratio = 1)
+function PCADesign(cube::AbstractArray, ref::AbstractArray, angles::AbstractVector; ncomps, pratio = 1)
     # transform cube
     X_ref = flatten(ref)
     X = flatten(cube)
@@ -59,5 +57,21 @@ function pca(cube::AbstractArray, ref::AbstractArray, angles::AbstractVector; nc
     reconstructed = weights' * P |> expand
     S = cube .- reconstructed
 
-    return PCADesign(promote(P, weights)..., promote(S, cube)..., normalize_par_angles(angles), pr[nc])
+    metadata = (;pratio=pr[nc])
+
+    return PCADesign(promote(P, weights)..., promote(S, cube)..., normalize_par_angles(angles), metadata)
 end
+
+"""
+    pca(cube, [ref], angles; ncomps, pratio=1, kwargs...)
+
+Convenience function for [`PCADesign`](@ref) which returns the collapsed residual from the design. Any additional keyword arguments will be passed to [`reduce`](@ref).
+"""
+function pca(cube::AbstractArray, ref::AbstractArray, angles::AbstractVector; ncomps, pratio = 1, kwargs...)
+    des = PCADesign(cube, ref, angles; ncomps=ncomps, pratio=pratio)
+    result = reduce(des, kwargs...)
+    return result
+end
+
+pca(cube::AbstractArray, angles::AbstractVector; kwargs...) =
+    pca(cube, cube, angles; kwargs...)

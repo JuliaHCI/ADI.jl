@@ -19,31 +19,31 @@ Although the original paper explicitly uses PCA, we allow use of any ADI algorit
 ### References
 1. [Pairet et al. 2018 "Reference-less algorithm for circumstellar disks imaging"](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P)
 """
-function pairet(alg, cube::AbstractArray, angles::AbstractVector; ncomps, threshold=0, kwargs...)
-    design = alg(cube, angles, ncomps=1)
+function pairet(alg, cube::AbstractArray{T}, angles::AbstractVector; ncomps, threshold=zero(T), kwargs...) where T
+    design = alg(cube, angles; ncomps=1)
     red = reduce(design; kwargs...)
 
     @progress for n in _get_range(ncomps)
-        resid = cube .- _pairet_theta(red, design.angles, threshold)
+        resid = cube .- _pairet_theta(red, design.angles, threshold; kwargs...)
         design = alg(cube, resid, angles; ncomps=n)
         red .= reduce(design; kwargs...)
     end
     return design
 end
 
-pairet(cube::AbstractArray, angles::AbstractVector; ncomps, threshold=0, kwargs...) = pairet(pca, cube, angles; ncomps=ncomps, threshold=threshold, kwargs...)
+pairet(cube::AbstractArray, angles::AbstractVector; kwargs...) = pairet(PCADesign, cube, angles; kwargs...)
 
 _get_range(n::Integer) = 1:n
-_get_range(n::AbstractRange{<:Int}) = n
+_get_range(n::AbstractRange{<:Integer}) = n
 
 # takes a frame, expands it into a cube, rotates it clockwise by angles, 
 # and min-clips at threshold
-function _pairet_theta(frame, angles, threshold)
+function _pairet_theta(frame, angles, threshold; kwargs...)
     N = length(angles)
     _frame = @. ifelse(frame > threshold, frame, threshold)
     cube = similar(frame, N, size(frame)...)
     for idx in axes(cube, 1)
         cube[idx, :, :] .= _frame
     end
-    return derotate!(cube, -angles)
+    return derotate!(cube, -angles; kwargs...)
 end
