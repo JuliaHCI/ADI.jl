@@ -21,7 +21,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 Distributions = "0.23"
-HCIToolbox = "0.3"
+HCIToolbox = "0.3.1"
 ImageFiltering = "0.6"
 ImageTransformations = "0.8"
 NMF = "0.4"
