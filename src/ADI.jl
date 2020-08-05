@@ -8,6 +8,7 @@ using UnPack
 # export pca, pairet, transform, reconstruct, projection
 
 export reconstruct,
+       decompose,
        Median,
        PCA,
        Pairet
@@ -28,20 +29,21 @@ To extend `ADIAlgorithm` you may implement the following
 abstract type ADIAlgorithm <: Function end
 
 """
-    reconstruct(::ADIAlgorithm, cube, angles, cube_ref; kwargs...)
+    reconstruct(::ADIAlgorithm, cube, angles, [cube_ref]; kwargs...)
+
+Reconstruct the PSF approximation for the given algorithm, using `cube_ref` as the reference cube if given.
 """
 function reconstruct end
 
 """
     (::ADIAlgorithm)(cube, angles, [cube_ref]; kwargs...)
 
-Fully process an ADI data cube using [`reconstruct`](@ref). Keyword arguments will be passed to `HCIToolbox.collapse!`.
+Fully process an ADI data cube using [`reconstruct`](@ref) and collapsing the residuals. Keyword arguments will be passed to `HCIToolbox.collapse!`.
 """
 function (alg::ADIAlgorithm)(cube, angles, args...; kwargs...)
     S = reconstruct(alg, cube, angles, args...; kwargs...)
     residual_cube = cube .- S
-    angles_ = normalize_par_angles(angles)
-    return collapse!(residual_cube, angles_; kwargs...)
+    return collapse!(residual_cube, angles; kwargs...)
 end
 
 include("median.jl")
@@ -64,7 +66,7 @@ To extend `LinearAlgorithm` you may implement the following
 abstract type LinearAlgorithm <: ADIAlgorithm end
 
 """
-    ADI.decompose(::LinearAlgorithm, cube, angles, cube_ref=cube; kwargs...)
+    ADI.decompose(::LinearAlgorithm, cube, angles, [cube_ref]; kwargs...)
 """
 function decompose end
 

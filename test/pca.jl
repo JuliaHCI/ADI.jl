@@ -1,39 +1,36 @@
 @testset "PCA" begin
     
     @testset "Interface" begin
-        data = 4 .* randn(30, 512, 512) .+ 10
-        angles = sort!(90randn(30)) |> normalize_par_angles
+        @test PCA(5) == PCA(ncomps=5)
+        @test isnothing(PCA().ncomps)
+        @test PCA(5).pratio == 1
+    end
+
+    @testset "Decomposition" begin
+        data = 4 .* randn(rng, 30, 512, 512) .+ 10
+        angles = sort!(90randn(rng, 30)) |> normalize_par_angles
 
         # get sizes correct for ncomps
         for N in [1, 3, 5]
-            res = pca(data, angles; ncomps=N)
-            @test size(res.A) == (N, 512 * 512)
-            @test size(res.w) == (N, 30)
+            A, w = @inferred decompose(PCA(ncomps=N), data, angles)
+            @test size(A) == (N, 512 * 512)
+            @test size(w) == (N, 30)
         end
-        d = pca(data, angles, ncomps=40)
-        @test size(d.A) == (30, 512 * 512)
-        @test size(d.w) == (30, 30)
-        d = pca(data, angles, ncomps=40, pratio=100)
-        @test size(d.A) == (30, 512 * 512)
-        @test size(d.w) == (30, 30)
-        d = pca(data, angles, ncomps=10, pratio=100)
-        @test size(d.A) == (10, 512 * 512)
-        @test size(d.w) == (10, 30)
-        d = pca(data, angles, ncomps=30, pratio=0.5)
-        @test size(d.A, 1) < 30
-        @test size(d.w, 1) < 30
+        @test_throws ErrorException decompose(PCA(40), data, angles)
+        A, w = decompose(PCA(30; pratio=0.5), data, angles)
+        @test size(A, 1) < 30
+        @test size(w, 1) < 30
 
-        @test size(d.S) == (30, 512, 512)
-        # angles are the same
-        @test d.angles == angles
-        @test @inferred(reduce(d)) ≈ @inferred(reduce(d, data)) ≈ @inferred(reduce(d, data, angles))
+
+        S = reconstruct(PCA(), data, angles)
+        @test size(S) == (30, 512, 512)
     end
 
     @testset "RDI Trivial" begin
-        data = randn(30, 512, 512)
-        angles = sort!(90randn(30)) |> normalize_par_angles
+        data = randn(rng, 30, 512, 512)
+        angles = sort!(90randn(rng, 30)) |> normalize_par_angles
         
-        design = pca(data, zeros(10, 512, 512), angles; ncomps=1)
-        @test design.S ≈ data rtol=1e-2
+        A, w = decompose(PCA(1), data, angles, zeros(10, 512, 512))
+        @test_broken all(x -> isapprox(x, 0, atol=1e-5), A) # TODO
     end
 end

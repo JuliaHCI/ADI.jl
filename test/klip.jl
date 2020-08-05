@@ -1,9 +1,9 @@
-@testset "klip - $ALG" for ALG in [PCA, NMF]
+@testset "Linear - $ALG" for ALG in [PCA]
     cube = ones(10, 100, 100) 
     angles = zeros(10)
 
-    reduced_5 = reduce(ALG, cube, angles, 5)
-    reduced_10 = reduce(ALG, cube, angles, 10)
+    reduced_5 = reduce(ALG(5), cube, angles)
+    reduced_10 = reduce(ALG(10), cube, angles)
 
     @test size(reduced_5) == size(reduced_10) == (100, 100)
     @test all(isapprox.(reduced_5, 0, atol = 1e-9))

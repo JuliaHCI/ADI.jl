@@ -23,8 +23,8 @@ function decompose(alg::PCA, cube, angles, cube_ref=cube; kwargs...)
     ncomps > size(cube, 1) && error("ncomps ($ncomps) cannot be greater than the number of frames ($(size(cube, 1)))")
 
     # transform cube
-    X = ndims(cube) === 2 ? cube : flatten(cube)
-    X_ref = ndims(cube_ref) === 2 ? cube_ref : flatten(cube_ref)
+    X = flatten(cube)
+    X_ref = flatten(cube_ref)
 
     # fit SVD to get principal subspace of reference
     decomp = svd(X_ref)

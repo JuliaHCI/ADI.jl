@@ -25,7 +25,7 @@ Pairet(alg=PCA(); threshold=0.0) = Pairet(alg, threshold)
 
 function decompose(alg::Pairet, cube, angles; kwargs...)
     # get the number of components as a range from the underlying alg
-    max_ncomps = isnothing(alg.alg.ncomps) ? alg.alg.ncomps : size(cube, 1)
+    max_ncomps = isnothing(alg.alg.ncomps) ? size(cube, 1) : alg.alg.ncomps
     # use the underlyhing algorithm with a lens for further processing
     _alg = alg.alg
     _alg = @set _alg.ncomps = 1
