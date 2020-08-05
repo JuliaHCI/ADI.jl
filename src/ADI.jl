@@ -5,77 +5,78 @@ using Statistics
 using Parameters
 using UnPack
 
-export pca, pairet, transform, reconstruct, projection
+# export pca, pairet, transform, reconstruct, projection
 
-export ADIAlgorithm,
-       design,
-       Median
+export reconstruct,
+       Median,
+       PCA,
+       Pairet
 
 """
-    ADIAlgorithm <: Function
-    
-This abstract type is used for defining ADI algorithms. See the extended help (`??ADIAlgorithm`) for interface details
+    ADI.ADIAlgorithm <: Function
 
-# Extended Help
+This abstract type is used for defining ADI algorithms. See the extended help (`??ADIAlgorithm`) for interface details.
+
+# Extended help
 ## Interface
 To extend `ADIAlgorithm` you may implement the following
 | function | default | description |
 |----------|---------|-------------|
-| `ADI.design`
+| `ADI.reconstruct` | | Subroutine for creating the full reconstructed cube with the PSF |
+| `(::ADIAlgorithm)` | subtracts output of `reconstruct`, then derotates and collapses | Subroutine for returning the reduced residual cube |
 """
 abstract type ADIAlgorithm <: Function end
 
 """
-    design(::ADIAlgorithm)(cube, angles, args...; kwargs...)
-
-Return some structure corresponding to the given algorithm. By default, will return a `NamedTuple` of the `cube`, `angles`, and the output of [`(::ADIAlgorithm)`](@ref)
+    reconstruct(::ADIAlgorithm, cube, angles, cube_ref; kwargs...)
 """
-function design(alg::ADIAlgorithm, cube, angles, args...; kwargs...)
-    output = alg(cube, angles, args...; kwargs...)
-    return (cube=cube, angles=angles, reduced=output)
+function reconstruct end
+
+"""
+    (::ADIAlgorithm)(cube, angles, [cube_ref]; kwargs...)
+
+Fully process an ADI data cube using [`reconstruct`](@ref). Keyword arguments will be passed to `HCIToolbox.collapse!`.
+"""
+function (alg::ADIAlgorithm)(cube, angles, args...; kwargs...)
+    S = reconstruct(alg, cube, angles, args...; kwargs...)
+    residual_cube = cube .- S
+    angles_ = normalize_par_angles(angles)
+    return collapse!(residual_cube, angles_; kwargs...)
 end
 
 include("median.jl")
 
-# # The core decomposition routines
-# include("pca.jl")
-# include("pairet.jl")
+"""
+    ADI.LinearAlgorithm <: ADI.ADIAlgorithm
 
-# include("medsub.jl")
+This abstract type is used for defining linear ADI algorithms. See the extended help (`??LinearAlgorithm`) for interface details.
 
+# Extended help
+## Interface
+To extend `LinearAlgorithm` you may implement the following
 
-# abstract type ADIDesign{T,A<:AbstractArray{T},V<:AbstractVector{T}} end
+| function | default | description |
+|----------|---------|-------------|
+| `ADI.fit` | | Subroutine for fitting the linear basis and coefficients as unrolled matrices |
+| `ADI.reconstruct` | Computes the inner product of the design matrix and weights from `decompose` | Subroutine for creating the full reconstructed cube with the PSF |
+| `(::LinearAlgorithm)` | subtracts output of `reconstruct`, then derotates and collapses | Subroutine for returning the reduced residual cube |
+"""
+abstract type LinearAlgorithm <: ADIAlgorithm end
 
-# """
-#     reconstruct(::ADIDesign, cube) -> cube
-#     reconstruct(::ADIDesign, matrix) -> matrix
+"""
+    ADI.decompose(::LinearAlgorithm, cube, angles, cube_ref=cube; kwargs...)
+"""
+function decompose end
 
-# Reconstrucst an approximation of the input using the design.
+function reconstruct(alg::LinearAlgorithm, cube, angles, args...; kwargs...)
+    # assumed sizes are (n, Npx) (n, M)
+    basis, weights = decompose(alg, cube, angles, args...; kwargs...)
+    return weights' * basis |> expand
+end
 
-# # See Also
-# [`reduce`](@ref)
-# """
-# reconstruct(d::ADIDesign, cube::AbstractArray{T, 3}) where T = 
-#     reconstruct(d, flatten(cube)) |> expand
-
-# """
-#     reduce(::ADIDesign; method=:deweight, fill=0, degree=Linear()) -> matrix
-#     reduce(::ADIDesign, cube, [angles]; method=:deweight, fill=0, degree=Linear()) -> matrix
-
-# Reduces an ADI Design matrix by computing the residual of the reconstructed cube and the target cube, then collapsing it. The keyword arguments will be passed to `HCIToolbox.collapse!`. 
-
-# If `cube` and `angles` are provided, referential differential imaging (RDI) will be done by reconstructing `cube` using the input design. If `angles` are not provided, the same angles used for the design construction will be used.
-
-# # See Also
-# [`reconstruct`](@ref)
-# """
-# function Base.reduce(d::ADIDesign, cube::AbstractArray{T,3}, angles::AbstractVector=d.angles; kwargs...) where T
-#     reconstructed = reconstruct(d, cube)
-#     R = cube .- reconstructed
-#     return collapse!(R, angles; kwargs...)
-# end
-
-# Base.reduce(d::ADIDesign; kwargs...) = collapse(d.S, d.angles; kwargs...)
+# The core decomposition routines
+include("pca.jl")
+include("pairet.jl")
 
 using Reexport
 
