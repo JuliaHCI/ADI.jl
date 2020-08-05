@@ -7,13 +7,13 @@
 end
 
 @testset "Decomposition" begin
-    data = 4 .* randn(rng, 30, 512, 512) .+ 10
+    data = 4 .* randn(rng, 30, 101, 101) .+ 10
     angles = sort!(90randn(rng, 30)) |> normalize_par_angles
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
         A, w = @inferred decompose(Pairet(PCA(ncomps=N)), data, angles)
-        @test size(A) == (N, 512 * 512)
+        @test size(A) == (N, 101 * 101)
         @test size(w) == (N, 30)
     end
     @test_throws ErrorException decompose(Pairet(PCA(40)), data, angles)
@@ -23,7 +23,7 @@ end
 
     # default is to use whole cube
     S = reconstruct(Pairet(), data, angles)
-    @test size(S) == (30, 512, 512)
+    @test size(S) == (30, 101, 101)
 end
 
 @testset "ADI Trivial" begin
@@ -39,9 +39,9 @@ end
 end
 
 @testset "RDI Trivial" begin
-    data = randn(rng, 30, 512, 512)
-    angles = sort!(90randn(rng, 30)) |> normalize_par_angles
+    data = randn(rng, 30, 101, 101)
+    angles = sort!(90rand(rng, 30)) |> normalize_par_angles
 
     # not supported for Pairet alg
-    @test_throws MethodError reconstruct(Pairet(PCA(1)), data, angles, zeros(10, 512, 512))
+    @test_throws MethodError reconstruct(Pairet(PCA(1)), data, angles, zeros(10, 101, 101))
 end
