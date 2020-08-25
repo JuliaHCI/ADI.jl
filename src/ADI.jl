@@ -11,7 +11,7 @@ export reconstruct,
        decompose,
        Median,
        PCA,
-       Pairet
+       GreeDS
 
 """
     ADI.ADIAlgorithm <: Function
@@ -73,12 +73,16 @@ function decompose end
 function reconstruct(alg::LinearAlgorithm, cube, angles, args...; kwargs...)
     # assumed sizes are (n, Npx) (n, M)
     basis, weights = decompose(alg, cube, angles, args...; kwargs...)
-    return weights' * basis |> expand
+    return reconstruct(alg, basis, weights; kwargs...)
 end
 
+function reconstruct(alg::LinearAlgorithm, basis::AbstractMatrix, weights::AbstractMatrix; kwargs...)
+    # assumed sizes are (n, Npx) (n, M)
+    return weights' * basis |> expand
+end
 # The core decomposition routines
 include("pca.jl")
-include("pairet.jl")
+include("greeds.jl")
 
 using Reexport
 

@@ -162,13 +162,13 @@ where the degrees of freedom ``\\nu`` is given as ``2\\pi r / \\Gamma - 2`` wher
 """
 function significance(snr::AbstractMatrix, fwhm)
     ys, xs = axes(snr)
-    cy, cx = center(data)
+    cy, cx = center(snr)
     # put in one line to allow broadcast fusion
     return @. snr_to_sig(snr, sqrt((xs' - cx)^2 + (ys - cy)^2), fwhm)
 end
 
-snr_to_sig(snr, separation, fwhm) = @. quantile(Normal(), cdf(TDist(2π * separation / fwhm.- 2), snr))
-sig_to_snr(sig, separation, fwhm) = @. quantile(TDist(2π * separation / fwhm.- 2), cdf(Normal(), sig))
+snr_to_sig(snr, separation, fwhm) = @. quantile(Normal(), cdf(TDist(2π * separation / fwhm .- 2), Float64(snr)))
+sig_to_snr(sig, separation, fwhm) = @. quantile(TDist(2π * separation / fwhm.- 2), cdf(Normal(), Float64(sig)))
 
 # equivalent to skimage.draw.circle
 function circle_index(center, r)

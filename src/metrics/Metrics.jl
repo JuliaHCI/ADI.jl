@@ -11,7 +11,7 @@ export snr,
        snrmap,
        significance
 
-# include("contrast.jl")
+include("contrast.jl")
 include("snr.jl")
 
 end

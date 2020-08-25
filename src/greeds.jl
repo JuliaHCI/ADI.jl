@@ -2,28 +2,30 @@ using ProgressLogging
 using Setfield
 
 """
-    Pairet(alg=PCA(); threshold=0.0)
+    GreeDS(alg=PCA(); threshold=0.0, progress=true)
 
-Performs the bootstrapping algorithm defined in _Pairet et al. (2018)_.
+Performs the greedy disk subtraction (GreeDS) algorithm.
 
-This method is an iterative approach to standard ADI reduction which seeks to minimize over-subtraction by hand-crafting a reference library without any negative signal. This is accomplished with the internal `pairet_theta` function. The value for min-clipping is given by `threshold`.
+This method is an iterative approach to standard ADI reduction which seeks to minimize over-subtraction by constraining the low-rank matrix approximation from `alg`.
 
-For large data cubes the iteration can cause slowdowns, so a progress bar is provided using the [`ProgressLogging`](https://github.com/JunoLab/ProgressLogging.jl) API. It won't appear without a logging backend, such as [`TerminalLoggers`](https://github.com/c42f/TerminalLoggers.jl).
+For large data cubes the iteration can cause slowdowns, so a progress bar is provided using the [`ProgressLogging`](https://github.com/JunoLab/ProgressLogging.jl) API along with the `progress` keyword. It won't appear without a logging backend, such as [`TerminalLoggers`](https://github.com/c42f/TerminalLoggers.jl).
 
 # Algorithms
 Although the original paper explicitly uses PCA, we allow use of any linear ADI algorithm that is characterized by `ncomps`. By default, uses [`PCA`](@ref).
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
+2. [Pairet et al. 2020](https://ui.adsabs.harvard.edu/abs/2020arXiv200805170P) "MAYONNAISE: a morphological components analysis pipeline for circumstellar disks and exoplanets imaging in the near infrared"
 """
-struct Pairet{ALG<:LinearAlgorithm} <: LinearAlgorithm
+struct GreeDS{ALG<:LinearAlgorithm} <: LinearAlgorithm
     alg::ALG
     threshold::Float64
+    progress::Bool
 end
 
-Pairet(alg=PCA(); threshold=0.0) = Pairet(alg, threshold)
+GreeDS(alg=PCA(); threshold=0.0, progress=true) = GreeDS(alg, threshold, progress)
 
-function decompose(alg::Pairet, cube, angles; kwargs...)
+function decompose(alg::GreeDS, cube, angles; kwargs...)
     # get the number of components as a range from the underlying alg
     max_ncomps = isnothing(alg.alg.ncomps) ? size(cube, 1) : alg.alg.ncomps
     # use the underlyhing algorithm with a lens for further processing
@@ -52,7 +54,7 @@ function pairet_theta(frame, angles, threshold; kwargs...)
     N = length(angles)
     _frame = @. ifelse(frame > threshold, frame, threshold)
     cube = similar(frame, N, size(frame)...)
-    for idx in axes(cube, 1)
+    Threads.@threads for idx in axes(cube, 1)
         cube[idx, :, :] .= derotate(_frame, -angles[idx]; kwargs...)
     end
     return cube

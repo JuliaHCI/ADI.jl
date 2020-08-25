@@ -6,10 +6,11 @@ using HCIToolbox
 """
     contrast_curve
 """
-function contrast_curve(design::ALG,
-                        cube=design.cube,
-                        angles=design.angles,
-                        psf;
+function contrast_curve(alg,
+                        cube,
+                        angles,
+                        psf,
+                        args...;
                         fwhm,
                         starphot=1,
                         sigma=5,
@@ -17,10 +18,9 @@ function contrast_curve(design::ALG,
                         theta=0,
                         inner_rad=1,
                         fc_snr=100,
-                        transmission=nothing) where {ALG<:ADIDesign}
+                        transmission=nothing)
 
-
-
+    nothing
 end
 
 """
@@ -70,7 +70,7 @@ function throughput(alg,
             inject!(cube_fake_comps, psf, angles; A=A, r=r, theta=t, kwargs...)
             inject!(fake_comps, psf; A=A, r=r, theta=t, kwargs...)
             
-            CircularAperture(r .* sincosd(t) .+ center_, fwhm)
+            CircularAperture(reverse(r .* sincosd(t) .+ center_), fwhm)
         end
         reduced = alg(cube_fake_comps, angles; kwargs...)
         injected_flux = aperture_photometry(apertures, fake_comps).aperture_sum
@@ -87,7 +87,7 @@ end
 
 function noise_per_annulus(frame::AbstractMatrix, separation, fwhm; r0=fwhm)
     cy, cx = center(frame)
-    n_annuli = floor(int, (cy - r0) / separation) - 1
+    n_annuli = floor(Int, (cy - r0) / separation) - 1
     
     noise_ann = Vector{Float64}(undef, n_annuli)
     radii = Vector{Float64}(undef, n_annuli)
@@ -98,7 +98,7 @@ function noise_per_annulus(frame::AbstractMatrix, separation, fwhm; r0=fwhm)
         y = cy + r
         
         # find coordinates 
-        npoints = 2 * π * r / fwhm
+        npoints = floor(Int, 2 * π * r / fwhm)
 
         apertures = map(range(0, 360, length=npoints)) do theta
             y, x = r .* sincosd(theta)
@@ -108,8 +108,8 @@ function noise_per_annulus(frame::AbstractMatrix, separation, fwhm; r0=fwhm)
         end
         
         fluxes = aperture_photometry(apertures, frame).aperture_sum
-        noise_ann[i] = std(fluxes)
-        radii[i] = r
+        noise_ann[i + 1] = std(fluxes)
+        radii[i + 1] = r
     end
     return noise_ann, radii
 end
