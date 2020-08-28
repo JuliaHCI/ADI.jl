@@ -25,13 +25,13 @@ end
 
 GreeDS(alg=PCA(); threshold=0.0, progress=true) = GreeDS(alg, threshold, progress)
 
-function decompose(alg::GreeDS, cube, angles; kwargs...)
+function decompose(alg::GreeDS, cube, angles, cube_ref=cube; kwargs...)
     # get the number of components as a range from the underlying alg
     max_ncomps = isnothing(alg.alg.ncomps) ? size(cube, 1) : alg.alg.ncomps
     # use the underlyhing algorithm with a lens for further processing
     _alg = alg.alg
     _alg = @set _alg.ncomps = 1
-    reduced = _alg(cube, angles)
+    reduced = _alg(cube, angles, cube_ref)
     local basis, weights
     @progress for n in 1:max_ncomps
         resid = cube .- pairet_theta(reduced, angles, alg.threshold; kwargs...)
