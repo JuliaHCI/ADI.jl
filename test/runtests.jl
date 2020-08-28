@@ -9,5 +9,5 @@ rng = StableRNG(8799)
 
 @testset "Median" begin include("median.jl") end
 @testset "PCA" begin include("pca.jl") end
-@testset "Pairet" begin include("pairet.jl") end
+@testset "GreeDS" begin include("greeds.jl") end
 
