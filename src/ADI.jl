@@ -11,7 +11,9 @@ export reconstruct,
        decompose,
        Median,
        PCA,
-       GreeDS
+       GreeDS,
+       TPCA,
+       NMF
 
 """
     ADI.ADIAlgorithm <: Function
@@ -83,6 +85,7 @@ end
 # The core decomposition routines
 include("pca.jl")
 include("greeds.jl")
+include("nmf.jl")
 
 using Reexport
 
