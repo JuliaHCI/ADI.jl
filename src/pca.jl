@@ -66,8 +66,6 @@ If `ncomps` is `nothing`, it will be set to the number of frames in the referenc
     ncomps::Union{Int,Nothing} = nothing
 end
 
-TPCA(ncomps) = TPCA(;ncomps=ncomps)
-
 function decompose(alg::TPCA, cube, angles, cube_ref=cube; kwargs...)
     X = flatten(cube)
     X_ref = flatten(cube_ref)
