@@ -20,7 +20,7 @@ From Julia enter Pkg mode
 ```julia
 julia>]
 
-(@1.5) pkg> add ADI
+(@v1.5) pkg> add ADI
 ```
 
 ## License

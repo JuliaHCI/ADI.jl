@@ -18,7 +18,7 @@ From the Julia REPL
 ```julia
 julia> ]
 
-(v1.5) pkg> add ADI
+(@v1.5) pkg> add ADI
 ```
 
 ## Usage
