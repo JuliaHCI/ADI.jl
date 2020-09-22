@@ -1,14 +1,20 @@
 using Statistics
 using LinearAlgebra
+using TSVD: tsvd
 
 
 """
-    PCA(;ncomps=nothing, pratio=1)
+    PCA(;ncomps=nothing, pratio=1) <: LinearAlgorithm
+
+Use principal components analysis (PCA) to form a low-rank orthonormal basis of the input. Uses deterministic singular-value decomposition (SVD) to decompose data.
 
 If `ncomps` is `nothing`, it will be set to the number of frames in the reference cube when processed.
 
 # References
 * [Soummer, Pueyo, and Larkin (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...755L..28S) "Detection and Characterization of Exoplanets and Disks Using Projections on Karhunen-Loève Eigenimages"
+
+# Implements
+* [`decompose`](@ref)
 """
 @with_kw struct PCA <: LinearAlgorithm
     ncomps::Union{Int,Nothing} = nothing
@@ -41,4 +47,36 @@ function decompose(alg::PCA, cube, angles, cube_ref=cube; kwargs...)
     weights = P * X'
 
     return P, weights
+end
+
+"""
+    TPCA(;ncomps=nothing) <: LinearAlgorithm
+
+Perform principal components analysis (PCA) using truncated SVD (TSVD; provided by TSVD.jl) instead of deterministic SVD. This is often faster thant [`PCA`](@ref) but is non-determinstic. We find the differences unnoticable in practice.
+
+If `ncomps` is `nothing`, it will be set to the number of frames in the reference cube when processed.
+
+# Implements
+* [`decompose`](@ref)
+
+# See Also
+* [`PCA`](@ref), [`TSVD.tsvd`](https://julialinearalgebra.github.io/TSVD.jl/latest/)
+"""
+@with_kw struct TPCA <: LinearAlgorithm
+    ncomps::Union{Int,Nothing} = nothing
+end
+
+function decompose(alg::TPCA, cube, angles, cube_ref=cube; kwargs...)
+    X = flatten(cube)
+    X_ref = flatten(cube_ref)
+    k = isnothing(alg.ncomps) ? size(cube, 1) : alg.ncomps
+    k > size(cube, 1) && error("ncomps ($k) cannot be greater than the number of frames ($(size(cube, 1)))")
+    A = _tsvd_projection(X_ref, k) # type instability 
+    w = A * X'
+    return A, w
+end
+
+function _tsvd_projection(X_ref, k)
+    U, Σ, V = tsvd(X_ref, k)
+    return V'
 end

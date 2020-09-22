@@ -2,7 +2,7 @@ using ProgressLogging
 using Setfield
 
 """
-    GreeDS(alg=PCA(); threshold=0.0, progress=true)
+    GreeDS(alg=TPCA(); threshold=0.0, progress=true)
 
 Performs the greedy disk subtraction (GreeDS) algorithm.
 
@@ -11,7 +11,7 @@ This method is an iterative approach to standard ADI reduction which seeks to mi
 For large data cubes the iteration can cause slowdowns, so a progress bar is provided using the [`ProgressLogging`](https://github.com/JunoLab/ProgressLogging.jl) API along with the `progress` keyword. It won't appear without a logging backend, such as [`TerminalLoggers`](https://github.com/c42f/TerminalLoggers.jl).
 
 # Algorithms
-Although the original paper explicitly uses PCA, we allow use of any linear ADI algorithm that is characterized by `ncomps`. By default, uses [`PCA`](@ref).
+Although the original paper explicitly uses PCA, we allow use of any linear ADI algorithm that is characterized by `ncomps`. By default, uses [`TPCA`](@ref).
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
@@ -23,34 +23,36 @@ struct GreeDS{ALG<:LinearAlgorithm} <: LinearAlgorithm
     progress::Bool
 end
 
-GreeDS(alg=PCA(); threshold=0.0, progress=true) = GreeDS(alg, threshold, progress)
+GreeDS(alg=TPCA(); threshold=0.0, progress=true) = GreeDS(alg, threshold, progress)
+GreeDS(ncomps::Int; kwargs...) = GreeDS(TPCA(ncomps); kwargs...)
 
 function decompose(alg::GreeDS, cube, angles, cube_ref=cube; kwargs...)
+    target = expand(cube)
     # get the number of components as a range from the underlying alg
-    max_ncomps = isnothing(alg.alg.ncomps) ? size(cube, 1) : alg.alg.ncomps
+    max_ncomps = isnothing(alg.alg.ncomps) ? size(target, 1) : alg.alg.ncomps
     # use the underlyhing algorithm with a lens for further processing
     _alg = alg.alg
     _alg = @set _alg.ncomps = 1
-    reduced = _alg(cube, angles, cube_ref)
-    local basis, weights
+    reduced = _alg(target, angles, cube_ref)
+    local design
     @progress for n in 1:max_ncomps
-        resid = cube .- pairet_theta(reduced, angles, alg.threshold; kwargs...)
+        resid = target .- expand_rotate(reduced, angles, alg.threshold; kwargs...)
         # use lens to update number of components
         _alg = @set _alg.ncomps = n
         # use the `resid` cube as the reference frames for the next reduction
-        basis, weights = decompose(_alg, cube, angles, resid; kwargs...)
-        recon = weights' * basis |> expand
-        reduced = collapse!(cube .- recon, angles; kwargs...)
+        design = decompose(_alg, target, angles, resid; kwargs...)
+        recon = reconstruct(_alg, design...)
+        reduced = collapse!(target .- recon, angles; kwargs...)
     end
-    return basis, weights
+    return design
 end
 
 """
-    pairet_theta(frame, angles, threshold; kwargs...)
+    expand_rotate(frame, angles, threshold; kwargs...)
 
 Takes a frame, expands it into a cube, rotates it clockwise by `angles`, and min-clips at `threshold`. Keyword arguments will be passed to `HCIToolbox.derotate!`.
 """
-function pairet_theta(frame, angles, threshold; kwargs...)
+function expand_rotate(frame, angles, threshold; kwargs...)
     N = length(angles)
     _frame = @. ifelse(frame > threshold, frame, threshold)
     cube = similar(frame, N, size(frame)...)

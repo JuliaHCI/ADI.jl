@@ -11,7 +11,9 @@ export reconstruct,
        decompose,
        Median,
        PCA,
-       GreeDS
+       GreeDS,
+       TPCA,
+       NMF
 
 """
     ADI.ADIAlgorithm <: Function
@@ -21,9 +23,10 @@ This abstract type is used for defining ADI algorithms. See the extended help (`
 # Extended help
 ## Interface
 To extend `ADIAlgorithm` you may implement the following
+
 | function | default | description |
 |----------|---------|-------------|
-| `ADI.reconstruct` | | Subroutine for creating the full reconstructed cube with the PSF |
+| [`reconstruct`](@ref) | | Subroutine for creating the full reconstructed cube with the PSF |
 | `(::ADIAlgorithm)` | subtracts output of `reconstruct`, then derotates and collapses | Subroutine for returning the reduced residual cube |
 """
 abstract type ADIAlgorithm <: Function end
@@ -59,8 +62,8 @@ To extend `LinearAlgorithm` you may implement the following
 
 | function | default | description |
 |----------|---------|-------------|
-| `ADI.fit` | | Subroutine for fitting the linear basis and coefficients as unrolled matrices |
-| `ADI.reconstruct` | Computes the inner product of the design matrix and weights from `decompose` | Subroutine for creating the full reconstructed cube with the PSF |
+| [`decompose`](@ref) | | Subroutine for fitting the linear basis and coefficients as unrolled matrices |
+| [`reconstruct`](@ref) | Computes the inner product of the design matrix and weights from `decompose` | Subroutine for creating the full reconstructed cube with the PSF |
 | `(::LinearAlgorithm)` | subtracts output of `reconstruct`, then derotates and collapses | Subroutine for returning the reduced residual cube |
 """
 abstract type LinearAlgorithm <: ADIAlgorithm end
@@ -83,6 +86,7 @@ end
 # The core decomposition routines
 include("pca.jl")
 include("greeds.jl")
+include("nmf.jl")
 
 using Reexport
 
