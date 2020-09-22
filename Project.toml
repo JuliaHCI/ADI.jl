@@ -1,7 +1,7 @@
 name = "ADI"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"
 authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
-version = "0.2.1"
+version = "0.3.0"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"

@@ -9,7 +9,7 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        A, w = @inferred decompose(NMF(ncomps=N), data, angles)
+        A, w = decompose(NMF(ncomps=N), data, angles)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (N, 30)
     end

@@ -18,7 +18,7 @@ From Julia enter Pkg mode
 ```julia
 julia>]
 
-(1.3) pkg> add https://github.com/juliahci/ADI.jl
+(@1.5) pkg> add ADI
 ```
 
 ## License
