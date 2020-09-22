@@ -70,8 +70,13 @@ function decompose(alg::TPCA, cube, angles, cube_ref=cube; kwargs...)
     X = flatten(cube)
     X_ref = flatten(cube_ref)
     k = isnothing(alg.ncomps) ? size(cube, 1) : alg.ncomps
-    _, _, P = tsvd(X_ref, k)
-    A = P'
+    k > size(cube, 1) && error("ncomps ($k) cannot be greater than the number of frames ($(size(cube, 1)))")
+    A = _tsvd_projection(X_ref, k) # type instability 
     w = A * X'
     return A, w
+end
+
+function _tsvd_projection(X_ref, k)
+    U, Σ, V = tsvd(X_ref, k)
+    return V'
 end

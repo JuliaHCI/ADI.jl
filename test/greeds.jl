@@ -1,9 +1,8 @@
 
 @testset "Interface" begin
-    @test GreeDS().alg == PCA()
+    @test GreeDS().alg == TPCA()
     @test GreeDS().threshold == 0
-
-    @test GreeDS(PCA(5)).alg == PCA(5)
+    @test GreeDS(7).alg == TPCA(7)
 end
 
 @testset "Decomposition" begin
@@ -45,4 +44,22 @@ end
     # not supported for GreeDS alg
     S = data .- reconstruct(GreeDS(PCA(1)), data, angles, zeros(10, 101, 101))
     @test S ≈ data rtol=2e-1
+end
+
+@testset "Decomposition - TPCA" begin
+    data = 4 .* randn(rng, 30, 101, 101) .+ 10
+    angles = sort!(90randn(rng, 30)) |> normalize_par_angles
+
+    # get sizes correct for ncomps
+    for N in [1, 3, 5]
+        # A, w = @inferred decompose(GreeDS(TPCA(N)), data, angles)
+        A, w = decompose(GreeDS(TPCA(N)), data, angles)
+        @test size(A) == (N, 101 * 101)
+        @test size(w) == (N, 30)
+    end
+    @test_throws ErrorException decompose(GreeDS(TPCA(40)), data, angles)
+
+    # default is to use whole cube
+    S = reconstruct(GreeDS(), data, angles)
+    @test size(S) == (30, 101, 101)
 end
