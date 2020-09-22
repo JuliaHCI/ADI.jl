@@ -1,8 +1,8 @@
 
 @testset "Interface" begin
-    @test GreeDS().alg == TPCA()
+    @test GreeDS().alg == PCA()
     @test GreeDS().threshold == 0
-    @test GreeDS(7).alg == TPCA(7)
+    @test GreeDS(7).alg == PCA(7)
 end
 
 @testset "Decomposition" begin
