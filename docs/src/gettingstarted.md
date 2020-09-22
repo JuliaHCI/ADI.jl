@@ -1,12 +1,12 @@
 # Getting Started
 
-Here is a quick-start guide for people familiar with ADI and experience using tools like [VIP]() or [PyKLIP](). 
+Here is a quick-start guide for people familiar with ADI and experience using tools like [VIP](https://github.com/vortex-exoplanet/VIP) or [PyKLIP](https://pyklip.readthedocs.io/en/latest/).
 
 ## Expected Data Formats
 
 ### ADI Cube
 
-For standard ADI data, we store the values in a 3-dimensional array, where the first dimension is temporal, and the remaining dimensions are pixel coordinates. This is how most ADI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor. 
+For standard ADI data, we store the values in a 3-dimensional array, where the first dimension is temporal, and the remaining dimensions are pixel coordinates. This is how most ADI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor.
 
 ## Algorithms
 
@@ -35,7 +35,7 @@ The process for producing the flat, residual frame follows this general workflow
 1. Create a cube of the speckle approximation, `S`
 2. Subtract `S` from the data cube to create the residual cube `R`
 3. Derotate `R` frame-by-frame according to the parallactic angle
-4. Collapse the derotated `R` 
+4. Collapse the derotated `R`
 
 In ADI.jl this process looks like this:
 
@@ -58,7 +58,7 @@ Notice how the only part of this specific to the algorithm is [`reconstruct`](@r
 
 For certain types of ADI algorithms, a convenient linear form is used for the speckle approximation
 ```math
-S \approx \mathbf{w} \cdot \mathbf{A}
+\mathbf{S} \approx \mathbf{w} \cdot \mathbf{A}
 ```
 Algorithms which share this attribute share the abstract type `ADI.LinearAlgorithm`, and we can retrieve these two matrices via [`decompose`](@ref).
 
