@@ -9,6 +9,9 @@ For now, here is a dump of all documented functions and types.
 
 ## API/Reference
 
-```@autodocs
-Modules = [ADI]
+```@docs
+ADI.ADIAlgorithm
+ADI.LinearAlgorithm
+reconstruct
+decompose
 ```

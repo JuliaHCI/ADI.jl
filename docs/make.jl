@@ -22,6 +22,14 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
+        "Getting Started" => "gettingstarted.md",
+        "Algorithms" => [
+            "algorithms/median.md",
+            "algorithms/pca.md",
+            "algorithms/nmf.md",
+            "algorithms/greeds.md"
+        ],
+        "Metrics" => "metrics.md",
         "API/Reference" => "api.md"
     ],
 )
