@@ -13,7 +13,9 @@ export reconstruct,
        PCA,
        GreeDS,
        TPCA,
-       NMF
+       NMF,
+       SingleSDI,
+       DoubleSDI
 
 """
     ADI.ADIAlgorithm <: Function
@@ -43,7 +45,7 @@ function reconstruct end
 
 Fully process an ADI data cube using [`reconstruct`](@ref) and collapsing the residuals. Keyword arguments will be passed to `HCIToolbox.collapse!`.
 """
-function (alg::ADIAlgorithm)(cube, angles, args...; kwargs...)
+function (alg::ADIAlgorithm)(cube::AbstractArray{T,3}, angles, args...; kwargs...) where T
     S = reconstruct(alg, cube, angles, args...; kwargs...)
     residual_cube = cube .- S
     return collapse!(residual_cube, angles; kwargs...)
@@ -73,7 +75,7 @@ abstract type LinearAlgorithm <: ADIAlgorithm end
 """
 function decompose end
 
-function reconstruct(alg::LinearAlgorithm, cube, angles, args...; kwargs...)
+function reconstruct(alg::LinearAlgorithm, cube::AbstractArray{T,3}, angles, args...; kwargs...) where T
     # assumed sizes are (n, Npx) (n, M)
     basis, weights = decompose(alg, cube, angles, args...; kwargs...)
     return reconstruct(alg, basis, weights; kwargs...)
@@ -87,6 +89,7 @@ end
 include("pca.jl")
 include("greeds.jl")
 include("nmf.jl")
+include("sdi.jl")
 
 using Reexport
 
