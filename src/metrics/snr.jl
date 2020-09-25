@@ -7,34 +7,33 @@ using StatsBase: mad
 using HCIToolbox: get_annulus_segments
 
 """
-    snrmap(data, fwhm; method=:exact)
+    detectionmap([method=snr], data, fwhm; fill=0)
 
-Parallel implementation of signal-to-noise ratio (SNR, S/N) applied to each pixel in the input image.
+Parallel implementation of arbitrary detection mapping applied to each pixel in the input image. Any invalid values will be set to `fill`.
 
-
-
-### SNR Methods
-* `:exact` - Uses [`snr`](@ref) to get the exact SNR using student t statistics (small samples penalty)
-* `:approx` - Convolves the input by a tophat kernel before using [`snr_approx!`](@ref) to approximate the student t statistics (small samples penalty).
+The following methods are provided in the [`Metrics`](@ref) module:
+* [`snr`](@ref) - signal-to-noise ratio (S/N) using student-t statistics to account for small sample penalty.
+* [`significance`](@ref) - Gaussian signifance using student-t statistics to account for samll sample penalty.
 
 !!! tip
     This code is automatically multi-threaded, so be sure to set `JULIA_NUM_THREADS` before loading your runtime to take advantage of it!
 """
-function snrmap(data::AbstractMatrix{T}, fwhm; method=:exact) where T
-    out = fill!(similar(data), zero(T))
+function detectionmap(method, data::AbstractMatrix{T}, fwhm; fill=zero(T)) where T
+    out = fill!(similar(data), fill)
     width = minimum(size(data)) / 2 - 1.5 * fwhm
-
-    data = _prepmatrix(Val(method), data, fwhm)
 
     masked = get_annulus_segments(data, fwhm/2 + 2, width, mode=:apply)
     coords = findall(!iszero, masked)
 
     Threads.@threads for coord in coords
-        @inbounds out[coord] = _snrfunc(Val(method))(data, coord, fwhm)
+        val = method(data, coord, fwhm)
+        @inbounds out[coord] = isfinite(val) ? val : fill
     end
     
     return out
 end
+
+detectionmap(data, fwhm) = detectionmap(snr, data, fwhm)
 
 """
     snr(data, position, fwhm)
@@ -50,7 +49,7 @@ function snr(data::AbstractMatrix, position, fwhm)
     x, y = position
     cy, cx = center(data)
     separation = sqrt((x - cx)^2 + (y - cy)^2)
-    @assert separation > fwhm / 2 + 1 "`position` is too close to the frame center"
+    separation > fwhm / 2 + 1 || return NaN
 
     θ = 2asin(fwhm / 2 / separation)
     N = floor(Int, 2π / θ)
@@ -80,76 +79,10 @@ end
 
 snr(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, (idx.I[2], idx.I[1]), fwhm)
 
-
 """
-    snr_approx!(data, position, fwhm)
+    significance(data, position, fwhm)
 
-In-place version of [`snr_approx`](@ref) which modifies `data`.
-"""
-function snr_approx!(data::AbstractMatrix, position, fwhm)
-    x, y = position
-    cy, cx = center(data)
-    separation = sqrt((x - cx)^2 + (y - cy)^2)
-    
-    aper_ind = circle_index((y, x), fwhm/2)
-    ann_ind = annulus_index(floor.(Int, (cy, cx)), floor(Int, separation))
-
-    peak = data[y, x]
-
-    data[aper_ind] .= mad(data[ann_ind], normalize=false)
-    N = 2π * separation / fwhm - 1
-    noise = std(data[ann_ind], corrected=false) * sqrt(1 + 1/N)
-    signal = peak - mean(data[ann_ind])
-    return signal / noise
-end
-
-snr_approx!(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr_approx!(data, (idx.I[2], idx.I[1]), fwhm)
-
-"""
-    snr_approx(data, position, fwhm)
-
-Calculates an approximate signal to noise ratio (SNR, S/N) for a test point at `position` using apertures of diameter `fwhm` in a residual frame.
-
-Applies the small sample statistics penalty the same as [`snr`](@ref). Data is assumed to have been filtered using a 2D top-hat kernel already (automatically done if called via [`snrmap`](@ref))
-
-!!! note
-    SNR is not equivalent to significance, use [`significance`](@ref) instead.
-"""
-snr_approx(data, position, fwhm) = snr_approx!(deepcopy(data), position, fwhm)
-
-## These methods need to be below function definitions
-# no prep needed for exact method
-_prepmatrix(::Val{:exact}, data, fwhm) = data
-# applies a 2D top-hat filter with radius fwhm/2
-# TODO watch for imagefiltering merge and switch when that happens
-function _prepmatrix(::Val{:approx}, data, fwhm)
-    sz = _round_up_to_odd_integer(fwhm)
-    kern = similar(data, sz, sz)
-    ctr = center(kern)
-    for idx in CartesianIndices(kern)
-        d = sqrt((idx[1] - ctr[1])^2 + (idx[2] - ctr[2])^2)
-        kern[idx] = d < fwhm/2 ? 1 : 0
-    end
-    kern ./= sum(kern)
-    return imfilter(data, centered(kern), Fill(0))
-end
-
-function _round_up_to_odd_integer(value)
-    i = ceil(Int, value)
-    return iseven(i) ? i + 1 : i
-end
-
-
-_snrfunc(::Val{:exact}) = snr
-_snrfunc(::Val{:approx}) = snr_approx!
-
-## 
-
-
-"""
-    significance(snr::AbstractMatrix, fwhm)
-
-Calculates the Gaussian significance from the signal-to-noise ratio (SNR, S/N).
+Calculates the Gaussian significance from the signal-to-noise ratio (SNR, S/N) for a test point at `position` using apertures of diameter `fwhm` in a residual frame.
 
 The Gaussian signifiance is calculated from converting the SNR confidence limit from a student t distribution to a Gaussian via
 
@@ -158,49 +91,25 @@ The Gaussian signifiance is calculated from converting the SNR confidence limit 
 where the degrees of freedom ``\\nu`` is given as ``2\\pi r / \\Gamma - 2`` where r is the radial distance of each pixel from the center of the frame.
 
 # See Also
-[`snrmap`](@ref)
+[`snr`](@ref)
 """
-function significance(snr::AbstractMatrix, fwhm)
-    ys, xs = axes(snr)
-    cy, cx = center(snr)
+function significance(data::AbstractMatrix, position, fwhm)
+    x, y = position
+    cy, cx = center(data)
+    separation = sqrt((x - cx)^2 + (y - cy)^2)
+    _snr = snr(data, position, fwhm)
     # put in one line to allow broadcast fusion
-    return @. snr_to_sig(snr, sqrt((xs' - cx)^2 + (ys - cy)^2), fwhm)
+    return snr_to_sig(snr, separation, fwhm)
 end
+significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, (idx.I[2], idx.I[1]), fwhm)
 
-snr_to_sig(snr, separation, fwhm) = @. quantile(Normal(), cdf(TDist(2π * separation / fwhm .- 2), Float64(snr)))
-sig_to_snr(sig, separation, fwhm) = @. quantile(TDist(2π * separation / fwhm.- 2), cdf(Normal(), Float64(sig)))
-
-# equivalent to skimage.draw.circle
-function circle_index(center, r)
-    upper_left = @. ceil(Int, center - r)
-    lower_right = @. floor(Int, center + r)
-    shape = @. lower_right - upper_left
-    shift_center = @. center - upper_left
-    rows = Base.OneTo(shape[1]) .- shift_center[1]
-    cols = Base.OneTo(shape[2]) .- shift_center[2]
-    dist = @. (rows / r)^2 + (cols' / r)^2
-    idxs = findall(v -> v < 1, dist)
-    return [idx + CartesianIndex(upper_left...) for idx in idxs]
+function snr_to_sig(snr, separation, fwhm)
+    dof = 2 * π * separation / fwhm - 2
+    dof > 0 || return NaN
+    return quantile(Normal(), cdf(TDist(dof), Float64(snr)))
 end
-
-# equivalent to skimage.draw.circle_perimiter using the Bresenham method
-function annulus_index(center, r)
-    d = 3 - 2r
-    
-    row, col = r, 0
-    rows = Int[]
-    cols = Int[]
-    while row ≥ col
-        push!(rows, row, -row, row, -row, col, -col, col, -col)
-        push!(cols, col, col, -col, -col, row, row, -row, -row)
-
-        if d < 0
-            d += 4col + 6
-        else
-            d += 4 * (col - row) + 10
-            row -= 1
-        end
-        col += 1
-    end
-    return @. CartesianIndex(rows + center[1], cols + center[2])
+function sig_to_snr(sig, separation, fwhm)
+    dof = 2 * π * separation / fwhm - 2
+    dof > 0 || return NaN
+    return quantile(TDist(dof), cdf(Normal(), Float64(sig)))
 end

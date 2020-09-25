@@ -5,10 +5,8 @@ This module provides code for analyzing the results from ADI in a way that is in
 """
 module Metrics
 
-export snr,
-       snr_approx,
-       snr_approx!,
-       snrmap,
+export detectionmap,
+       snr,
        significance
 
 include("contrast.jl")
