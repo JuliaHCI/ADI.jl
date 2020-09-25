@@ -40,6 +40,9 @@ end
 (alg::ADIAlgorithm)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where {T} =
     SingleSDI(alg)(spcube, angles, scales; kwargs...)
 
+(alg::ADIAlgorithm)(spcube::AbstractArray{T,4}, angles, scales, spcube_ref; kwargs...) where {T} =
+    SingleSDI(alg)(spcube, angles, scales, spcube_ref; kwargs...)
+
 function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
     nλ, n, ny, nx = size(spcube)
     frame_size = (ny, nx)
@@ -47,6 +50,21 @@ function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...)
 
     # do single-pass reconstruction
     S = reconstruct(sdi.alg, big_cube, repeat(angles, inner=nλ); kwargs...)
+    big_resid_cube = big_cube .- S
+    # bin across spectral dim
+    resid_cube = invscale_and_collapse(big_resid_cube, scales, frame_size)
+    # derotate and combine
+    return collapse!(resid_cube, angles; kwargs...)
+end
+
+function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales, spcube_ref; kwargs...) where T
+    nλ, n, ny, nx = size(spcube)
+    frame_size = (ny, nx)
+    big_cube = scale_and_stack(spcube, scales)
+    big_cube_ref = scale_and_stack(spcube_ref, scales)
+
+    # do single-pass reconstruction
+    S = reconstruct(sdi.alg, big_cube, repeat(angles, inner=nλ), big_cube_ref; kwargs...)
     big_resid_cube = big_cube .- S
     # bin across spectral dim
     resid_cube = invscale_and_collapse(big_resid_cube, scales, frame_size)
@@ -86,6 +104,24 @@ function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...)
         cube = @view spcube[:, n, :, :]
         scaled_cube = scale(cube, scales)
         S = reconstruct(sdi.alg_spec, scaled_cube, Fill(angles[n], nλ); kwargs...)
+        spec_resid = invscale(scaled_cube .- S, scales, frame_size)
+        spec_resids[n, :, :] .= collapse(spec_resid)
+    end
+    # do second pass in temporal domain
+    return sdi.alg_temp(spec_resids, angles; kwargs...)
+end
+
+function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales, spcube_ref; kwargs...) where T
+    nλ, n, ny, nx = size(spcube)
+    frame_size = (ny, nx)
+    spec_resids = similar(spcube, n, ny, nx)
+    # do first pass in spectral domain
+    Threads.@threads for n in axes(spcube, 2)
+        cube = @view spcube[:, n, :, :]
+        cube_ref = @view spcube_ref[:, n, :, :]
+        scaled_cube = scale(cube, scales)
+        scaled_cube_ref = scale(cube_ref, scales)
+        S = reconstruct(sdi.alg_spec, scaled_cube, Fill(angles[n], nλ), scaled_cube_ref; kwargs...)
         spec_resid = invscale(scaled_cube .- S, scales, frame_size)
         spec_resids[n, :, :] .= collapse(spec_resid)
     end

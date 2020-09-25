@@ -13,6 +13,7 @@ rng = StableRNG(8799)
 @testset "NMF" begin include("nmf.jl") end
 @testset "GreeDS" begin include("greeds.jl") end
 
-
 @testset "Metrics" begin include("metrics.jl") end
+
+@testset "SDI" begin include("sdi.jl") end
 
