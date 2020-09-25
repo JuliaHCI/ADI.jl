@@ -1,21 +1,42 @@
 using FillArrays
 
+"""
+    ADI.SDIAlgorithm <: ADI.ADIAlgorithm
+
+Spectral differential imaging (SDI) algorithms. These work on 4-D SDI tensors. To use these algorithms, simply treat them like functions
+
+```julia
+(::SDIAlgorithm)(data::AbstractArray{T,4}, angles, scales; kwargs...)
+(::SDIAlgorithm)(data::AbstractArray{T,4}, angles, data_ref, scales; kwargs...)
+```
+
+# Algorithms
+
+The current SDI implementations are
+* [`SingleSDI`](@ref)
+* [`DoubleSDI`](@ref)
+"""
 abstract type SDIAlgorithm <: ADIAlgorithm end
 
 """
     SingleSDI(alg)
 
 A wrapper algorithm for spectral differential imaging (SDI) data reduced in a single pass. This means that each channel will be scaled and then concatenated together, so an SDI tensor `(nλ, nf, y, x)` becomes a stack `(nλ * nf, y, x)` which is processed by the underlying `alg` like ADI data.
+
+!!! tip
+    `SingleSDI` is the default SDI mode. This means instead of writing
+    ```julia
+    SingleSDI(PCA(15))(data, angles, scales)
+    ```
+    you can just write
+    ```julia
+    PCA(15)(data, angles, scales)
+    ```
 """
 struct SingleSDI{ALG<:ADIAlgorithm} <: SDIAlgorithm
     alg::ALG
 end
 
-"""
-    (::ADIAlgorithm)(spcube::AbstractArray{T,4}, angles, scales; kwargs...)
-
-When passing an SDI tensor, the algorithm will be converted to single-pass SDI algorithm [`SingleSDI`](@ref)
-"""
 (alg::ADIAlgorithm)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where {T} =
     SingleSDI(alg)(spcube, angles, scales; kwargs...)
 

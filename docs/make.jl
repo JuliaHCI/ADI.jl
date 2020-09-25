@@ -29,6 +29,7 @@ makedocs(;
             "algorithms/nmf.md",
             "algorithms/greeds.md"
         ],
+        "SDI" => "sdi.md",
         "Metrics" => "metrics.md",
         "API/Reference" => "api.md"
     ],
