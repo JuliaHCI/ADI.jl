@@ -2,9 +2,9 @@ using ImageTransformations: center
 using Photometry
 using Distributions
 using Statistics
-using ImageFiltering
-using StatsBase: mad
 using HCIToolbox: get_annulus_segments
+using StaticArrays
+using Rotations
 
 """
     detectionmap([method=snr], data, fwhm; fill=0)
@@ -55,6 +55,7 @@ function snr(data::AbstractMatrix, position, fwhm)
     N = floor(Int, 2π / θ)
 
     sint, cost = sincos(θ)
+    R = RotMatrix{2}(θ)
     xs = similar(data, N)
     ys = similar(data, N)
 
@@ -65,19 +66,19 @@ function snr(data::AbstractMatrix, position, fwhm)
     @inbounds for idx in eachindex(xs)
         xs[idx] = rx + cx
         ys[idx] = ry + cy
-        rx, ry = cost * rx + sint * ry, cost * ry - sint * rx
+        rx, ry = R * SA[rx, ry]
     end
 
     r = fwhm / 2
 
     apertures = CircularAperture.(xs, ys, r)
-    fluxes = aperture_photometry(apertures, data, method=:exact).aperture_sum
+    fluxes = photometry(apertures, data).aperture_sum
     other_elements = @view fluxes[2:end]
     bkg_σ = std(other_elements) # ddof = 1 by default
     return (fluxes[1] - mean(other_elements)) / (bkg_σ * sqrt(1 + 1/(N - 1)))
 end
 
-snr(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, (idx.I[2], idx.I[1]), fwhm)
+snr(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, reverse(idx.I), fwhm)
 
 """
     significance(data, position, fwhm)
@@ -106,10 +107,10 @@ significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, (idx.I
 function snr_to_sig(snr, separation, fwhm)
     dof = 2 * π * separation / fwhm - 2
     dof > 0 || return NaN
-    return quantile(Normal(), cdf(TDist(dof), Float64(snr)))
+    return quantile(Normal(), cdf(TDist(dof), float(snr)))
 end
 function sig_to_snr(sig, separation, fwhm)
     dof = 2 * π * separation / fwhm - 2
     dof > 0 || return NaN
-    return quantile(TDist(dof), cdf(Normal(), Float64(sig)))
+    return quantile(TDist(dof), cdf(Normal(), float(sig)))
 end
