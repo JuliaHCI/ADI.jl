@@ -13,12 +13,12 @@ end
     for N in [1, 3, 5]
         A, w = @inferred decompose(GreeDS(PCA(ncomps=N)), data, angles)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (N, 30)
+        @test size(w) == (30, N)
     end
     @test_throws ErrorException decompose(GreeDS(PCA(40)), data, angles)
     A, w = decompose(PCA(30; pratio=0.5), data, angles)
     @test size(A, 1) < 30
-    @test size(w, 1) < 30
+    @test size(w, 2) < 30
 
     # default is to use whole cube
     S = reconstruct(GreeDS(PCA()), data, angles)
@@ -55,7 +55,7 @@ end
         # A, w = @inferred decompose(GreeDS(TPCA(N)), data, angles)
         A, w = decompose(GreeDS(TPCA(N)), data, angles)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (N, 30)
+        @test size(w) == (30, N)
     end
     @test_throws ErrorException decompose(GreeDS(TPCA(40)), data, angles)
 
@@ -72,7 +72,7 @@ end
     N = 3
     A, w = decompose(GreeDS(NMF(N)), data, angles)
     @test size(A) == (N, 101 * 101)
-    @test size(w) == (N, 10)
+    @test size(w) == (10, N)
 
     @test_throws ErrorException decompose(GreeDS(NMF(40)), data, angles)
 

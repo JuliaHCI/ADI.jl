@@ -17,7 +17,7 @@ function ADI.decompose(alg::NMF, cube, angles, cube_ref; kwargs...)
     _, H = nndsvd(X_ref, k)
     W = X * H'
     solve!(CoordinateDescent{eltype(X)}(maxiter=100, α=0), X, W, H)
-    return H, W'
+    return H, W
 end
 
 function ADI.decompose(alg::NMF, cube, angles; kwargs...)
@@ -27,5 +27,5 @@ function ADI.decompose(alg::NMF, cube, angles; kwargs...)
     k > size(cube, 1) && error("ncomps ($k) cannot be greater than the number of frames ($(size(cube, 1)))")
 
     res = nnmf(X, k; alg=:cd, init=:nndsvd, maxiter=100)
-    return res.H, res.W'
+    return res.H, res.W
 end

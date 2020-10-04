@@ -11,7 +11,7 @@ end
     for N in [1, 3, 5]
         A, w = decompose(NMF(ncomps=N), data, angles)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (N, 30)
+        @test size(w) == (30, N)
     end
     @test_throws ErrorException decompose(NMF(40), data, angles)
 

@@ -83,7 +83,7 @@ end
 
 function reconstruct(alg::LinearAlgorithm, basis::AbstractMatrix, weights::AbstractMatrix; kwargs...)
     # assumed sizes are (n, Npx) (n, M)
-    return weights' * basis |> expand
+    return weights * basis |> expand
 end
 # The core decomposition routines
 include("pca.jl")

@@ -89,8 +89,8 @@ function noise_per_annulus(frame::AbstractMatrix, separation, fwhm; r0=fwhm)
     cy, cx = center(frame)
     n_annuli = floor(Int, (cy - r0) / separation) - 1
     
-    noise_ann = Vector{Float64}(undef, n_annuli)
-    radii = Vector{Float64}(undef, n_annuli)
+    noise_ann = similar(frame, float(eltype(frame)), n_annuli)
+    radii = similar(frame, float(eltype(frame)), n_annuli)
 
 
     for i in 0:n_annuli-1
