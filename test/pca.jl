@@ -12,12 +12,12 @@ end
     for N in [1, 3, 5]
         A, w = @inferred decompose(PCA(ncomps=N), data, angles)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (N, 30)
+        @test size(w) == (30, N)
     end
     @test_throws ErrorException decompose(PCA(40), data, angles)
     A, w = decompose(PCA(30; pratio=0.5), data, angles)
     @test size(A, 1) < 30
-    @test size(w, 1) < 30
+    @test size(w, 2) < 30
 
     # default is to use whole cube
     S = reconstruct(PCA(), data, angles)

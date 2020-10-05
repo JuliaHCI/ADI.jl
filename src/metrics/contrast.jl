@@ -73,8 +73,8 @@ function throughput(alg,
             CircularAperture(reverse(r .* sincosd(t) .+ center_), fwhm)
         end
         reduced = alg(cube_fake_comps, angles; kwargs...)
-        injected_flux = aperture_photometry(apertures, fake_comps).aperture_sum
-        recovered_flux = aperture_photometry(apertures, reduced .- reduced_empty).aperture_sum
+        injected_flux = photometry(apertures, fake_comps).aperture_sum
+        recovered_flux = photometry(apertures, reduced .- reduced_empty).aperture_sum
 
         throughput = recovered_flux ./ injected_flux
         @. throughput[throughput < 0] = 0
@@ -89,8 +89,8 @@ function noise_per_annulus(frame::AbstractMatrix, separation, fwhm; r0=fwhm)
     cy, cx = center(frame)
     n_annuli = floor(Int, (cy - r0) / separation) - 1
     
-    noise_ann = Vector{Float64}(undef, n_annuli)
-    radii = Vector{Float64}(undef, n_annuli)
+    noise_ann = similar(frame, float(eltype(frame)), n_annuli)
+    radii = similar(frame, float(eltype(frame)), n_annuli)
 
 
     for i in 0:n_annuli-1
@@ -107,7 +107,7 @@ function noise_per_annulus(frame::AbstractMatrix, separation, fwhm; r0=fwhm)
             CircularAperture(x, y, fwhm/2)
         end
         
-        fluxes = aperture_photometry(apertures, frame).aperture_sum
+        fluxes = photometry(apertures, frame).aperture_sum
         noise_ann[i + 1] = std(fluxes)
         radii[i + 1] = r
     end

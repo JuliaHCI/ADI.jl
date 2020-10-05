@@ -12,7 +12,7 @@ end
         # A, w = @inferred decompose(TPCA(N), data, angles) TODO type stability
         A, w = decompose(TPCA(N), data, angles)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (N, 30)
+        @test size(w) == (30, N)
     end
     @test_throws ErrorException decompose(TPCA(40), data, angles)
 

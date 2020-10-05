@@ -44,7 +44,7 @@ function decompose(alg::PCA, cube, angles, cube_ref=cube; kwargs...)
     # Get the principal components (principal subspace)
     P = decomp.Vt[1:nc, :]
     # reconstruct X using prinicipal subspace
-    weights = P * X'
+    weights = X * P'
 
     return P, weights
 end
@@ -72,7 +72,7 @@ function decompose(alg::TPCA, cube, angles, cube_ref=cube; kwargs...)
     k = isnothing(alg.ncomps) ? size(cube, 1) : alg.ncomps
     k > size(cube, 1) && error("ncomps ($k) cannot be greater than the number of frames ($(size(cube, 1)))")
     A = _tsvd_projection(X_ref, k) # type instability 
-    w = A * X'
+    w = X * A'
     return A, w
 end
 
