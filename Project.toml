@@ -1,7 +1,7 @@
 name = "ADI"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"
 authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
-version = "0.4.0"
+version = "0.4.1"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -23,7 +23,7 @@ TSVD = "9449cd9e-2762-5aa3-a617-5413e99d722e"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-Distributions = "0.23"
+Distributions = "0.23, 0.24"
 FillArrays = "0.9"
 HCIToolbox = "0.4"
 ImageTransformations = "0.8"
