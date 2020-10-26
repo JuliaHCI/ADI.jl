@@ -50,29 +50,27 @@ function snr(data::AbstractMatrix, position, fwhm)
     cy, cx = center(data)
     separation = sqrt((x - cx)^2 + (y - cy)^2)
     separation > fwhm / 2 + 1 || return NaN
+    r = fwhm / 2
 
-    θ = 2asin(fwhm / 2 / separation)
+    θ = 2 * asin(fwhm / 2 / separation)
     N = floor(Int, 2π / θ)
 
-    sint, cost = sincos(θ)
     R = RotMatrix{2}(θ)
-    xs = similar(data, N)
-    ys = similar(data, N)
 
     # initial points
     rx = x - cx
     ry = y - cy
 
-    @inbounds for idx in eachindex(xs)
-        xs[idx] = rx + cx
-        ys[idx] = ry + cy
+    fluxes = similar(data, N)
+
+    for idx in eachindex(fluxes)
+        ap_x = rx + cx
+        ap_y = ry + cy
         rx, ry = R * SA[rx, ry]
+        ap = CircularAperture(ap_x, ap_y, r)
+        fluxes[idx] = photometry(ap, data).aperture_sum
     end
-
-    r = fwhm / 2
-
-    apertures = CircularAperture.(xs, ys, r)
-    fluxes = photometry(apertures, data).aperture_sum
+    
     other_elements = @view fluxes[2:end]
     bkg_σ = std(other_elements) # ddof = 1 by default
     return (fluxes[1] - mean(other_elements)) / (bkg_σ * sqrt(1 + 1/(N - 1)))
