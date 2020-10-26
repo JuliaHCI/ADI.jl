@@ -29,7 +29,7 @@ function detectionmap(method, data::AbstractMatrix{T}, fwhm; fill=zero(T)) where
         val = method(data, coord, fwhm)
         @inbounds out[coord] = isfinite(val) ? val : fill
     end
-    
+
     return out
 end
 
@@ -70,7 +70,7 @@ function snr(data::AbstractMatrix, position, fwhm)
         ap = CircularAperture(ap_x, ap_y, r)
         fluxes[idx] = photometry(ap, data).aperture_sum
     end
-    
+
     other_elements = @view fluxes[2:end]
     bkg_σ = std(other_elements) # ddof = 1 by default
     return (fluxes[1] - mean(other_elements)) / (bkg_σ * sqrt(1 + 1/(N - 1)))
@@ -100,7 +100,7 @@ function significance(data::AbstractMatrix, position, fwhm)
     # put in one line to allow broadcast fusion
     return snr_to_sig(snr, separation, fwhm)
 end
-significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, (idx.I[2], idx.I[1]), fwhm)
+significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, reverse(idx.I), fwhm)
 
 function snr_to_sig(snr, separation, fwhm)
     dof = 2 * π * separation / fwhm - 2
@@ -112,3 +112,41 @@ function sig_to_snr(sig, separation, fwhm)
     dof > 0 || return NaN
     return quantile(TDist(dof), cdf(Normal(), float(sig)))
 end
+
+"""
+    noise(data, position, fwhm)
+
+Calculate the statistical noise for a test point at `position` using apertures of diameter `fwhm` in a residual frame.
+
+Uses the standard deviation of the apertures in the entire annulus. This is distinct from the [`snr`](@ref) noise calculation, which defines a confidence interval using student-t statistics. This means you cannot simply create a noise map and divide it from the signal to create an equivalent S/N map.
+"""
+function noise(data::AbstractMatrix, position, fwhm)
+    x, y = position
+    cy, cx = center(data)
+    separation = sqrt((x - cx)^2 + (y - cy)^2)
+    separation > fwhm / 2 + 1 || return NaN
+    r = fwhm / 2
+
+    θ = 2 * asin(fwhm / 2 / separation)
+    N = floor(Int, 2 * π / θ)
+
+    R = RotMatrix{2}(θ)
+
+    # initial points
+    rx = x - cx
+    ry = y - cy
+
+    fluxes = similar(data, N)
+
+    for idx in eachindex(fluxes)
+        ap_x = rx + cx
+        ap_y = ry + cy
+        rx, ry = R * SA[rx, ry]
+        ap = CircularAperture(ap_x, ap_y, r)
+        fluxes[idx] = photometry(ap, data).aperture_sum
+    end
+
+    return std(fluxes)
+end
+
+noise(data::AbstractMatrix, idx::CartesianIndex, fwhm) = noise(data, reverse(idx.I), fwhm)
