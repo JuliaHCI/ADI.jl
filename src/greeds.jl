@@ -27,24 +27,25 @@ GreeDS(alg=PCA(); threshold=0.0, progress=true) = GreeDS(alg, threshold, progres
 GreeDS(ncomps::Int; kwargs...) = GreeDS(PCA(ncomps); kwargs...)
 
 function decompose(alg::GreeDS, cube, angles, cube_ref=cube; kwargs...)
-    target = expand(cube)
+    target = expand(cube_ref)
     # get the number of components as a range from the underlying alg
     max_ncomps = isnothing(alg.alg.ncomps) ? size(target, 1) : alg.alg.ncomps
     # use the underlyhing algorithm with a lens for further processing
     _alg = alg.alg
     _alg = @set _alg.ncomps = 1
-    reduced = _alg(target, angles, cube_ref)
-    local design
+    reduced = _alg(target, angles)
+    local A
     @progress for n in 1:max_ncomps
         resid = target .- expand_rotate(reduced, angles, alg.threshold; kwargs...)
         # use lens to update number of components
         _alg = @set _alg.ncomps = n
         # use the `resid` cube as the reference frames for the next reduction
-        design = decompose(_alg, target, angles, resid; kwargs...)
-        recon = reconstruct(_alg, design...)
-        reduced = collapse!(target .- recon, angles; kwargs...)
+        A, w = decompose(_alg, target, angles, resid; kwargs...)
+        reduced = collapse!(target .- expand(w * A), angles; kwargs...)
     end
-    return design
+    # project target cube onto reference basis
+    w = flatten(cube) * A'
+    return A, w
 end
 
 """
