@@ -88,8 +88,9 @@ function contrast_curve(alg,
     _, cy, cx = center(cube)
     radii_subsample = (fwhm * inner_rad):(cy - fwhm / 2)
     noise_subsample = @. annulus_noise((reduced_empty,), fwhm, cy, cx, radii_subsample, theta)
+
     if smooth
-        window_size = min(length(noise_subsample) - 2, round(Int, 2 * fwhm)) ÷ 3
+        window_size = min(length(noise_subsample) - 2, round(Int, 2 * fwhm)) ÷ 4
         smooth_kernel = Kernel{(1-window_size:1+window_size,)}(mean ∘ skipmissing ∘ Tuple)
         noise_smoothed = map(smooth_kernel, extend(noise_subsample, StaticKernels.ExtensionConstant(missing)))
     else
