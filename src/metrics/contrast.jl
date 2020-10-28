@@ -4,6 +4,7 @@ using Photometry
 using HCIToolbox
 using Dierckx
 using ProgressLogging
+using StaticKernels
 
 """
     contrast_curve(alg,
@@ -42,6 +43,7 @@ The throughput can only be calculated for discrete resolution elements, but we t
 * `fc_rad_sep` - the separation between planets in FWHM for a single reduction
 * `snr` - the target signal to noise ratio of the injected planets
 * `k` - The order of the BSpline used for subsampling the throughput
+* `smooth` - If true, will do a simple moving average over the subsampled noise measurements
 
 !!! tip
     If you prefer a tabular format, simply pipe the output of this function into any type supporting the Tables.jl interface, e.g.
@@ -60,6 +62,7 @@ function contrast_curve(alg,
                         inner_rad=1,
                         k=2,
                         theta=0,
+                        smooth=true,
                         kwargs...)
 
     # measure the noise and throughput in consecutive resolution elements
@@ -85,12 +88,19 @@ function contrast_curve(alg,
     _, cy, cx = center(cube)
     radii_subsample = (fwhm * inner_rad):(cy - fwhm / 2)
     noise_subsample = @. annulus_noise((reduced_empty,), fwhm, cy, cx, radii_subsample, theta)
+    if smooth
+        window_size = min(length(noise_subsample) - 2, round(Int, 2 * fwhm)) ÷ 3
+        smooth_kernel = Kernel{(1-window_size:1+window_size,)}(mean ∘ skipmissing ∘ Tuple)
+        noise_smoothed = map(smooth_kernel, extend(noise_subsample, StaticKernels.ExtensionConstant(missing)))
+    else
+        noise_smoothed = noise_subsample
+    end
 
     @info "Calculating contrast"
 
     through_subsample = Spline1D(meta.distance, through_mean, k=k)(radii_subsample)
 
-    unit_contrast = @. noise_subsample / (through_subsample * starphot)
+    unit_contrast = @. noise_smoothed / (through_subsample * starphot)
     contrast = @. sigma * unit_contrast
     @. contrast[!(0 ≤ contrast ≤ 1)] = NaN
 
@@ -104,13 +114,17 @@ function contrast_curve(alg,
             throughput=through_subsample,
             contrast=contrast,
             contrast_corr=contrast_corr,
-            noise=noise_subsample)
+            noise=noise_smoothed)
 end
 
 function correction_factor(radius, fwhm, sigma)
     n_res_els = 2 * π * radius ÷ fwhm
     ss_corr = sqrt(1 + 1 / (n_res_els - 1))
     return quantile(TDist(n_res_els), cdf(Normal(), sigma)) * ss_corr
+end
+
+function smooth(x, y)
+
 end
 
 """
