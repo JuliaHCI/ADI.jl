@@ -8,6 +8,7 @@ module Metrics
 export detectionmap,
        snr,
        significance,
+       noise,
        contrast_curve,
        throughput
 

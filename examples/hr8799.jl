@@ -89,6 +89,7 @@ plot(
     [cc[:contrast_corr] cc[:contrast]],
     ls=[:solid :dash],
     c=1,
+    yscale=:log10,
     label=["Student-t" "Gaussian"],
     ylabel="5-sigma contrast",
     xlabel="radius [px]"
@@ -109,6 +110,7 @@ plot(
     [cc_no_comp[:contrast_corr] cc_no_comp[:contrast]],
     ls=[:solid :dash],
     c=1,
+    yscale=:log10,
     label=["Student-t" "Gaussian"],
     ylabel="5-sigma contrast",
     xlabel="radius [px]"

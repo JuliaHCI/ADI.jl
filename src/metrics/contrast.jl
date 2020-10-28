@@ -84,12 +84,14 @@ function contrast_curve(alg,
     through_subsample = Spline1D(meta.distance, through_mean, k=k)(radii_subsample)
 
     unit_contrast = @. noise_subsample / (through_subsample * starphot)
-    contrast = @. clamp(sigma * unit_contrast, 0, 1)
+    contrast = @. sigma * unit_contrast
+    @. contrast[!(0 ≤ contrast ≤ 1)] = NaN
 
     # get correction for small-sample statistics
     sigma_corr = @. correction_factor.(radii_subsample, fwhm, sigma)
 
-    contrast_corr = @. clamp(sigma_corr * unit_contrast, 0, 1)
+    contrast_corr = @. sigma_corr * unit_contrast
+    @. contrast_corr[!(0 ≤ contrast_corr ≤ 1)] = NaN
 
     return (distance=radii_subsample,
             throughput=through_subsample,

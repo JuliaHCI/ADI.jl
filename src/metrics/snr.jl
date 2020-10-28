@@ -98,9 +98,9 @@ function significance(data::AbstractMatrix, position, fwhm)
     separation = sqrt((x - cx)^2 + (y - cy)^2)
     _snr = snr(data, position, fwhm)
     # put in one line to allow broadcast fusion
-    return snr_to_sig(snr, separation, fwhm)
+    return snr_to_sig(_snr, separation, fwhm)
 end
-significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, reverse(idx.I), fwhm)
+significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = significance(data, reverse(idx.I), fwhm)
 
 function snr_to_sig(snr, separation, fwhm)
     dof = 2 * π * separation / fwhm - 2

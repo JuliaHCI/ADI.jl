@@ -42,7 +42,7 @@ end
     angles = sort!(90rand(rng, 30)) |> normalize_par_angles
 
     # not supported for GreeDS alg
-    S = data .- reconstruct(GreeDS(PCA(1)), data, angles, zeros(10, 101, 101))
+    S = data .- reconstruct(GreeDS(PCA(1)), data, angles, zeros(30, 101, 101))
     @test S ≈ data rtol=2e-1
 end
 
