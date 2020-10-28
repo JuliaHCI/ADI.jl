@@ -1,7 +1,7 @@
 name = "ADI"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"
 authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
-version = "0.5.0"
+version = "0.4.1"
 
 [deps]
 Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
@@ -25,7 +25,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 Dierckx = "0.5"
-Distributions = "0.23"
+Distributions = "0.23, 0.24"
 FillArrays = "0.8, 0.9, 0.10"
 HCIToolbox = "0.4"
 ImageTransformations = "0.8"
