@@ -90,7 +90,7 @@ plot(
     ls=[:solid :dash],
     c=1,
     label=["Student-t" "Gaussian"],
-    ylabel="5-sigma Contrast",
+    ylabel="5-sigma contrast",
     xlabel="radius [px]"
 )
 #=
@@ -110,6 +110,6 @@ plot(
     ls=[:solid :dash],
     c=1,
     label=["Student-t" "Gaussian"],
-    ylabel="5-sigma Contrast",
+    ylabel="5-sigma contrast",
     xlabel="radius [px]"
 )
