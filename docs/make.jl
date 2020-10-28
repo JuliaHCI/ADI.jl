@@ -1,18 +1,11 @@
 using ADI
 using Documenter
 using Literate: markdown
-using Pkg
 
 # weave in examples using literate
 examplesdir(args...) = joinpath(@__DIR__, "..", "examples", args...)
 outdir = joinpath(@__DIR__, "src", "examples")
-
-Pkg.activate(examplesdir())
-Pkg.instantiate()
-
 markdown(examplesdir("hr8799.jl"), outdir)
-
-Pkg.activate(@__DIR__)
 
 # now do Documenter commands
 
