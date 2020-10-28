@@ -7,7 +7,9 @@ module Metrics
 
 export detectionmap,
        snr,
-       significance
+       significance,
+       contrast_curve,
+       throughput
 
 include("contrast.jl")
 include("snr.jl")
