@@ -96,7 +96,7 @@ plot(
 #=
 Hmm, there's some pecularities! You'll notice pretty sever bumps indicating poor contrast in annuli where the 4 companions are! Because these companions are pretty significant (statistically) they will bias the contrast measurement. So we need to remove the planets somehow.
 
-Typically you'd like to fit the planet signal in a maximum likelihood framework, but for convenience here I am going to create a cube from the speckle estimate, which should contain minimal companion signal.
+Typically you'd like to fit the planet signal in a maximum likelihood framework, but for convenience here I am going to create a cube from the speckle estimate, which should contain minimal companion signal. This is not a rigorous substitution, though, since this cube's noise will be whitened by the PCA process.
 =#
 no_comp_cube = reconstruct(alg, cube, angles)
 imshow(alg(no_comp_cube, angles))
