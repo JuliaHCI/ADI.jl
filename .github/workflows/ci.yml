@@ -56,7 +56,7 @@ jobs:
           version: "1"
       - name: Develop HCIDatasets.jl
         run: |
-            julia -e 'using Pkg; Pkg.develop(url="https://github.com/JuliaHCI/HCIDatasets.jl")'
+            julia --project=docs/ -e 'using Pkg; Pkg.develop(url="https://github.com/JuliaHCI/HCIDatasets.jl")'
       - uses: julia-actions/julia-docdeploy@releases/v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
