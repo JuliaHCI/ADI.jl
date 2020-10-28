@@ -4,6 +4,7 @@ authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
 version = "0.5.0"
 
 [deps]
+Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FillArrays = "1a297f60-69ca-5386-bcde-b61e274b549b"
 HCIToolbox = "b6cd55e5-4d02-4e12-b82c-005f67e784bf"
@@ -24,7 +25,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 Distributions = "0.23"
-FillArrays = "0.9"
+FillArrays = "0.8,0.9"
 HCIToolbox = "0.4"
 ImageTransformations = "0.8"
 NMF = "0.4.1"

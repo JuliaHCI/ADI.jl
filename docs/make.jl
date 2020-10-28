@@ -1,5 +1,20 @@
 using ADI
 using Documenter
+using Literate: markdown
+using Pkg
+
+# weave in examples using literate
+examplesdir(args...) = joinpath(@__DIR__, "..", "examples", args...)
+outdir = joinpath(@__DIR__, "src", "examples")
+
+Pkg.activate(examplesdir())
+Pkg.instantiate()
+
+markdown(examplesdir("hr8799.jl"), outdir)
+
+Pkg.activate(@__DIR__)
+
+# now do Documenter commands
 
 setup = quote
     using ADI
@@ -8,7 +23,6 @@ setup = quote
 end
 
 DocMeta.setdocmeta!(ADI, :DocTestSetup, setup; recursive = true)
-
 
 makedocs(;
     modules = [ADI],
@@ -23,6 +37,9 @@ makedocs(;
     pages = [
         "Home" => "index.md",
         "Getting Started" => "gettingstarted.md",
+        "Examples" => [
+            "examples/hr8799.md"
+        ],
         "Algorithms" => [
             "algorithms/median.md",
             "algorithms/pca.md",
