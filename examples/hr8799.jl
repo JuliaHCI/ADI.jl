@@ -18,7 +18,11 @@ using HCIToolbox
 using Plots
 
 ## set up plotting
-imshow(args...; kwargs...) = heatmap(args...; aspect_ratio=1, xlims=(1, 501), ylims=(1, 501), kwargs...)
+function imshow(img, args...; kwargs...)
+    ylim = extrema(axes(img, 1))
+    xlim = extrema(axes(img, 2))
+    heatmap(img, args...; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
+end;
 
 #=
 ## Data Reduction
@@ -62,7 +66,7 @@ imshow(sigmap)
 #=
 Now, lets do some very basic frequentist planet detection by thresholding this significance
 =#
-sigmap_cutoff = @. ifelse(sigmap > 5, sigmap, NaN)
+sigmap_cutoff = @. sigmap > 5
 imshow(sigmap_cutoff)
 
 #=
@@ -74,14 +78,15 @@ We are also interested in analyzing how the algorithm affects our data, especial
 
 Before we move on, we need to create a PSF model for our data. `HCIToolbox.Kernels` includes some simple functional PSFs in the absence of an empirical PSF.
 =#
-psf = Kernels.Normal(fwhm);
+psf = Kernels.Normal(fwhm)
+imshow(construct(psf, (31, 31)))
 
 #=
 and now we can calculate the 5σ contrast curve
 =#
 
 cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm, nbranch=3) |> DataFrame
-head(cc)
+head(filter(row -> isfinite(row.contrast_corr), cc))
 
 # and lets plot it to see how we perform
 plot(
@@ -100,7 +105,8 @@ Hmm, there's some pecularities! You'll notice pretty sever bumps indicating poor
 Typically you'd like to fit the companion signal and remove it in a maximum likelihood framework. For convenience here, though, I am going to create a cube from the speckle estimate, which should be free from companion signal. This is not a rigorous alternative, though, since this cube's noise will be whitened by the PCA process. It will be good enough to demonstrate the code, though.
 =#
 no_comp_cube = reconstruct(alg, cube, angles)
-imshow(alg(no_comp_cube, angles))
+no_comp_reduced = alg(no_comp_cube, angles)
+imshow(no_comp_reduced)
 #-
 cc_no_comp = contrast_curve(alg, no_comp_cube, angles, psf; fwhm=fwhm, nbranch=3) |> DataFrame
 head(cc_no_comp)
