@@ -59,25 +59,32 @@ function contrast_curve(alg,
                         sigma=5,
                         inner_rad=1,
                         k=2,
+                        theta=0,
                         kwargs...)
 
     # measure the noise and throughput in consecutive resolution elements
     # across azimuthal branches
     @info "Calculating Throughput"
-    through, meta = throughput(alg, cube, angles, psf, args...; fwhm=fwhm, inner_rad=inner_rad, kwargs...)
+    reduced_empty = alg(cube, angles, args...)
+
+    through, meta = throughput(alg,
+                               cube,
+                               angles,
+                               psf,
+                               args...;
+                               fwhm=fwhm,
+                               inner_rad=inner_rad,
+                               theta=theta,
+                               reduced_empty=reduced_empty,
+                               kwargs...)
 
     through_mean = mean(through, dims=2) |> vec
 
-    @info "Calculating pixel-wise noise"
+    @info "Calculating noise"
     # measure the noise with high sub-sampling, at every pixel instead of every resolution element
-    reduced_empty = alg(cube, angles, args...)
     _, cy, cx = center(cube)
     radii_subsample = (fwhm * inner_rad):(cy - fwhm / 2)
-    noise_subsample = map(radii_subsample) do r
-        x = r + cx
-        y = cy
-        Metrics.noise(reduced_empty, (x, y), fwhm)
-    end
+    noise_subsample = @. annulus_noise((reduced_empty,), fwhm, cy, cx, radii_subsample, theta)
 
     @info "Calculating contrast"
 
@@ -154,24 +161,23 @@ function throughput(alg,
                     inner_rad=1,
                     fc_rad_sep=3,
                     snr=100,
+                    reduced_empty = nothing,
                     kwargs...) where T
     maxfcsep = size(cube, 2) ÷ (2 * fwhm) - 1
     # too large separation between companions in the radial patterns
     3 ≤ fc_rad_sep ≤ maxfcsep || error("`fc_rad_sep` should lie ∈[3, $(maxfcsep)], got $fc_rad_sep")
 
     # compute noise in concentric annuli on the empty frame
-    reduced_empty = alg(cube, angles, args...; kwargs...)
+    if isnothing(reduced_empty)
+        reduced_empty = alg(cube, angles, args...; kwargs...)
+    end
 
     cy, cx = center(reduced_empty)
 
     n_annuli = floor(Int, (cy - fwhm) / fwhm) - 1
     radii = fwhm .* (inner_rad:n_annuli)
     δy, δx = sincosd(theta)
-    noise = map(radii) do r
-        x = r * δx + cx
-        y = r * δy + cy
-        Metrics.noise(reduced_empty, (x, y), fwhm)
-    end
+    noise = @. annulus_noise((reduced_empty,), fwhm, cy, cx, radii, theta)
 
     angle_per_branch = 360 / nbranch
     output = similar(cube, length(radii), nbranch)
@@ -179,7 +185,7 @@ function throughput(alg,
     fake_comps_full = zero(reduced_empty)
     @progress "branch" for branch in 1:nbranch
         θ = theta + angle_per_branch * (branch - 1)
-        @progress "radial slice" for init_rad in 1:fc_rad_sep
+        @progress "pattern" for init_rad in 1:fc_rad_sep
             slice = init_rad:fc_rad_sep:lastindex(radii)
             fake_comps = zero(reduced_empty)
 
@@ -208,4 +214,11 @@ function throughput(alg,
     end
 
     return output, (distance=radii, fake_comps=fake_comps_full, noise=noise)
+end
+
+function annulus_noise(frame, fwhm, cy, cx, r, θ=0)
+    δy, δx = sincosd(θ)
+    x = r * δx + cx
+    y = r * δy + cy
+    Metrics.noise(frame, (x, y), fwhm)
 end
