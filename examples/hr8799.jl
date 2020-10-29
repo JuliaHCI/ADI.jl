@@ -100,9 +100,9 @@ plot(
     xlabel="radius [px]"
 )
 #=
-Hmm, there's some pecularities! You'll notice pretty sever bumps indicating poor contrast in annuli where the 4 companions are! Because these companions are pretty significant (statistically) they will bias the contrast measurement.
+You'll notice pretty sever bumps indicating poor contrast in annuli where the 4 companions are! Because these companions are pretty significant they will bias the contrast measurement.
 
-Typically you'd like to fit the companion signal and remove it in a maximum likelihood framework. For convenience here, though, I am going to create a cube from the speckle estimate, which should be free from companion signal. This is not a rigorous alternative, though, since this cube's noise will be whitened by the PCA process. It will be good enough to demonstrate the code, though.
+Typically you'd like to fit the companion signal and remove it in a maximum likelihood framework. For convenience here I am going to create a cube from the speckle estimate, which should be free from companion signal. This is not a rigorous alternative since this cube's noise will be whitened by the PCA process. It will be good enough to demonstrate the code.
 =#
 no_comp_cube = reconstruct(alg, cube, angles)
 no_comp_reduced = alg(no_comp_cube, angles)

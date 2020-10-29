@@ -47,7 +47,7 @@ The throughput can only be calculated for discrete resolution elements, but we t
 **Subsampling Options** (See also [`Metrics.subsample_contrast`](@ref))
 * `subsample` - If true, subsamples the throughput measurements to increase density of curve
 * `k` - The order of the BSpline used for subsampling the throughput
-* `smooth` - If true, will do a simple moving average over the subsampled noise measurements
+* `smooth` - If true, will smooth the subsampled noise measurements with a 2nd order Savitzky-Golay filter
 
 !!! tip
     If you prefer a tabular format, simply pipe the output of this function into any type supporting the Tables.jl interface, e.g.
@@ -148,7 +148,7 @@ Contrast curves, by definition, are calculated with discrete resolution elements
 
 The noise can be found efficiently enough, so rather than interpolate we measure the noise in annuli of width `fwhm` increasing in distance by 1 pixel. We measure this noise in `empty_frame`, which should be a 2D reduced ADI frame.
 
-The noise measurements can be noisy, so a simple moving average can be applied via `smooth`. This averages a window of `fwhm/2` pixels together to reduce high-frequency jitter.
+The noise measurements can be noisy, so a 2nd order Savitzky-Golay filter can be applied via `smooth`. This fits a quadratic polynomial over a window of `fwhm/2` points together to reduce high-frequency jitter.
 
 # Examples
 
