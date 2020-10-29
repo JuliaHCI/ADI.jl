@@ -37,11 +37,14 @@ The throughput can only be calculated for discrete resolution elements, but we t
 # Keyword Arguments
 * `sigma` - The confidence limit in terms of Gaussian standard deviations
 * `starphot` - The flux of the star. By default calculates the flux in the central core.
+**Injection Options** (See also [`throughput`](@ref))
 * `nbranch` - number of azimuthal branches to use
 * `theta` - position angle of initial branch
 * `inner_rad` - position of innermost planet in FWHM
 * `fc_rad_sep` - the separation between planets in FWHM for a single reduction
 * `snr` - the target signal to noise ratio of the injected planets
+**Subsampling Options** (See also [`Metrics.subsample_contrast`](@ref))
+* `subsample` - If true, subsamples the throughput measurements to increase density of curve
 * `k` - The order of the BSpline used for subsampling the throughput
 * `smooth` - If true, will do a simple moving average over the subsampled noise measurements
 
@@ -60,8 +63,9 @@ function contrast_curve(alg,
                         starphot=estimate_starphot(cube, fwhm),
                         sigma=5,
                         inner_rad=1,
-                        k=2,
                         theta=0,
+                        subsample=true,
+                        k=2,
                         smooth=true,
                         kwargs...)
 
@@ -83,11 +87,91 @@ function contrast_curve(alg,
 
     through_mean = mean(through, dims=2) |> vec
 
-    @info "Calculating noise"
-    # measure the noise with high sub-sampling, at every pixel instead of every resolution element
-    _, cy, cx = center(cube)
-    radii_subsample = (fwhm * inner_rad):(cy - fwhm / 2)
-    noise_subsample = @. annulus_noise((reduced_empty,), fwhm, cy, cx, radii_subsample, theta)
+    if subsample
+        return subsample_contrast(reduced_empty,
+                                  meta.distance,
+                                  through_mean;
+                                  fwhm=fwhm,
+                                  starphot=starphot,
+                                  sigma=sigma,
+                                  inner_rad=inner_rad,
+                                  theta=theta,
+                                  k=k,
+                                  smooth=smooth)
+    end
+
+    # calculate common terms once
+    unit_contrast = @. meta.noise / (through_mean * starphot)
+    # gaussian contrast (invalid values become NaN)
+    contrast = calculate_contrast.(sigma, unit_contrast)
+
+    # get correction for small-sample statistics
+    sigma_corr = correction_factor.(meta.distance, fwhm, sigma)
+    # student-t contrast (invalid values become NaN)
+    contrast_corr = calculate_contrast.(sigma_corr, unit_contrast)
+
+    return (distance=meta.distance,
+            throughput=through_mean,
+            contrast=contrast,
+            contrast_corr=contrast_corr,
+            noise=meta.noise)
+end
+
+function correction_factor(radius, fwhm, sigma)
+    n_res_els = 2 * π * radius ÷ fwhm
+    ss_corr = sqrt(1 + 1 / (n_res_els - 1))
+    return quantile(TDist(n_res_els), cdf(Normal(), sigma)) * ss_corr
+end
+
+"""
+    Metrics.subsample_contrast(empty_frame,
+        distance,
+        throughput;
+        fwhm,
+        starphot,
+        sigma=5,
+        inner_rad=1,
+        theta=0,
+        smooth=true,
+        k=2)
+
+Helper function to subsample and smooth a contrast curve.
+
+Contrast curves, by definition, are calculated with discrete resolution elements. This can cause contrast curves to have very few points instead of appearing as a continuously measured statistic across the pixels. We alleviate this by sub-sampling the throughput (via BSpline interpolation) across each pixel (instead of each resolution element).
+
+The noise can be found efficiently enough, so rather than interpolate we measure the noise in annuli of width `fwhm` increasing in distance by 1 pixel. We measure this noise in `empty_frame`, which should be a 2D reduced ADI frame.
+
+The noise measurements can be noisy, so a simple moving average can be applied via `smooth`. This averages a window of `fwhm/2` pixels together to reduce high-frequency jitter.
+
+# Examples
+
+Here is an example which calculates the exact contrast curve in addition to a subsampled curve without re-calculating the throughput.
+
+```julia
+cube, angles, psf = # load data
+
+alg = PCA(10)
+cc = contrast_curve(alg, cube, angles, psf; fwhm=8.4, subsample=false)
+reduced_empty = alg(cube, angles)
+cc_sub = Metrics.subsample_contrast(reduced_empty, cc.distance, cc.throughput; fwhm=8.4)
+```
+"""
+function subsample_contrast(empty_frame,
+        distance,
+        throughput;
+        fwhm,
+        starphot,
+        sigma=5,
+        inner_rad=1,
+        theta=0,
+        smooth=true,
+        k=2)
+    # measure the noise with high sub-sampling-
+    # at every pixel instead of every resolution element
+    cy, cx = center(empty_frame)
+    radii_subsample = first(distance):1:last(distance) + fwhm/2
+    through_subsample = Spline1D(distance, throughput, k=k)(radii_subsample)
+    noise_subsample = @. annulus_noise((empty_frame,), fwhm, cy, cx, radii_subsample, theta)
 
     if smooth
         window_size = min(length(noise_subsample) - 2, round(Int, 2 * fwhm)) ÷ 4
@@ -97,19 +181,15 @@ function contrast_curve(alg,
         noise_smoothed = noise_subsample
     end
 
-    @info "Calculating contrast"
-
-    through_subsample = Spline1D(meta.distance, through_mean, k=k)(radii_subsample)
-
+    # calculate common terms once
     unit_contrast = @. noise_smoothed / (through_subsample * starphot)
-    contrast = @. sigma * unit_contrast
-    @. contrast[!(0 ≤ contrast ≤ 1)] = NaN
+    # gaussian contrast (invalid values become NaN)
+    contrast = calculate_contrast.(sigma, unit_contrast)
 
     # get correction for small-sample statistics
-    sigma_corr = @. correction_factor.(radii_subsample, fwhm, sigma)
-
-    contrast_corr = @. sigma_corr * unit_contrast
-    @. contrast_corr[!(0 ≤ contrast_corr ≤ 1)] = NaN
+    sigma_corr = correction_factor.(radii_subsample, fwhm, sigma)
+    # student-t contrast (invalid values become NaN)
+    contrast_corr = calculate_contrast.(sigma_corr, unit_contrast)
 
     return (distance=radii_subsample,
             throughput=through_subsample,
@@ -118,14 +198,10 @@ function contrast_curve(alg,
             noise=noise_smoothed)
 end
 
-function correction_factor(radius, fwhm, sigma)
-    n_res_els = 2 * π * radius ÷ fwhm
-    ss_corr = sqrt(1 + 1 / (n_res_els - 1))
-    return quantile(TDist(n_res_els), cdf(Normal(), sigma)) * ss_corr
-end
-
-function smooth(x, y)
-
+# simple function to inline the contrast calculation _and_ clipping
+@inline function calculate_contrast(k, unit_contrast)
+    contrast = k * unit_contrast
+    return 0 ≤ contrast ≤ 1 ? contrast : NaN
 end
 
 """
