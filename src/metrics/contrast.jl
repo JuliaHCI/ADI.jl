@@ -5,6 +5,7 @@ using HCIToolbox
 using Dierckx
 using ProgressLogging
 using StaticKernels
+using LinearAlgebra: dot
 
 """
     contrast_curve(alg,
@@ -63,7 +64,10 @@ function contrast_curve(alg,
                         starphot=estimate_starphot(cube, fwhm),
                         sigma=5,
                         inner_rad=1,
+                        fc_rad_sep=3,
                         theta=0,
+                        nbranch=1,
+                        snr=100,
                         subsample=true,
                         k=2,
                         smooth=true,
@@ -72,7 +76,7 @@ function contrast_curve(alg,
     # measure the noise and throughput in consecutive resolution elements
     # across azimuthal branches
     @info "Calculating Throughput"
-    reduced_empty = alg(cube, angles, args...)
+    reduced_empty = alg(cube, angles, args...; kwargs...)
 
     through, meta = throughput(alg,
                                cube,
@@ -81,7 +85,10 @@ function contrast_curve(alg,
                                args...;
                                fwhm=fwhm,
                                inner_rad=inner_rad,
+                               fc_rad_sep=fc_rad_sep,
                                theta=theta,
+                               nbranch=nbranch,
+                               snr=snr,
                                reduced_empty=reduced_empty,
                                kwargs...)
 
@@ -169,14 +176,17 @@ function subsample_contrast(empty_frame,
     # measure the noise with high sub-sampling-
     # at every pixel instead of every resolution element
     cy, cx = center(empty_frame)
-    radii_subsample = first(distance):1:last(distance) + fwhm/2
+    radii_subsample = first(distance):1:last(distance) + 1
     through_subsample = Spline1D(distance, throughput, k=k)(radii_subsample)
     noise_subsample = @. annulus_noise((empty_frame,), fwhm, cy, cx, radii_subsample, theta)
 
     if smooth
-        window_size = min(length(noise_subsample) - 2, round(Int, 2 * fwhm)) ÷ 4
-        smooth_kernel = Kernel{(1-window_size:1+window_size,)}(mean ∘ skipmissing ∘ Tuple)
-        noise_smoothed = map(smooth_kernel, extend(noise_subsample, StaticKernels.ExtensionConstant(missing)))
+        window_size = min(length(noise_subsample) - 2, round(Int, 2 * fwhm))
+        iseven(window_size) && (window_size += 1)
+        width = window_size ÷ 2
+        coeffs = savgol_coeffs(window_size, 2) |> Tuple
+        smooth_kernel = Kernel{(-width:width,)}(w -> dot(coeffs, Tuple(w)))
+        noise_smoothed = map(smooth_kernel, extend(noise_subsample, StaticKernels.ExtensionReplicate()))
     else
         noise_smoothed = noise_subsample
     end
@@ -202,6 +212,18 @@ end
 @inline function calculate_contrast(k, unit_contrast)
     contrast = k * unit_contrast
     return 0 ≤ contrast ≤ 1 ? contrast : NaN
+end
+
+function savgol_coeffs(window_size, order=2)
+    pos = window_size ÷ 2
+    # form vandermonde matrix
+    x = -pos:window_size - pos - 1
+    powers = 0:order
+    A = x' .^ powers
+    # solve least squares equation Ac = y
+    y = zeros(order + 1)
+    y[1] = 1
+    return A \ y
 end
 
 """
