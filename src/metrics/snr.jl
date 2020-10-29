@@ -52,10 +52,9 @@ function snr(data::AbstractMatrix, position, fwhm)
     separation > fwhm / 2 + 1 || return NaN
     r = fwhm / 2
 
-    θ = 2 * asin(fwhm / 2 / separation)
-    N = floor(Int, 2π / θ)
-
-    R = RotMatrix{2}(θ)
+    N = floor(Int, 2 * π  * separation / fwhm)
+    dθ = 2π / N
+    R = RotMatrix{2}(dθ)
 
     # initial points
     rx = x - cx
@@ -127,10 +126,9 @@ function noise(data::AbstractMatrix, position, fwhm)
     separation > fwhm / 2 + 1 || return NaN
     r = fwhm / 2
 
-    θ = 2 * asin(fwhm / 2 / separation)
-    N = floor(Int, 2 * π / θ)
-
-    R = RotMatrix{2}(θ)
+    N = floor(Int, 2 * π  * separation / fwhm)
+    dθ = 2π / N
+    R = RotMatrix{2}(dθ)
 
     # initial points
     rx = x - cx
