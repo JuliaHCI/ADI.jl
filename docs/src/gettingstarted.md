@@ -1,4 +1,4 @@
-# Getting Started
+# [Getting Started](@id gettingstarted)
 
 Here is a quick-start guide for people familiar with ADI and experience using tools like [VIP](https://github.com/vortex-exoplanet/VIP) or [PyKLIP](https://pyklip.readthedocs.io/en/latest/).
 
@@ -7,6 +7,10 @@ Here is a quick-start guide for people familiar with ADI and experience using to
 ### ADI Cube
 
 For standard ADI data, we store the values in a 3-dimensional array, where the first dimension is temporal, and the remaining dimensions are pixel coordinates. This is how most ADI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor.
+
+### SDI Cube/Tensor
+
+For standard SDI data, we store the values in a 4-dimensional array, where the first dimension is spectral, the second is temporal, and the remaining dimensions are pixel coordinates. This is how most SDI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor. In addition to the SDI tensor and parallactic angles, the list of wavelengths are required (for scaling speckles) and a spectral template can be used.
 
 ## Algorithms
 
@@ -26,6 +30,9 @@ Given an algorithm `alg`, we can fully process ADI data by calling `alg` like a 
 julia> alg = PCA(5)
 
 julia> resid = alg(cube, angles)
+
+# or with RDI
+julia> resid = alg(cube, angles, cube_ref)
 ```
 
 ### Reduction Process
@@ -71,3 +78,17 @@ S == w * A
 # output
 true
 ```
+
+## Comparison to VIP
+
+ADI.jl took a lot of ideas from VIP and expanded them using the power of Julia. To begin with, Julia typically has smaller and more self-contained packages, so most of the basic image-processing that is used here is actually written in the [HCIToolbox.jl](https://github.com/JuliaHCI/HCIToolbox.jl) package. In the future, I have plans to incorporate forward-modeling distributions in [Firefly.jl](https://github.com/JuliaHCI/Firefly.jl), which currently is an active research project.
+
+Some technical distinctions to VIP
+* Julia is 1-indexed. This means all the positions for apertures, bounds, images, etc. start at 1. This is distinct from 0-based indexing in python, but is equivalent to the indexing in DS9 and IRAF.
+* Julia's `std` uses the sample statistic while numpy's `std` uses the population statistic. This may cause very slight differences in measurements that rely on this.
+* Aperture mapping - many of the [`Metrics`](@ref) are derived by measuring statistics in an annulus of apertures. In VIP, this ring is not equally distributed- the angle between apertures is based on the exact number of apertures rather than the integral number of apertures that are actually measured. In ADI.jl the angle between apertures is evenly distributed. The same number of pixels are discarded in both packages, but in VIP they all end up in the same region of the image (see [this figure](assets/aperture_masks.png)).
+
+The biggest difference, though, is Julia's multiple-dispatch system and how that allows ADI.jl to *do more with less code*. For example, the [GreeDS](@ref) algorithm was designed explicitly for [`PCA`](@ref), but the formalism of it is more generic than that. Rather than hard-coding in PCA, I was able to write the GreeDS algorithm generically, and Julia's multiple-dispatch Just Works (^TM) to allow us to use, say [NMF](@ref) instead of PCA. I've gotten two versions of GreeDS for the cost of one; in fact, I've got infinite algorithms that can work within GreeDS as long as they have a [`decompose`](@ref) method.
+
+As ADI.jl grows and more methods are incorporated there will be lots of opportunities for exploring algorithms with your data without the burden of writing specific code for each instance. In other words, the details of the algorithm are separated from their application to the data.
+

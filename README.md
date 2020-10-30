@@ -30,7 +30,39 @@ julia> using ADI
 
 julia> cube, angles = # load data
 
-julia> flat_residual = PCA(ncomps=10)(cube, angles)
+julia> alg = PCA(ncomps=10)
+
+julia> flat_resid = alg(cube, angles) # ADI
+
+julia> flat_resid_rdi = alg(cube, angles, cube_ref) # flexible RDI
+```
+
+get the S/N and significance
+
+```julia
+julia> fwhm = # PSF fswhm in pixels
+
+julia> snmap = detectionmap(snr, flat_residual, fwhm)
+
+julia> sigmap = detectionmap(significance, flat_residual, fwhm)
+```
+
+get the contrast curve
+
+```julia
+julia> psf = # load psf or choose from HCIToolbox.Kernels
+
+julia> cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm)
+```
+
+which can be easily loaded into a `DataFrame` or anything adopting the Tables.jl interface.
+
+```julia
+julia> using DataFrames
+
+julia> df = DataFrame(cc)
+
+julia> head(df)
 ```
 
 ## License

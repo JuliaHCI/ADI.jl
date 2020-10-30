@@ -2,7 +2,8 @@ using ProgressLogging
 using Setfield
 
 """
-    GreeDS(alg=TPCA(); threshold=0.0, progress=true)
+    GreeDS(alg=PCA(); threshold=0.0, progress=true)
+    GreeDS(ncomps; threshold=0.0, progress=true)
 
 Performs the greedy disk subtraction (GreeDS) algorithm.
 
@@ -11,7 +12,7 @@ This method is an iterative approach to standard ADI reduction which seeks to mi
 For large data cubes the iteration can cause slowdowns, so a progress bar is provided using the [`ProgressLogging`](https://github.com/JunoLab/ProgressLogging.jl) API along with the `progress` keyword. It won't appear without a logging backend, such as [`TerminalLoggers`](https://github.com/c42f/TerminalLoggers.jl).
 
 # Algorithms
-Although the original paper explicitly uses PCA, we allow use of any linear ADI algorithm that is characterized by `ncomps`. By default, uses [`PCA`](@ref).
+Although the original paper explicitly uses PCA, we allow use of any linear ADI algorithm that is characterized by `ncomps`. By default, uses [`PCA`](@ref). If `ncomps` are provided, will default to [`PCA`](@ref) as well.
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
