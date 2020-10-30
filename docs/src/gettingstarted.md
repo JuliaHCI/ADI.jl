@@ -22,7 +22,7 @@ The following algorithms are implemented:
 
 ## Processing Patterns
 
-### Full Reduction
+### Full Frame ADI Reduction
 
 Given an algorithm `alg`, we can fully process ADI data by calling `alg` like a function
 
@@ -30,8 +30,15 @@ Given an algorithm `alg`, we can fully process ADI data by calling `alg` like a 
 julia> alg = PCA(5)
 
 julia> resid = alg(cube, angles)
+```
 
-# or with RDI
+### Full Frame RDI Reduction
+
+The only difference here is the inclusion of a reference cube.
+
+```julia
+julia> alg = PCA(5)
+
 julia> resid = alg(cube, angles, cube_ref)
 ```
 
