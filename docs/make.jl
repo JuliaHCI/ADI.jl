@@ -3,9 +3,9 @@ using Documenter
 using Literate: markdown
 
 # weave in examples using literate
-# examplesdir(args...) = joinpath(@__DIR__, "..", "examples", args...)
-# outdir = joinpath(@__DIR__, "src", "examples")
-# markdown(examplesdir("hr8799.jl"), outdir)
+examplesdir(args...) = joinpath(@__DIR__, "..", "examples", args...)
+outdir = joinpath(@__DIR__, "src", "examples")
+markdown(examplesdir("hr8799.jl"), outdir)
 
 # now do Documenter commands
 
@@ -39,9 +39,9 @@ makedocs(;
         ],
         "SDI" => "sdi.md",
         "Metrics" => "metrics.md",
-        # "Examples" => [
-        #     "examples/hr8799.md"
-        # ],
+        "Examples" => [
+            "examples/hr8799.md"
+        ],
         "API/Reference" => "api.md"
     ],
 )
