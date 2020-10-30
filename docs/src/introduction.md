@@ -2,7 +2,7 @@
 
 This will serve as a brief primer to high-contrast imaging (HCI) to illustrate the concepts and themes prevalant within this codebase. This is not meant to be an exhaustive lecture note on the topic, but more of a gentle introduction.
 
-If youu are comfortable with HCI topics, consider skipping to the [Getting Started](@ref gettingstarted) section to get introduced to ADI.jl or browse the Examples.
+If you are comfortable with HCI topics, consider skipping to the [Getting Started](@ref gettingstarted) section to get introduced to ADI.jl or browse the Examples.
 
 ## What is HCI
 
@@ -28,7 +28,6 @@ By taking this sequence of images (commonly referred to as a cube) we can more e
 
 ![](assets/adi_example.png)
 
-**using ADI as an observational technique provides a convenient framework for statistically determining the speckles**.
 
 ## Post-Processing Algorithms
 
