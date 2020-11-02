@@ -39,7 +39,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
-            ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
       - uses: julia-actions/julia-processcoverage@v1
@@ -61,8 +60,7 @@ jobs:
           cache-name: cache-datadeps
         with:
           path: ~/.julia/datadeps
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: ${{ runner.os }}-test-${{ env.cache-name }}-
+          key: ${{ runner.os }}-docs-${{ env.cache-name }}
       - uses: julia-actions/julia-docdeploy@releases/v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
