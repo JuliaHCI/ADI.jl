@@ -6,7 +6,7 @@ using HCIToolbox: get_annulus_segments
 Classic PSF subtraction using the median of entire data cube.
 
 # References
-* [Marois et al. 2006](https://arxiv.org/abs/astro-ph/0512335) Angular Differential Imaging: A Powerful High-Contrast Imaging Technique
+* [Marois et al. 2006](http://adsabs.harvard.edu/abs/2006ApJ...641..556M) Angular Differential Imaging: A Powerful High-Contrast Imaging Technique
 """
 struct Median <: ADIAlgorithm end
 

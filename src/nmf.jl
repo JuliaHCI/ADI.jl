@@ -2,6 +2,10 @@ using NMF: nnmf, solve!, CoordinateDescent, nndsvd
 
 """
     NMF(;ncomps=nothing) <: LinearAlgorithm
+    NMF(ncomps)
+
+# References
+* [Ren et al. 2018](http://adsabs.harvard.edu/abs/2018ApJ...852..104R) Non-negative Matrix Factorization: Robust Extraction of Extended Structures
 """
 @with_kw struct NMF <: LinearAlgorithm
     ncomps::Union{Int,Nothing} = nothing
