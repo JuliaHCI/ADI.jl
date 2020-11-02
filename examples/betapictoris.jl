@@ -50,9 +50,10 @@ reduced_frames = [alg(cube, angles) for alg in algs];
 figs = (imshow(reduced, ticks=false) for reduced in reduced_frames)
 plot(
     figs...,
-    title=["PCA(10)" "PCA(20)" "median subtraction" "GreeDS(10)"],
+    title=["PCA(10)" "PCA(20)" "Median()" "GreeDS(10)"],
     layout=(2, 2),
-    size=(600, 500)
+    size=(900, 800),
+    dpi=75
 )
 
 #=
