@@ -5,7 +5,7 @@ using Literate: markdown
 # weave in examples using literate
 examplesdir(args...) = joinpath(@__DIR__, "..", "examples", args...)
 outdir = joinpath(@__DIR__, "src", "examples")
-markdown(examplesdir("hr8799.jl"), outdir)
+markdown(examplesdir("betapictoris.jl"), outdir)
 
 # now do Documenter commands
 
@@ -40,7 +40,7 @@ makedocs(;
         "SDI" => "sdi.md",
         "Metrics" => "metrics.md",
         "Examples" => [
-            "examples/hr8799.md"
+            "examples/betapictoris.md"
         ],
         "API/Reference" => "api.md"
     ],

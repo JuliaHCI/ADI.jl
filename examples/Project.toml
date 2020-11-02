@@ -4,3 +4,6 @@ FITSIO = "525bcba6-941b-5504-bd06-fd0dc1a4d2eb"
 HCIDatasets = "1893dc6a-5236-4cb8-aa54-62ea411c10cd"
 HCIToolbox = "b6cd55e5-4d02-4e12-b82c-005f67e784bf"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+
+[compat]
+HCIDatasets = "0.1.3"
