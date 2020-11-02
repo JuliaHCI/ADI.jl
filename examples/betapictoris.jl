@@ -29,8 +29,11 @@ end;
 
 Here we load the data for $\beta$ Pictoris from NaCo at the VLT. You may be prompted to download the data; see [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl) for more details.
 =#
+using Logging                   #hide
+disable_logging(Logging.Info)   #hide
 cube = BetaPictoris[:cube]
 angles = BetaPictoris[:pa];
+disable_logging(Logging.Debug); #hide
 
 #=
 To reduce the data, we need an *algorithm*. In ADI.jl we currently have median subtraction, PCA, NMF, and fixed-point GreeDS. These algorithms are treated as "objects" in the sense that we initialize them with options and then pass them around inside the ADI.jl framework to retrieve the results we want.
