@@ -27,7 +27,7 @@ The following algorithms are implemented:
 Given an algorithm `alg`, we can fully process ADI data by calling `alg` like a function
 
 ```julia
-julia> alg = PCA(5)
+julia> alg = PCA(ncomps=5)
 
 julia> resid = alg(cube, angles)
 ```
@@ -37,7 +37,7 @@ julia> resid = alg(cube, angles)
 The only difference here is the inclusion of a reference cube.
 
 ```julia
-julia> alg = PCA(5)
+julia> alg = PCA(ncomps=5)
 
 julia> resid = alg(cube, angles, cube_ref)
 ```
