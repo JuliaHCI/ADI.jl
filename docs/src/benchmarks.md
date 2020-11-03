@@ -80,7 +80,7 @@ snrmap_groups = groupby(snrmap_data, :framework)
     :time,
     group=:framework,
     msw=0,
-    ms=5,
+    ms=6,
     xlabel="number of pixels",
     ylabel="time (s)"
 )
@@ -88,7 +88,7 @@ snrmap_groups = groupby(snrmap_data, :framework)
 
 ### Contrast Curves
 
-Finally, this benchmark measures the duration to generate a contrast curve for analyzing the algorithmic throughput of an ADI algorithm. For both benchmarks 3 azimuthal branches are used for throughput injections and a FWHM of 8. A Gaussian PSF function is used for the injections. The data used are $\beta$ Pictoris and HR8799 from [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl).
+Finally, this benchmark measures the duration to generate a contrast curve for analyzing the algorithmic throughput of an ADI algorithm. For both benchmarks 3 azimuthal branches are used for throughput injections and a FWHM of 8. A Gaussian PSF function is evaluated in a `(21, 21)` grid for the injections. The data used are $\beta$ Pictoris and HR8799 from [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl).
 
 ```@example bench
 contrast_data = CSV.File(benchdir("contrast_benchmarks.csv")) |> DataFrame |> sort!
@@ -102,7 +102,6 @@ contrast_groups = groupby(contrast_data, :framework)
     :cube,
     :time,
     group=:framework,
-    msw=0,
     leg=:topleft,
     ylabel="time (s)"
 )
