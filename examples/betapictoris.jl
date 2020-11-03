@@ -44,13 +44,13 @@ imshow(reduced)
 #=
 To try out different algorithms, all you should have to do is change one line and re-run the remaining code. Let's briefly explore a few different algorithms
 =#
-algs = (PCA(10), PCA(20), Median(), GreeDS(10))
+algs = (alg, NMF(10), Median(), GreeDS(10))
 reduced_frames = [alg(cube, angles) for alg in algs];
 #-
 figs = (imshow(reduced, ticks=false) for reduced in reduced_frames)
 plot(
     figs...,
-    title=["PCA(10)" "PCA(20)" "Median()" "GreeDS(10)"],
+    title=["PCA(10)" "NMF(10)" "Median()" "GreeDS(10)"],
     layout=(2, 2),
     size=(900, 800),
     dpi=75
