@@ -42,6 +42,7 @@ makedocs(;
         "Examples" => [
             "examples/betapictoris.md"
         ],
+        "Benchmarks" =>"benchmarks.md",
         "API/Reference" => "api.md"
     ],
 )
