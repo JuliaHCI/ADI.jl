@@ -2,12 +2,10 @@
 
 The large scale image-processing required for ADI algorithms can lead to concerns about runtime efficiency. To this end, ADI.jl (and the associated JuliaHCI packages) are developed with performance in mind. These packages do not aim to be as fast as possible; rather they focus on being as fast as *is convenient* (for the users and the devs).
 
-### Meta Information
+### System/Setup Information
 
 The benchmarks here can be found in the [`bench/`](https://github.com/JuliaHCI/ADI.jl/blob/master/bench/) folder organized into Julia files. The benchmarks utilize BenchmarkTools.jl, PyCall.jl with `virtualenv`, and CSV.jl for accuracy, reproducibility, and organization.
 
-<details>
-<summary>**System Information**</summary>
 ```
 Julia Version 1.5.0
 Commit 96786e22cc (2020-08-01 23:44 UTC)
@@ -34,30 +32,35 @@ For the python code, there is a `requirements.txt` file in `bench/`. To reproduc
 
 The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is the inspiration for ADI.jl. It is one of the major Python HCI packages and it offers many more features than ADI.jl. Some of the common uses for both packages include full-frame ADI processing, S/N maps, and contrast curves.
 
-```@example bench
+```@setup bench
 using CSV
 using DataFrames
 using StatsPlots
+default(linewidth=0)
+benchdir(args...) = joinpath("..", ".." ,"bench", args...);
 ```
 
 ### ADI Reduction
 
 These benchmarks show the duration to fully reduce ADI data for various algorithms. The data used are $\beta$ Pictoris and HR8799 from [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl).
 
+
 ```@example bench
-adi_data = CSV.File("assets/adi_benchmarks.csv") |> DataFrame |> sort!
+adi_data = CSV.File(benchdir("adi_benchmarks.csv")) |> DataFrame |> sort!
+cube_labels = @. ifelse(adi_data[:N] == 622261, "Beta Pictoris", "HR8799")
+insertcols!(adi_data, 4, :cube => cube_labels)
+adi_groups = groupby(adi_data, :framework)
 ```
 
 ```@example bench
-groups = groupby(adi_data, :framework)
+cube_groups = groupby(adi_data, :cube)
 plot(
-    @df groups[1] barplot(:alg, :time, group=:N),
-    @df groups[2] barplot(:alg, :time, group=:N),
-    legendtitle="Num. Pixels",
-    size=(900, 500),
-    dpi=75,
+    @df(cube_groups[1], groupedbar(:alg, :time, group=:framework, yscale=:log10)),
+    @df(cube_groups[2], groupedbar(:alg, :time, group=:framework)),
+    size=(700, 350),
+    leg=:topleft,
     ylabel="time (s)",
-    title=["ADI.jl" "VIP"]
+    title=["Beta Pictoris" "HR8799"]
 )
 ```
 
@@ -67,7 +70,8 @@ plot(
 This benchmark measures the duration to produce a signal-to-noise ratio (S/N) map. Rather than test exact cubes, these benchmarks test randomly generated frames of various sizes. The FWHM is fixed at 5.
 
 ```@example bench
-snrmap_data = CSV.File("assets/snrmap_benchmarks.csv") |> DataFrame |> sort!
+snrmap_data = CSV.File(benchdir("snrmap_benchmarks.csv")) |> DataFrame |> sort!
+snrmap_groups = groupby(snrmap_data, :framework)
 ```
 
 ```@example bench
@@ -76,7 +80,8 @@ snrmap_data = CSV.File("assets/snrmap_benchmarks.csv") |> DataFrame |> sort!
     :time,
     group=:framework,
     msw=0,
-    xlabel="number of pixels
+    ms=5,
+    xlabel="number of pixels",
     ylabel="time (s)"
 )
 ```
@@ -86,16 +91,19 @@ snrmap_data = CSV.File("assets/snrmap_benchmarks.csv") |> DataFrame |> sort!
 Finally, this benchmark measures the duration to generate a contrast curve for analyzing the algorithmic throughput of an ADI algorithm. For both benchmarks 3 azimuthal branches are used for throughput injections and a FWHM of 8. A Gaussian PSF function is used for the injections. The data used are $\beta$ Pictoris and HR8799 from [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl).
 
 ```@example bench
-contrast_data = CSV.File("assets/contrast_benchmarks.csv") |> DataFrame |> sort!
+contrast_data = CSV.File(benchdir("contrast_benchmarks.csv")) |> DataFrame |> sort!
+cube_labels = @. ifelse(contrast_data[:N] == 622261, "Beta Pictoris", "HR8799")
+insertcols!(contrast_data, 4, :cube => cube_labels)
+contrast_groups = groupby(contrast_data, :framework)
 ```
 
 ```@example bench
-@df contrast_data scatter(
-    :N,
+@df contrast_data groupedbar(
+    :cube,
     :time,
     group=:framework,
     msw=0,
-    xlabel="number of pixels
+    leg=:topleft,
     ylabel="time (s)"
 )
 ```
