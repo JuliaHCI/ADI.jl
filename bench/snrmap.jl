@@ -14,6 +14,9 @@ frames = [
     randn(Float32, 401, 401) .+ 100
 ]
 
+# parameters
+fwhm = 5
+
 
 # julia benchmarks
 
@@ -21,7 +24,7 @@ for frame in frames
     N = length(frame)
     @info "Benchmarking - Julia" N=N
 
-    time_elapsed = @belapsed detectionmap($frame, 5)
+    time_elapsed = @belapsed detectionmap($frame, fwhm)
     
     @info "Benchmarking - Julia" N=N time=time_elapsed
     push!(results, (framework="ADI.jl", N=N, time=time_elapsed))
@@ -35,7 +38,7 @@ for frame in frames[begin:3] # vip way too slow
     N = length(frame)
     @info "Benchmarking - Python" N=N
 
-    time_elapsed = @belapsed vip.metrics.snrmap($frame, 5, verbose=false)
+    time_elapsed = @belapsed vip.metrics.snrmap($frame, fwhm, verbose=false)
     
     @info "Benchmarking - Python" N=N time=time_elapsed
     push!(results, (framework="VIP", N=N, time=time_elapsed))
