@@ -27,7 +27,7 @@ For the python code, there is a `requirements.txt` file in `bench/`. To reproduc
 (venv) $ pip install -r requirements.txt
 ```
 
-## ADI.jl vs. VIP-HCI
+## ADI.jl vs. VIP
 
 The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is the inspiration for ADI.jl. It is one of the major Python HCI packages and it offers many more features than ADI.jl. Some of the common uses for both packages include full-frame ADI processing, S/N maps, and contrast curves.
 
