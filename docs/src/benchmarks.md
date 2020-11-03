@@ -26,7 +26,6 @@ For the python code, there is a `requirements.txt` file in `bench/`. To reproduc
 ```
 (venv) $ pip install -r requirements.txt
 ```
-</details>
 
 ## ADI.jl vs. VIP-HCI
 
