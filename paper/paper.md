@@ -16,7 +16,7 @@ authors:
 affiliations:
  - name: Institute for Astronomy, University of Hawai'i
    index: 1
-date: 
+date: 11/02/2020
 bibliography: paper.bib
 ---
 
