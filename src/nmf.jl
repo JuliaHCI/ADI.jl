@@ -2,6 +2,14 @@ using NMF: nnmf, solve!, CoordinateDescent, nndsvd
 
 """
     NMF(;ncomps=nothing) <: LinearAlgorithm
+    NMF(ncomps)
+
+Use non-negative matrix factorization (NMF, NNMF) to form a non-negative low-rank orthonormal basis of the input. The implementation of the underlying NMF is provided by [NMF.jl](https://github.com/JuliaStats/NMF.jl). The implementation uses a non-negative SVD for initialization and a coordinate-descent solver to fit.
+
+If `ncomps` is `nothing`, it will be set to the number of frames in the reference cube when processed.
+
+# References
+* [Ren et al. 2018](http://adsabs.harvard.edu/abs/2018ApJ...852..104R) Non-negative Matrix Factorization: Robust Extraction of Extended Structures
 """
 @with_kw struct NMF <: LinearAlgorithm
     ncomps::Union{Int,Nothing} = nothing

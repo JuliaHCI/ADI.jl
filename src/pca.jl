@@ -5,6 +5,7 @@ using TSVD: tsvd
 
 """
     PCA(;ncomps=nothing, pratio=1) <: LinearAlgorithm
+    PCA(ncomps; pratio=1)
 
 Use principal components analysis (PCA) to form a low-rank orthonormal basis of the input. Uses deterministic singular-value decomposition (SVD) to decompose data.
 
@@ -51,8 +52,9 @@ end
 
 """
     TPCA(;ncomps=nothing) <: LinearAlgorithm
+    TPCA(ncomps; pratio=1)
 
-Perform principal components analysis (PCA) using truncated SVD (TSVD; provided by TSVD.jl) instead of deterministic SVD. This is often faster thant [`PCA`](@ref) but is non-determinstic. We find the differences unnoticable in practice.
+Perform principal components analysis (PCA) using truncated SVD (TSVD; provided by TSVD.jl) instead of deterministic SVD. This is often faster than [`PCA`](@ref) but is non-deterministic, so the results may be different.
 
 If `ncomps` is `nothing`, it will be set to the number of frames in the reference cube when processed.
 
@@ -60,7 +62,7 @@ If `ncomps` is `nothing`, it will be set to the number of frames in the referenc
 * [`decompose`](@ref)
 
 # See Also
-* [`PCA`](@ref), [`TSVD.tsvd`](https://julialinearalgebra.github.io/TSVD.jl/latest/)
+* [`PCA`](@ref), [`TSVD.tsvd`](https://github.com/JuliaLinearAlgebra/TSVD.jl)
 """
 @with_kw struct TPCA <: LinearAlgorithm
     ncomps::Union{Int,Nothing} = nothing

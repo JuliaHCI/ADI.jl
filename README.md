@@ -30,9 +30,45 @@ julia> using ADI
 
 julia> cube, angles = # load data
 
-julia> flat_residual = PCA(ncomps=10)(cube, angles)
+julia> alg = PCA(ncomps=10)
+
+julia> flat_resid = alg(cube, angles) # ADI
+
+julia> flat_resid_rdi = alg(cube, angles, cube_ref) # flexible RDI
+```
+
+get the S/N and significance
+
+```julia
+julia> fwhm = # PSF fswhm in pixels
+
+julia> snmap = detectionmap(snr, flat_residual, fwhm)
+
+julia> sigmap = detectionmap(significance, flat_residual, fwhm)
+```
+
+get the contrast curve
+
+```julia
+julia> psf = # load psf or choose from HCIToolbox.Kernels
+
+julia> cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm)
+```
+
+which can be easily loaded into a `DataFrame` or anything adopting the Tables.jl interface.
+
+```julia
+julia> using DataFrames
+
+julia> df = DataFrame(cc)
+
+julia> head(df)
 ```
 
 ## License
 
 This package is licensed under the MIT Expat license. See [LICENSE](LICENSE) for more information.
+
+---
+
+**Author's Note**: This package is still under active development and is subject to change. Anything from minor behind-the-scenes details to large-scale design can change as I incorporate more methods into ADI.jl. I don't plan on spending much time with deprecation warnings throughout this process, since that limits my ability to experiment with implementation ideas and design goals. This package follows [semantic versioning](https://semver.org/), so an upgrade from `0.6` to `0.7` may be breaking and I recommend anybody using this package to browse the release notes for changes. Once ADI.jl is somewhat stable, I'll release a version `1.0`, at which point I'll worry about deprecations and other long-term usability considerations.
