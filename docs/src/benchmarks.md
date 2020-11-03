@@ -35,7 +35,6 @@ The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is 
 using CSV
 using DataFrames
 using StatsPlots
-default(linewidth=0)
 benchdir(args...) = joinpath("..", ".." ,"bench", args...);
 ```
 
