@@ -2,6 +2,8 @@
 
 The large scale image-processing required for ADI algorithms can lead to concerns about runtime efficiency. To this end, ADI.jl (and the associated JuliaHCI packages) are developed with performance in mind. These packages do not aim to be as fast as possible; rather they focus on being as fast as *is convenient* (for the users and the devs).
 
+The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is the inspiration for ADI.jl. It is one of the major Python HCI packages and it offers many more features than ADI.jl. Some of the common uses for both packages include full-frame ADI processing, S/N maps, and contrast curves.
+
 ### System/Setup Information
 
 The benchmarks here can be found in the [`bench/`](https://github.com/JuliaHCI/ADI.jl/blob/master/bench/) folder organized into Julia files. The benchmarks utilize BenchmarkTools.jl, PyCall.jl with `virtualenv`, and CSV.jl for accuracy, reproducibility, and organization.
@@ -27,10 +29,6 @@ For the python code, there is a `requirements.txt` file in `bench/`. To reproduc
 (venv) $ pip install -r requirements.txt
 ```
 
-## ADI.jl vs. VIP
-
-The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is the inspiration for ADI.jl. It is one of the major Python HCI packages and it offers many more features than ADI.jl. Some of the common uses for both packages include full-frame ADI processing, S/N maps, and contrast curves.
-
 ```@setup bench
 using CSV
 using DataFrames
@@ -38,7 +36,7 @@ using StatsPlots
 benchdir(args...) = joinpath("..", ".." ,"bench", args...);
 ```
 
-### ADI Reduction
+## ADI Reduction
 
 These benchmarks show the duration to fully reduce ADI data for various algorithms. The data used are $\beta$ Pictoris and HR8799 from [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl).
 
@@ -63,7 +61,7 @@ plot(
 ```
 
 
-### Detection Maps
+## Detection Maps
 
 This benchmark measures the duration to produce a signal-to-noise ratio (S/N) map. Rather than test exact cubes, these benchmarks test randomly generated frames of various sizes. The FWHM is fixed at 5.
 
@@ -84,7 +82,7 @@ snrmap_groups = groupby(snrmap_data, :framework)
 )
 ```
 
-### Contrast Curves
+## Contrast Curves
 
 Finally, this benchmark measures the duration to generate a contrast curve for analyzing the algorithmic throughput of an ADI algorithm. For both benchmarks 3 azimuthal branches are used for throughput injections and a FWHM of 8. A Gaussian PSF function is evaluated in a `(21, 21)` grid for the injections. The data used are $\beta$ Pictoris and HR8799 from [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl).
 
