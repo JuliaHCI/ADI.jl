@@ -51,7 +51,7 @@ VIP has served as a useful source of information regarding HCI image-processing 
 -|-|-|-|-
 VIP | yes | Full-frame ADI/RDI, SDI, annular ADI/RDI for some algorithms | detection maps, STIM, ROC, contrast curve | NegFC 
 pyKLIP | no | Full-frame ADI/RDI, SDI, annular ADI/RDI, **PCA/KLIP is the only algorithm** | contrast curve | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM
-ADI.jl | no (some utilities in `HCIToolbox.jl`) | Full-frame ADI/RDI, SDI (experimental) | detection maps, contrast curve | no (separate package in development, `Firefly.jl`)
+ADI.jl | no | Full-frame ADI/RDI, SDI (experimental) | detection maps, contrast curve | no (separate package in development, `Firefly.jl`)
 
 # Acknowledgements
 
