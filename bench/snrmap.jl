@@ -2,6 +2,7 @@ using ADI
 using BenchmarkTools
 using CSV
 using DataFrames
+using InvertedIndices
 using PyCall
 
 results = []
@@ -48,4 +49,4 @@ end
 path = joinpath(@__DIR__, "snrmap_benchmarks.csv")
 df = isfile(path) ? CSV.File(path) |> DataFrame : DataFrame()
 out = append!(DataFrame(results), df)
-unique!(out) |> CSV.write(path)
+unique!(out, Not(:time)) |> CSV.write(path)

@@ -4,6 +4,7 @@ using CSV
 using DataFrames
 using HCIDatasets: BetaPictoris, HR8799
 using HCIToolbox
+using InvertedIndices
 using PyCall
 
 results = []
@@ -47,4 +48,4 @@ end
 path = joinpath(@__DIR__, "contrast_benchmarks.csv")
 df = isfile(path) ? CSV.File(path) |> DataFrame : DataFrame()
 out = append!(DataFrame(results), df)
-unique!(out) |> CSV.write(path)
+unique!(out, Not(:time)) |> CSV.write(path)
