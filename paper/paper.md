@@ -38,12 +38,6 @@ In `ADI.jl` this process is implemented in a functional framework. Each algorith
 
 The `reconstruct` method is all that is needed to describe an algorithm since the reorientation and collapsing of the target data cube is a common pattern. As such, applying the algorithm as a function will combine the reconstruction with the remainder of the reduction. This API is enabled by Julia's multiple-dispatch, which means functions dispatch on the type of all input arguments. This is in contrast to common single-dispatch languages, like C and Python, which can only organize their algorithms using inheritance or function overloading[^function overloading is distinct frum multiple-dispatch because function overloading only dispatches on the overloaded caller, not on any of the other types. This is roughly the same reason why mix-ins or monkeypatching are not multiple-dispatch.]. As a result, the Julia ecosystem is much more composable, since there is no conflict with extending a function for a new type (or conversely, a new function to extend a type).
 
-# Rapid Reduction and Experimentation
-
-For observers, 
-
-
-
 # Acknowledgements
 
 # References
