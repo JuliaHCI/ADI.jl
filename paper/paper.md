@@ -43,15 +43,19 @@ The composability that multiple-dispatch offers is beneficial to observers and a
 
 # Comparison with existing software
 
-High-contrast imaging, as a field, predominantly utilizes Python for data reduction. Two notable libraries for various HCI tasks, including pre-processing, post-processing, forward modeling, and signal detection, are the Vortex Imaging Pipeline (VIP) **citation** and pyKLIP **citation**. A table of the feature sets of these two packages with `ADI.jl` is presented in **table link**.
+High-contrast imaging, as a field, predominantly utilizes Python for data reduction. We break down some of the necesssary computaions into *pre-processing*, which includes raw calibration of data, the centering and stacking of the data cube, bad-pixel removal, etc., *post-processing*, which includes the PSF approximation and subtraction, *posterior analysis* which includes analyzing the results of post-processing like detection statistics and throughput calibration, and finally *forward modeling* which includes various statistical models for companions and disks for use with post-processing algorithms.
 
-VIP has served as a useful source of information regarding HCI image-processing as well as detailed implementations of common ADI algorithms. This has been indispensible in the development of `ADI.jl`, although this package is not a direct translation in all cases. A detailed comparison, including benchmarks, is present in the `ADI.jl` documentation.
+Some notable libraries for HCI tasks include the Vortex Imaging Pipeline (`VIP`) **citation**, `pyKLIP` **citation**, and `PynPoint` **citation**. A table of the feature sets of these packages alongside `ADI.jl` is presented in **table link**. In particular, VIP has served as a useful source of information regarding HCI image-processing as well as detailed implementations of common ADI algorithms. This has been indispensible in the development of `ADI.jl`, although this package is not a direct translation.
 
- Framework | Pre-processing raw data | ADI reduction | Posterior analysis | Forward modeling 
--|-|-|-|-
-VIP | yes | Full-frame ADI/RDI, SDI, annular ADI/RDI for some algorithms | detection maps, STIM, ROC, contrast curve | NegFC 
-pyKLIP | no | Full-frame ADI/RDI, SDI, annular ADI/RDI, **PCA/KLIP is the only algorithm** | contrast curve | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM
-ADI.jl | no | Full-frame ADI/RDI, SDI (experimental) | detection maps, contrast curve | no (separate package in development, `Firefly.jl`)
+VIP offers the most diversity in algorithms and their applications, but at the cost of flexibility. The implementations of the algorithms suffer from long lists of arguments, large blocks of parsing the input arguments and coercing them into usable types or manually dispatching. Because of this, algorithms with similar techniques, such as annular processing using the median vs. annular processing with PCA, are not guaranteed to be applied the same way and any new algorithms must repeat code and add complexity in order to use the annular processing technique.
+
+ Framework | Pre-processing | Algorithms | Techniques | Posterior analysis | Forward modeling 
+-|-|-|-|-|-
+ADI.jl | no | median, PCA, NMF, fixed-point GreeDS | Full-frame ADI/RDI, SDI (experimental) | detection maps, contrast curve | no ^[separate package in development, `Firefly.jl`]
+VIP | yes | median, LOCI, PCA, NMF, LLSG, ANDROMEDA | Full-frame ADI/RDI, SDI, annular ADI/RDI for some algorithms | detection maps, blob detection, STIM, ROC, contrast curve | NegFC 
+pyKLIP | no | PCA | Full-frame ADI/RDI, SDI, annular ADI/RDI | detection maps, blob detection, contrast curve | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM
+PynPoint | yes | median, PCA | Full-frame ADI/RDI, SDI | detection maps, contrast curve | no 
+
 
 # Acknowledgements
 
