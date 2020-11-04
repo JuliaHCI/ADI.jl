@@ -1,5 +1,8 @@
 # SDI
 
+!!! warning
+    SDI should be considered _very_ experimental.
+
 ```@docs
 ADI.SDIAlgorithm
 ```
