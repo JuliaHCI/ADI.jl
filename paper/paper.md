@@ -50,13 +50,12 @@ What this means for users is that mixing and matching different pieces of algori
 
 High-contrast imaging, as a field, predominantly utilizes Python for data reduction. We break down some of the necessary computations into *pre-processing*, which includes raw calibration of data, the centering and stacking of the data cube, bad-pixel removal, etc., *post-processing*, which includes the PSF approximation and subtraction, *posterior analysis* which includes analyzing the results of post-processing like detection statistics and throughput calibration, and finally *forward modeling* which includes various statistical models for companions and disks for use with post-processing algorithms. `ADI.jl` primarily focuses on post-processing and posterior analysis.
 
-Some notable libraries for HCI tasks include the Vortex Imaging Pipeline (`VIP`) [@gomez_gonzalez_vip_2016], `pyKLIP` [@2015ascl.soft06001W], and `PynPoint` [@pynpoint:2019]. A table of the feature sets of these packages alongside `ADI.jl` is presented in \autoref{tab:features}. In particular, `VIP` has served as a useful source of information regarding HCI image-processing as well as detailed implementations of common ADI algorithms. This has been indispensable in the development of `ADI.jl`, although this package is not a direct translation.
+Some notable libraries for HCI tasks include the Vortex Imaging Pipeline (`VIP`) [@gomez_gonzalez_vip_2016], `pyKLIP` [@2015ascl.soft06001W], and `PynPoint` [@pynpoint:2019]. A table of the feature sets of these packages alongside `ADI.jl` is presented below. In particular, `VIP` has served as a useful source of information regarding HCI image-processing as well as detailed implementations of common ADI algorithms. This has been indispensable in the development of `ADI.jl`, although this package is not a direct translation.
 
 `VIP` offers the most diversity in algorithms and their applications, but at the cost of flexibility. The implementations of the algorithms suffer from long lists of arguments, large blocks of parsing the input arguments and coercing them into usable types or manually dispatching. Because of this, algorithms with similar techniques, such as annular processing using the median versus annular processing with PCA, are not guaranteed to be applied the same way and any new algorithms must repeat code and add complexity in order to use the annular processing technique.
 
 
-
-[Table 1: Comparison of features across different HCI frameworks \label{tab:features}]
+Table 1: Comparison of features across different HCI frameworks
 
  Framework | Pre-processing | Algorithms | Techniques | Posterior analysis | Forward modeling
 -|-|-|-|-|-
