@@ -12,5 +12,5 @@ StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 
 [compat]
 Documenter = "0.25"
-HCIDatasets = "0.1.4"
+HCIDatasets = "0.2"
 Literate = "2.6"
