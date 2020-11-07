@@ -15,7 +15,8 @@ export reconstruct,
        TPCA,
        NMF,
        SingleSDI,
-       DoubleSDI
+       DoubleSDI,
+       SliceSDI
 
 """
     ADI.ADIAlgorithm <: Function
