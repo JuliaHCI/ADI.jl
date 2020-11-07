@@ -44,13 +44,12 @@ Some notable libraries for HCI tasks include the Vortex Imaging Pipeline (`VIP`)
 
 In general `VIP` offers the most diversity in algorithms and their applications, but not all algorithms are as feature-complete as the PCA implementation. `VIP` also contains many useful utilizies for pre-processing and a pipeline framework. `pyKLIP` only uses the PCA algorithm, but offers many forward modeling implementations. `PynPoint` has a highly modular pre-processing module that is focused on pipelines.
 
-
-Table 1: Comparison of features across different HCI frameworks. Techniques marked with * indicate partial support, meaning that not all algorithms are supported
+Table 1: Comparison of features across different HCI frameworks. Techniques marked with * indicate partial support, meaning that not all algorithms are supported. Algorithms marked with * indicate partial support, usually meaning they don't fit into the traditional reduction process and can only be used one or two ways.
 
  Framework | Pre-processing | Algorithms | Techniques | Posterior analysis | Forward modeling
 -|-|-|-|-|-
 ADI.jl | no | median, PCA, NMF, fixed-point GreeDS | Full-frame ADI/RDI, SDI (experimental) | detection maps, contrast curve | no
-VIP | yes | median, LOCI, PCA, NMF, LLSG, ANDROMEDA | Full-frame ADI/RDI, SDI, annular ADI/RDI* | detection maps, blob detection, STIM, ROC, contrast curve | NegFC
+VIP | yes | median, LOCI, PCA, NMF, LLSG, ANDROMEDA*, frame differencing* | Full-frame ADI/RDI, SDI, annular ADI/RDI* | detection maps, blob detection, STIM, ROC, contrast curve | NegFC
 pyKLIP | no | PCA | Full-frame ADI/RDI, SDI, annular ADI/RDI | detection maps, blob detection, contrast curve | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM
 PynPoint | yes | median, PCA | Full-frame ADI/RDI, SDI | detection maps, contrast curve | no
 
