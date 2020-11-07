@@ -12,4 +12,5 @@ ADI.SDIAlgorithm
 ```@docs
 SingleSDI
 DoubleSDI
+SliceSDI
 ```
