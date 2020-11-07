@@ -164,12 +164,13 @@ function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) 
     temp_resids = similar(spcube, nλ, ny, nx)
     # do first pass in temporal domain
     Threads.@threads for n in axes(spcube, 1)
-        cube = @view spcube[n, :, :, :]
+        cube = spcube[n, :, :, :]
         temp_resids[n, :, :] .= sdi.alg_temp(cube, angles; kwargs...)
     end
     # do second pass in temporal domain
     scaled_resid_cube = scale(temp_resids, scales)
-    return sdi.alg_spec(scaled_resid_cube, angles; kwargs...)
+    resid = sdi.alg_spec(scaled_resid_cube, angles; kwargs...)
+    return invscale(resid, maximum(scales))
 end
 
 function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales, spcube_ref; kwargs...) where T
@@ -178,12 +179,13 @@ function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales, spcube_ref;
     temp_resids = similar(spcube, nλ, ny, nx)
     # do first pass in temporal domain
     Threads.@threads for n in axes(spcube, 1)
-        cube = @view spcube[n, :, :, :]
-        cube_ref = @view spcube_ref[n, :, :, :]
+        cube = spcube[n, :, :, :]
+        cube_ref = spcube_ref[n, :, :, :]
         temp_resids[n, :, :] .= sdi.alg_temp(cube, angles, cube_ref; kwargs...)
     end
     # do second pass in temporal domain
     scaled_resid_cube = scale(temp_resids, scales)
-    return sdi.alg_spec(scaled_resid_cube, angles; kwargs...)
+    resid = sdi.alg_spec(scaled_resid_cube, angles; kwargs...)
+    return invscale(resid, maximum(scales))
 end
 
