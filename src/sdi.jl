@@ -78,6 +78,8 @@ end
 
 A wrapper algorithm for spectral differential imaging (SDI) data reduced in two passes. The first pass uses `alg_spec` to reduce each spectral cube slice in the SDI tensor. Then, the spectral residual frames will be reduced using `alg_temp`, which will include the derotation and final combination.
 
+The difference between [`DoubleSDI`](@ref) and [`SliceSDI`](@ref) is that `DoubleSDI` does its first pass in the spectral slice, effectively collapsing the slice before performing ADI on the residual cube. `SliceSDI` does its first pass in the temporal slice, collapsing it first before performing ADI on the residual cube.
+
 # Examples
 
 ```julia
@@ -128,3 +130,62 @@ function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales, spcube_ref
     # do second pass in temporal domain
     return sdi.alg_temp(spec_resids, angles; kwargs...)
 end
+
+
+
+"""
+    SliceSDI(alg)
+    SliceSDI(alg_spec, alg_temp)
+
+A wrapper algorithm for spectral differential imaging (SDI) data reduced in two passes. The first pass uses `alg_temp` to reduce each temporal cube slice in the SDI tensor. These residuals will be rescaled and stacked into a new cube. Then, the temporal residual frames will be reduced using `alg_spec`, which will include the derotation and final combination.
+
+The difference between [`SliceSDI`](@ref) and [`DoubleSDI`](@ref) is that `DoubleSDI` does its first pass in the spectral slice, effectively collapsing the slice before performing ADI on the residual cube. `SliceSDI` does its first pass in the temporal slice, collapsing it first before performing ADI on the residual cube.
+
+# Examples
+
+```julia
+julia> data, angles, scales = # load data...
+
+# Median subtraction for each spectral slice,
+# GreeDS{PCA} subtraction on spectral residual cube
+julia> res = SliceSDI(Median(), GreeDS(15))(data, angles, scales)
+```
+"""
+struct SliceSDI{ALG<:ADIAlgorithm, ALG2<:ADIAlgorithm} <: SDIAlgorithm
+    alg_spec::ALG
+    alg_temp::ALG2
+end
+
+SliceSDI(alg) = SliceSDI(alg, alg)
+
+function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
+    nλ, n, ny, nx = size(spcube)
+    frame_size = (ny, nx)
+    temp_resids = similar(spcube, nλ, ny, nx)
+    # do first pass in temporal domain
+    Threads.@threads for n in axes(spcube, 1)
+        cube = spcube[n, :, :, :]
+        temp_resids[n, :, :] .= sdi.alg_temp(cube, angles; kwargs...)
+    end
+    # do second pass in temporal domain
+    scaled_resid_cube = scale(temp_resids, scales)
+    resid = sdi.alg_spec(scaled_resid_cube, angles; kwargs...)
+    return invscale(resid, maximum(scales))
+end
+
+function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales, spcube_ref; kwargs...) where T
+    nλ, n, ny, nx = size(spcube)
+    frame_size = (ny, nx)
+    temp_resids = similar(spcube, nλ, ny, nx)
+    # do first pass in temporal domain
+    Threads.@threads for n in axes(spcube, 1)
+        cube = spcube[n, :, :, :]
+        cube_ref = spcube_ref[n, :, :, :]
+        temp_resids[n, :, :] .= sdi.alg_temp(cube, angles, cube_ref; kwargs...)
+    end
+    # do second pass in temporal domain
+    scaled_resid_cube = scale(temp_resids, scales)
+    resid = sdi.alg_spec(scaled_resid_cube, angles; kwargs...)
+    return invscale(resid, maximum(scales))
+end
+
