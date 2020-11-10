@@ -1,8 +1,8 @@
 # Benchmarks
 
-The large scale image-processing required for ADI algorithms can lead to concerns about runtime efficiency. To this end, ADI.jl (and the associated JuliaHCI packages) are developed with performance in mind. These packages do not aim to be as fast as possible; rather they focus on being as fast as *is convenient* (for the users and the devs).
+The large scale image-processing required for ADI algorithms can lead to concerns about runtime efficiency. To this end, *ADI.jl* (and the associated JuliaHCI packages) are developed with performance in mind. These packages do not aim to be as fast as possible; rather they focus on being as fast as *is convenient* (for the users and the devs).
 
-The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is the inspiration for ADI.jl. It is one of the major Python HCI packages and it offers many more features than ADI.jl. Some of the common uses for both packages include full-frame ADI processing, S/N maps, and contrast curves.
+The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is the inspiration for *ADI.jl*. It is one of the major Python HCI packages and it offers many more features than *ADI.jl*. Some of the common uses for both packages include full-frame ADI processing, S/N maps, and contrast curves.
 
 ### System/Setup Information
 

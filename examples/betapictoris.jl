@@ -1,7 +1,7 @@
 #=
 # ADI Reduction of $\beta$ Pictoris
 
-This example will walk through a full reduction and some analysis of $\beta$ Pictoris in order to show the basic usage of ADI.jl for high-contrast imaging. $\beta$ Pictoris is a known exoplanet host with many publications regarding the direct images of its substellar companion and circumstellar disk.
+This example will walk through a full reduction and some analysis of $\beta$ Pictoris in order to show the basic usage of *ADI.jl* for high-contrast imaging. $\beta$ Pictoris is a known exoplanet host with many publications regarding the direct images of its substellar companion and circumstellar disk.
 
 What will *not* be covered in this example are the basics of Julia, the fine details of ADI post-processing, or any reference documentation.
 
@@ -32,7 +32,7 @@ Here we load the data for $\beta$ Pictoris from NaCo at the VLT. You may be prom
 cube, angles = BetaPictoris[:cube, :pa];
 
 #=
-To reduce the data, we need an *algorithm*. In ADI.jl we currently have median subtraction, PCA, NMF, and fixed-point GreeDS. These algorithms are treated as "objects" in the sense that we initialize them with options and then pass them around inside the ADI.jl framework to retrieve the results we want.
+To reduce the data, we need an *algorithm*. In *ADI.jl* we currently have median subtraction, PCA, NMF, and fixed-point GreeDS. These algorithms are treated as "objects" in the sense that we initialize them with options and then pass them around inside the *ADI.jl* framework to retrieve the results we want.
 
 The usage for fitting the speckle estimate, projecting and subtracting this estimate from the target cube, and derotating and collapsing the residual all are encompassed by calling the algorithm as a function.
 =#
