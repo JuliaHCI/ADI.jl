@@ -51,7 +51,7 @@ The process for producing the flat, residual frame follows this general workflow
 3. Derotate `R` frame-by-frame according to the parallactic angle
 4. Collapse the derotated `R`
 
-In ADI.jl this process looks like this:
+In*ADI.jl* this process looks like this:
 
 ```julia
 using HCIToolbox: collapse, derotate
@@ -92,11 +92,9 @@ ADI.jl took a lot of ideas from VIP and expanded them using the power of Julia. 
 
 Some technical distinctions to VIP
 * Julia is 1-indexed. This means all the positions for apertures, bounds, images, etc. start at 1. This is distinct from 0-based indexing in python, but is equivalent to the indexing in DS9 and IRAF.
-* Julia's `std` uses the sample statistic while numpy's `std` uses the population statistic. This may cause very slight differences in measurements that rely on this.
-* Aperture mapping - many of the [`Metrics`](@ref) are derived by measuring statistics in an annulus of apertures. In VIP, this ring is not equally distributed- the angle between apertures is based on the exact number of apertures rather than the integral number of apertures that are actually measured. In ADI.jl the angle between apertures is evenly distributed. The same number of pixels are discarded in both packages, but in VIP they all end up in the same region of the image (see [this figure](assets/aperture_masks.png)).
-* Collapsing - by default VIP collapses a cube by derotating it then finding the median frame. In ADI.jl, the default collapse method is a weighted sum using the inverse of the temporal variance for weighting. This is documented in `HCIToolbox.collapse` and can be overridden by passing the keyword argument `method=median` or whichever statistical funciton you want to use.
+* Julia's `std` uses the sample statistic ($n-1$ degrees of freedom) while numpy's `std` uses the population statistic ($n$ degrees of freedom). This may cause very slight differences in measurements that rely on this.
+* Aperture mapping - many of the [`Metrics`](@ref) are derived by measuring statistics in an annulus of apertures. In VIP, this ring is not equally distributed- the angle between apertures is based on the exact number of apertures rather than the integral number of apertures that are actually measured. In*ADI.jl* the angle between apertures is evenly distributed. The same number of pixels are discarded in both packages, but in VIP they all end up in the same region of the image (see [this figure](assets/aperture_masks.png)).
+* Collapsing - by default VIP collapses a cube by derotating it then finding the median frame. In*ADI.jl*, the default collapse method is a weighted sum using the inverse of the temporal variance for weighting. This is documented in `HCIToolbox.collapse` and can be overridden by passing the keyword argument `method=median` or whichever statistical funciton you want to use.
 
-The biggest difference, though, is Julia's multiple-dispatch system and how that allows ADI.jl to *do more with less code*. For example, the [`GreeDS`](@ref) algorithm was designed explicitly for [`PCA`](@ref), but the formalism of it is more generic than that. Rather than hard-coding in PCA, I was able to write the GreeDS algorithm generically, and Julia's multiple-dispatch Just Works (^TM) to allow us to use, say [`NMF`](@ref) instead of PCA. I've gotten two versions of GreeDS for the cost of one; in fact, I've got infinite algorithms that can work within GreeDS as long as they have a [`decompose`](@ref) method.
-
-As ADI.jl grows and more methods are incorporated there will be lots of opportunities for exploring algorithms with your data without the burden of writing specific code for each instance. In other words, the details of the algorithm are separated from their application to the data.
+The biggest difference, though, is Julia's multiple-dispatch system and how that allows*ADI.jl* to *do more with less code*. For example, the [`GreeDS`](@ref) algorithm was designed explicitly for [`PCA`](@ref), but the formalism of it is more generic than that. Rather than hard-coding in PCA, the GreeDS algorithm was written ngenerically, and Julia's multiple-dispatch  allows the use of, say [`NMF`](@ref) instead of PCA. By making the code *generic* and *modular*, *ADI.jl* enables rapid experimentation with different post-processing algorithms and techniques as well as minimizing the code required to implement a new algorithm and be able to fully use the *ADI.jl* API.
 
