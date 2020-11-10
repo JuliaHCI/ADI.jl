@@ -29,11 +29,13 @@ function ADI.decompose(alg::NMF, cube, angles, cube_ref; kwargs...)
 end
 
 function ADI.decompose(alg::NMF, cube, angles; kwargs...)
+    # X = clamp.(flatten(cube), 0, Inf) # clamp non-negative values
     X = flatten(cube)
-    
+
     k = isnothing(alg.ncomps) ? size(cube, 1) : alg.ncomps
     k > size(cube, 1) && error("ncomps ($k) cannot be greater than the number of frames ($(size(cube, 1)))")
 
-    res = nnmf(X, k; alg=:cd, init=:nndsvd, maxiter=100)
-    return res.H, res.W
+    W, H = nndsvd(X, k)
+    solve!(CoordinateDescent{eltype(X)}(maxiter=100, α=0), X, W, H)
+    return H, W
 end

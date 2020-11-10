@@ -14,7 +14,7 @@ end
 @testset "significance" begin
     test_method(significance)
     
-    X = randn(101, 101) .+ 10
+    X = randn(rng, 101, 101) .+ 10
     # expect small sample to matter ~3fwhm out
     @test abs(significance(X, (58, 51), 3)) < abs(snr(X, (58, 51), 3))
 end

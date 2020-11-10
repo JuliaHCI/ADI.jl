@@ -1,8 +1,8 @@
 # Introduction to High-Contrast Imaging
 
-This will serve as a brief primer to high-contrast imaging (HCI) to illustrate the concepts and themes prevalant within this codebase. This is not meant to be an exhaustive lecture note on the topic, but more of a gentle introduction.
+This will serve as a brief primer to high-contrast imaging (HCI) to illustrate the concepts and themes prevalent within this package. This is not meant to be an exhaustive lecture note on the topic, but more of a gentle introduction.
 
-If you are comfortable with HCI topics, consider skipping to the [Getting Started](@ref gettingstarted) section to get introduced to ADI.jl or browse the Examples.
+If you are comfortable with HCI topics, consider skipping to the [Getting Started](@ref gettingstarted) section to get introduced to ADI.jl, browse the Examples to see sample workflows, or browse through the API to start exploring the capabilities of ADI.jl.
 
 ## What is HCI
 
@@ -10,7 +10,7 @@ HCI is an advanced imaging technique comprising modern instrumentation, clever o
 
 ![](assets/speckles.png)
 
-You'll notice a few things: there's no companions to be found, there's a lot of structured noise in the center, and the angular separations (shown by the legend) that the noise encompass are precisely where we are searching for planets. This noise is the effect of quasi-static speckles in the focal-plane. These speckles occur from non-common path aberrations in the AO system and are a fundamental part of the data received by these instruments. Improving the quality of instrumentation is an active topic of HCI research, but it is beyond the scope of this introduction.
+What is notable in this image is that there is a lot of structured noise in the image that is overwhelming any potential companion signal. The center of the image is particularly noisy, which is precisely where we are most interested in searching for exoplanets. This noise is the effect of quasi-static speckles in the focal-plane. These speckles occur from non-common path aberrations in the AO system and are a fundamental part of the data received by these instruments. Improving the quality of instrumentation is an active topic of HCI research, but it is beyond the scope of this introduction.
 
 ## [Angular Differential Imaging (ADI)](@id adi)
 
@@ -18,9 +18,9 @@ Because this noise is fundamental to the data, post-processing must be performed
 
 ![](assets/S-1.png)
 
-Unfortunately, there's still no signal present, but we've removed the speckles, so what gives? Well the planet is still sitting below the statistical noise in this frame, so we need to find a way to attenuate this noise, which we can do easily by taking a bunch of frames and combining them together. This runs us into a bit of a conundrum: **how do we fit the speckles and remove them without removing the companion signal**?
+Unfortunately, there is no companion evident; but the speckles have been removed, so what is left? The exoplanet is still sitting below the statistical noise in this frame, but the noise can be averaged out by combining many frames together. Since we are concerned with subtracting the speckles, we need to be careful and consider **how do we fit and subtract the speckles without removing potential companion signal**?
 
-This is where angular differential imaging (ADI) comes in. ADI is an observational technique pioneered in the early 2000s as an extension of *roll deconvolution* for ground-based telescopes. The core of this process is that the quasi-static speckles are a function of the optical system, not the astrophysical source. Throughout a night of observing we can leverage the rotation of the Earth to make the aperture appear to rotate throughout the night (on an alt-az mounted telescope with the field rotator disabled). This apparant rotation will only affect the astrophysical signal while the speckles remain non-rotating. An exaggerated animation showing this rotation is shown below.
+This is where angular differential imaging (ADI) comes in. ADI is an observational technique pioneered in the early 2000s as an extension of *roll deconvolution* for ground-based telescopes. The core of this process is that the quasi-static speckles are a function of the optical system, not the astrophysical source. Throughout a night of observing we can leverage the rotation of the Earth to make the field-of-view (FOV) appear to rotate (on an Alt-Az mounted telescope with the field rotator disabled). Even though the sky appears to rotate, because the speckles are due to the telescope optics they will not appear to rotate. The animation below shows a cube of data with a bright fake companion that illustrates the sky rotation typical of ADI.
 
 ![](assets/fake_cube.gif)
 
@@ -31,9 +31,9 @@ By taking this sequence of images (commonly referred to as a cube) we can more e
 
 ## Post-Processing Algorithms
 
-Using data cubes (as described in the [ADI section](@ref adi)), we are tasked with fitting the speckles without capturing the rotating companion signal. Quite a few algorithms have been proposed and a thorough discussion of them is beyond the scope of this introduction. For now, let's assume the algorithms are a black box that produce speckle approximation cubes.
+Using data cubes (as described in the [ADI section](@ref adi)), we are tasked with fitting the speckles without capturing the rotating companion signal. Quite a few algorithms have been proposed and a thorough discussion of them is beyond the scope of this introduction. For now, let's assume the algorithms are a black-box that produce speckle approximation cubes.
 
-If we have this cube, all we need to do the post-processing reduction is
+If we have this cube, all we need to post-process the data is
 
 1. Retrieve a speckle estimate cube
 2. Subtract the speckle estimate from the target cube and form a residual cube
@@ -44,4 +44,4 @@ Steps 2-4 are shown in the following figure
 
 ![](assets/adi_process.png)
 
-Hey, look- we found a planet! Well, we clearly weren't the first- that is in fact HR8799e. Hopefully this shows the difficulty of HCI and builds up part of the process that occurs outside of the reduction you'll be doing with ADI.jl
+After all this processing, finally the substellar companion HR8799e is evident. Hopefully this shows the difficulty of HCI and builds up part of the process that occurs outside of the reduction you'll be doing with ADI.jl.
