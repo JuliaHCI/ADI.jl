@@ -2,7 +2,7 @@
 
 This will serve as a brief primer to high-contrast imaging (HCI) to illustrate the concepts and themes prevalent within this package. This is not meant to be an exhaustive lecture note on the topic, but more of a gentle introduction.
 
-If you are comfortable with HCI topics, consider skipping to the [Getting Started](@ref gettingstarted) section to get introduced to *ADI.jl*, browse the Examples to see sample workflows, or browse through the API to start exploring the capabilities of *ADI.jl*.
+If you are comfortable with HCI topics, consider skipping to the [Getting Started](@ref gettingstarted) section to get introduced to ADI.jl, browse the Examples to see sample workflows, or browse through the API to start exploring the capabilities of ADI.jl.
 
 ## What is HCI
 
@@ -44,4 +44,4 @@ Steps 2-4 are shown in the following figure
 
 ![](assets/adi_process.png)
 
-After all this processing, finally the substellar companion HR8799e is evident. Hopefully this shows the difficulty of HCI and builds up part of the process that occurs outside of the reduction you'll be doing with *ADI.jl*.
+After all this processing, finally the substellar companion HR8799e is evident. Hopefully this shows the difficulty of HCI and builds up part of the process that occurs outside of the reduction you'll be doing with ADI.jl.
