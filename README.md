@@ -40,7 +40,7 @@ julia> flat_resid_rdi = alg(cube, angles, cube_ref) # flexible RDI
 get the S/N and significance
 
 ```julia
-julia> fwhm = # PSF fswhm in pixels
+julia> fwhm = # PSF fwhm in pixels
 
 julia> snmap = detectionmap(snr, flat_residual, fwhm)
 
