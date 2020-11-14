@@ -1,11 +1,11 @@
 module ADI
 
-using HCIToolbox
-using Statistics
 using Parameters
+using Reexport
+using Statistics
 using UnPack
 
-# export pca, pairet, transform, reconstruct, projection
+@reexport using HCIToolbox
 
 export reconstruct,
        decompose,
@@ -91,8 +91,6 @@ include("pca.jl")
 include("greeds.jl")
 include("nmf.jl")
 include("sdi.jl")
-
-using Reexport
 
 include("metrics/Metrics.jl")
 @reexport using .Metrics

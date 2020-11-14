@@ -14,7 +14,6 @@ Let's begin by importing the necessary libraries
 using ADI
 using DataFrames
 using HCIDatasets: BetaPictoris
-using HCIToolbox
 using Plots
 
 ## set up plotting
@@ -56,7 +55,7 @@ plot(
 )
 
 #=
-You may want to mask out an interior angle since there is an inner limit for our signal to be a real planet (as opposed to systematics from the optical system or noise). We can mask out an interior circle either before processing with the algorithm or afterwards using `HCIToolbox.mask_circle`.
+You may want to mask out an interior angle since there is an inner limit for our signal to be a real planet (as opposed to systematics from the optical system or noise). We can mask out an interior circle either before processing with the algorithm or afterwards using `HCIToolbox.mask_circle`. HCIToolbox.jl is re-exported by ADI.jl, though so we have it available here
 =#
 mask_cube = mask_circle(cube, 10)
 mask_reduced = alg(mask_cube, angles)
