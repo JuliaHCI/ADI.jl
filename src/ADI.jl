@@ -19,7 +19,7 @@ export reconstruct,
        SliceSDI
 
 """
-    ADI.ADIAlgorithm <: Function
+    ADI.ADIAlgorithm
 
 This abstract type is used for defining ADI algorithms. See the extended help (`??ADIAlgorithm`) for interface details.
 
@@ -32,7 +32,7 @@ To extend `ADIAlgorithm` you may implement the following
 | [`reconstruct`](@ref) | | Subroutine for creating the full reconstructed cube with the PSF |
 | `(::ADIAlgorithm)` | subtracts output of `reconstruct`, then derotates and collapses | Subroutine for returning the reduced residual cube |
 """
-abstract type ADIAlgorithm <: Function end
+abstract type ADIAlgorithm end
 
 """
     reconstruct(::ADIAlgorithm, cube, angles, [cube_ref]; kwargs...)
