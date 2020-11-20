@@ -108,12 +108,12 @@ and now we can calculate the 5σ contrast curve
 =#
 
 cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm, nbranch=6) |> DataFrame
-head(filter(row -> isfinite(row.contrast_corr), cc))
+first(filter(row -> isfinite(row.contrast_corr), cc), 5)
 
 # and lets plot it
 plot(
-    cc[:distance],
-    [cc[:contrast_corr] cc[:contrast]],
+    cc[!, :distance],
+    [cc[!, :contrast_corr] cc[!, :contrast]],
     yscale=:log10,
     xlim=(0, NaN),
     label=["Student-t" "Gaussian"],
@@ -130,11 +130,11 @@ reduced_empty = alg(cube_empty, angles)
 imshow(reduced_empty)
 #-
 cc_empty = contrast_curve(alg, cube_empty, angles, psf; fwhm=fwhm, nbranch=6) |> DataFrame
-head(filter(row -> isfinite(row.contrast_corr), cc_empty))
+first(filter(row -> isfinite(row.contrast_corr), cc_empty), 5)
 #-
 plot(
-    cc_empty[:distance],
-    [cc_empty[:contrast_corr] cc_empty[:contrast]],
+    cc_empty[!, :distance],
+    [cc_empty[!, :contrast_corr] cc_empty[!, :contrast]],
     yscale=:log10,
     xlim=(0, NaN),
     label=["Student-t" "Gaussian"],
