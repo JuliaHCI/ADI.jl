@@ -1,7 +1,7 @@
 name = "ADI"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"
 authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
-version = "0.5.2"
+version = "0.5.3"
 
 [deps]
 Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
@@ -30,7 +30,7 @@ Distributions = "0.23, 0.24"
 FillArrays = "0.8, 0.9, 0.10"
 HCIToolbox = "0.4"
 ImageTransformations = "0.8"
-NMF = "0.4.1"
+NMF = "0.4.1, 0.5"
 Parameters = "0.12"
 Photometry = "0.7"
 ProgressLogging = "0.1"

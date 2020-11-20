@@ -1,11 +1,11 @@
 module ADI
 
-using HCIToolbox
-using Statistics
 using Parameters
+using Reexport
+using Statistics
 using UnPack
 
-# export pca, pairet, transform, reconstruct, projection
+@reexport using HCIToolbox
 
 export reconstruct,
        decompose,
@@ -19,7 +19,7 @@ export reconstruct,
        SliceSDI
 
 """
-    ADI.ADIAlgorithm <: Function
+    ADI.ADIAlgorithm
 
 This abstract type is used for defining ADI algorithms. See the extended help (`??ADIAlgorithm`) for interface details.
 
@@ -32,7 +32,7 @@ To extend `ADIAlgorithm` you may implement the following
 | [`reconstruct`](@ref) | | Subroutine for creating the full reconstructed cube with the PSF |
 | `(::ADIAlgorithm)` | subtracts output of `reconstruct`, then derotates and collapses | Subroutine for returning the reduced residual cube |
 """
-abstract type ADIAlgorithm <: Function end
+abstract type ADIAlgorithm end
 
 """
     reconstruct(::ADIAlgorithm, cube, angles, [cube_ref]; kwargs...)
@@ -91,8 +91,6 @@ include("pca.jl")
 include("greeds.jl")
 include("nmf.jl")
 include("sdi.jl")
-
-using Reexport
 
 include("metrics/Metrics.jl")
 @reexport using .Metrics

@@ -43,7 +43,7 @@ These benchmarks show the duration to fully reduce ADI data for various algorith
 
 ```@example bench
 adi_data = CSV.File(benchdir("adi_benchmarks.csv")) |> DataFrame |> sort!
-cube_labels = @. ifelse(adi_data[:N] == 622261, "Beta Pictoris", "HR8799")
+cube_labels = @. ifelse(adi_data.N == 622261, "Beta Pictoris", "HR8799")
 insertcols!(adi_data, 4, :cube => cube_labels)
 adi_groups = groupby(adi_data, :framework)
 ```
@@ -88,7 +88,7 @@ Finally, this benchmark measures the duration to generate a contrast curve for a
 
 ```@example bench
 contrast_data = CSV.File(benchdir("contrast_benchmarks.csv")) |> DataFrame |> sort!
-cube_labels = @. ifelse(contrast_data[:N] == 622261, "Beta Pictoris", "HR8799")
+cube_labels = @. ifelse(contrast_data.N == 622261, "Beta Pictoris", "HR8799")
 insertcols!(contrast_data, 4, :cube => cube_labels)
 contrast_groups = groupby(contrast_data, :framework)
 ```

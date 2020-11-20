@@ -54,8 +54,7 @@ The process for producing the flat, residual frame follows this general workflow
 In ADI.jl this process looks like this:
 
 ```julia
-using HCIToolbox: collapse, derotate
-using ADI: reconstruct, PCA
+using ADI
 
 cube, angles = # load data
 S = reconstruct(PCA(10), cube, angles)
