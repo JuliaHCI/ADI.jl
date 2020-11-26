@@ -77,7 +77,7 @@ sigmap = detectionmap(significance, reduced, fwhm)
 imshow(sigmap)
 
 #=
-Now, lets do some very basic frequentist planet detection by thresholding this significance
+Now, let's do some very basic frequentist planet detection by thresholding this significance
 =#
 sigmap_cutoff = @. sigmap > 5
 imshow(sigmap_cutoff)
