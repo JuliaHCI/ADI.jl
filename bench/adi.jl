@@ -31,16 +31,16 @@ end
 
 vip = pyimport("vip_hci")
 py_algs = (
-    vip.medsub.medsub,
-    (args...; kwargs...) -> vip.pca.pca(args...; ncomp=20,kwargs...),
-    (args...; kwargs...) -> vip.nmf.nmf(args...; ncomp=20, kwargs...),
+    (args...; kwargs...) -> vip.medsub.median_sub(args..., verbose=false, kwargs...),
+    (args...; kwargs...) -> vip.pca.pca(args...; ncomp=20, verbose=false, kwargs...),
+    (args...; kwargs...) -> vip.nmf.nmf(args...; ncomp=20, verbose=false, kwargs...),
 )
 
 for dataset in (BetaPictoris, HR8799)
     @info "Benchmarking - $dataset ADI Reduction"
     cube = dataset[:cube]
     angles = dataset[:pa]
-    for (alg, name) in zip(julia_algs, ("median", "pca_20", "nmf_20"))
+    for (alg, name) in zip(py_algs, ("median", "pca_20", "nmf_20"))
         (name == "nmf_20" && dataset === HR8799) && continue
         @info "Python - $alg"
 
