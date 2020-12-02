@@ -29,7 +29,6 @@ To exit Pkg mode, just backspace. Once the package is installed it can be import
 julia> using ADI
 ```
 
-To exit Pkg mode, just backspace. Once the package is installed it can be imported with
 For more information, see the [Pkg documentation](https://docs.julialang.org/en/v1/stdlib/Pkg/).
 
 ## License

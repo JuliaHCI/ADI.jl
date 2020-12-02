@@ -94,7 +94,7 @@ Return the basis and coefficients fit by `alg`. This process generally requires 
 ```julia
 julia> cube, angles = # load data
 
-julia> A, w = decmopose(PCA(5), cube, angles);
+julia> A, w = decompose(PCA(5), cube, angles);
 
 julia> S = reconstruct(PCA(5), cube, angles);
 
