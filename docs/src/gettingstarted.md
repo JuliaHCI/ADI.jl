@@ -78,7 +78,7 @@ where $\mathbf{S}$ represents the speckle reconstruction in a flattened matrix (
 Algorithms which share this attribute share the abstract type `ADI.LinearAlgorithm`, and we can retrieve these two matrices via [`decompose`](@ref). Note that all of these terms treat the images as row vectors; to reshape back to a cube, use `HCIToolbox.expand` (note: HCIToolbox.jl is re-exported by ADI.jl, so all its features are usable without importing it directly).
 
 ```julia
-using ADI: decompose, reconstruct, PCA
+using ADI
 cube, angles = # load data
 A, w = decompose(PCA(10), cube, angles)
 S = reconstruct(PCA(10), A, w)

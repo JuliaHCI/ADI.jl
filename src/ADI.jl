@@ -38,6 +38,19 @@ abstract type ADIAlgorithm end
     reconstruct(::ADIAlgorithm, cube, angles, [cube_ref]; kwargs...)
 
 Reconstruct the PSF approximation for the given algorithm, using `cube_ref` as the reference cube if given.
+
+# Examples
+
+```julia
+julia> cube, angles = # load data
+
+julia> S = reconstruct(PCA(10), cube, angles);
+
+julia> size(S) == size(cube)
+true
+
+julia> flat_res = collapse(cube .- S, angles); # form resid, derotate, and combine
+```
 """
 function reconstruct end
 
@@ -72,18 +85,33 @@ To extend `LinearAlgorithm` you may implement the following
 abstract type LinearAlgorithm <: ADIAlgorithm end
 
 """
-    ADI.decompose(::LinearAlgorithm, cube, angles, [cube_ref]; kwargs...)
+    ADI.decompose(alg::LinearAlgorithm, cube, angles, [cube_ref]; kwargs...)
+
+Return the basis and coefficients fit by `alg`. This process generally requires fitting a basis from `cube` (or `cube_ref`) and then fitting the coefficients that project `cube` onto that basis. The inner-product of the two outputs should for an approximate reconstruction of the reference used.
+
+# Examples
+
+```julia
+julia> cube, angles = # load data
+
+julia> A, w = decmopose(PCA(5), cube, angles);
+
+julia> S = reconstruct(PCA(5), cube, angles);
+
+julia> S ≈ expand(w * A) # inner product reshaped into cube
+true
+```
 """
 function decompose end
 
 function reconstruct(alg::LinearAlgorithm, cube::AbstractArray{T,3}, angles, args...; kwargs...) where T
-    # assumed sizes are (n, Npx) (n, M)
+    # assumed sizes are (n, Npx) (M, n)
     basis, weights = decompose(alg, cube, angles, args...; kwargs...)
     return reconstruct(alg, basis, weights; kwargs...)
 end
 
 function reconstruct(alg::LinearAlgorithm, basis::AbstractMatrix, weights::AbstractMatrix; kwargs...)
-    # assumed sizes are (n, Npx) (n, M)
+    # assumed sizes are (n, Npx) (M, n)
     return weights * basis |> expand
 end
 # The core decomposition routines
