@@ -13,13 +13,22 @@ A package for angular differential imaging (ADI) post-processing algorithms.
 
 ## Installation
 
-From the Julia REPL
+ADI.jl is a registered package and can be installed using the Julia package manager. From the Julia REPL, enter Pkg mode (by pressing `]`)
 
 ```julia
-julia> ]
+julia>]
 
 (@v1.5) pkg> add ADI
 ```
+
+To exit Pkg mode, just backspace. Once the package is installed it can be imported with
+
+```julia
+julia> using ADI
+```
+
+To exit Pkg mode, just backspace. Once the package is installed it can be imported with
+For more information, see the [Pkg documentation](https://docs.julialang.org/en/v1/stdlib/Pkg/).
 
 ## Usage
 
