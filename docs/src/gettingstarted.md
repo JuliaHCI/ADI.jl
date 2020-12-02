@@ -27,6 +27,8 @@ The following algorithms are implemented:
 Given an algorithm `alg`, we can fully process ADI data by calling `alg` like a function
 
 ```julia
+julia> using ADI
+
 julia> alg = PCA(ncomps=5)
 
 julia> resid = alg(cube, angles)
@@ -54,8 +56,6 @@ The process for producing the flat, residual frame follows this general workflow
 In ADI.jl this process looks like this:
 
 ```julia
-using ADI
-
 cube, angles = # load data
 S = reconstruct(PCA(10), cube, angles)
 R = cube .- S
@@ -73,16 +73,17 @@ For certain types of ADI algorithms, a convenient linear form is used for the sp
 ```math
 \mathbf{S} \approx \mathbf{w} \cdot \mathbf{A}
 ```
-Algorithms which share this attribute share the abstract type `ADI.LinearAlgorithm`, and we can retrieve these two matrices via [`decompose`](@ref).
+where $\mathbf{S}$ represents the speckle reconstruction in a flattened matrix (where each row is an unrolled image), $\mathbf{A}$ represents a linear basis (again as a matrix with each row corresponding the a basis image), and $\mathbf{w}$ represents the projection of the target data onto the linear basis (the *weights* of an observation). $\mathbf{S}$ is what is used for subtracting from the target in typical ADI.
+
+Algorithms which share this attribute share the abstract type `ADI.LinearAlgorithm`, and we can retrieve these two matrices via [`decompose`](@ref). Note that all of these terms treat the images as row vectors; to reshape back to a cube, use `HCIToolbox.expand`
 
 ```julia
 using ADI: decompose, reconstruct, PCA
 cube, angles = # load data
 A, w = decompose(PCA(10), cube, angles)
 S = reconstruct(PCA(10), A, w)
-S == w * A
-# output
-true
+@assert S ≈ w * A
+@assert size(expand(S)) == size(cube)
 ```
 
 ## Comparison to VIP
