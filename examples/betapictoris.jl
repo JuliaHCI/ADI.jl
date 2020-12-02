@@ -65,7 +65,7 @@ plot(
 )
 
 #=
-You may want to mask out an interior angle since there is an inner limit for our signal to be a real planet (as opposed to systematics from the optical system or noise). We can mask out an interior circle either before processing with the algorithm or afterwards using `HCIToolbox.mask_circle`. HCIToolbox.jl is re-exported by ADI.jl, though so we have it available here
+You may want to mask out an interior angle since there is an inner limit for our signal to be a real planet (as opposed to systematics from the optical system or noise). We can mask out an interior circle either before processing with the algorithm or afterwards using `HCIToolbox.mask_circle` (note: `HCIToolbox` is re-exported by ADI.jl, so all its features are usable without importing it directly).
 =#
 mask_cube = mask_circle(cube, 10)
 mask_reduced = alg(mask_cube, angles)
@@ -99,7 +99,7 @@ looks like we've successfully pulled out the companion Beta Pictoris b from the 
 
 We are also interested in analyzing how the algorithm affects our data, especially calculating the *throughput* and the *contrast curve*. These measure, effectively, how much signal is lost during the subtraction step of the algorithm and give us an idea of what the limits of our algorithm are with our data.
 
-Before we move on, we need to create a PSF model for our data. `HCIToolbox.Kernels` includes some simple functional PSFs or we can use an empirical PSF (note: `HCIToolbox` is re-exported by ADI.jl, so all its features are usable without importing it directly). We will use the empirical PSF provided by HCIDatasets for our calculations
+Before we move on, we need to create a PSF model for our data. `HCIToolbox.Kernels` includes some simple functional PSFs or we can use an empirical PSF. We will use the empirical PSF provided by HCIDatasets for our calculations
 =#
 psf = BetaPictoris[:psf] ./ maximum(BetaPictoris[:psf])
 kern_psf = Kernels.Normal(fwhm);
@@ -114,7 +114,7 @@ plot(
 )
 
 #=
-and now we can calculate the 5σ contrast curve
+and now we can calculate the 5σ contrast curve. Contrast is measured in comparison to the flux of the star, by default ADI.jl finds this flux by measuring the flux in the central fwhm of the median-combined cube.
 =#
 
 cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm, nbranch=6) |> DataFrame

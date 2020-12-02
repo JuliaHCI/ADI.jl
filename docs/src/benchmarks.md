@@ -20,14 +20,22 @@ Platform Info:
 Environment:
   JULIA_NUM_THREADS = 4
 ```
-For reproducibility, there is a `Manifest.toml` file in `bench/`. To reproduce this environment, first activate it, then instantiate it
-```
-$ julia --project=bench -e 'using Pkg; Pkg.instantiate()'
-```
-For the python code, there is a `requirements.txt` file in `bench/`. To reproduce this environment, (optionally) activate a virtual environment then install from the requirements file
+
+For the python code, there is a `requirements.txt` file in `bench/`. To reproduce this environment, (optionally) activate a virtual environment then install from the requirements file.
+
 ```
 (venv) $ pip install -r requirements.txt
 ```
+
+For reproducibility, there is a `Manifest.toml` file in `bench/`. To reproduce this environment, first activate it, then instantiate it
+
+```
+$ julia --project=bench -e 'using Pkg; Pkg.instantiate()'
+```
+
+!!! warning "PyCall.jl and virtual environments"
+    The interface between Julia and python is handled by [PyCall.jl](https://github.com/juliapy/PyCall.jl). When using a virtual environment, PyCall may not use the correct python library. Before running the benchmarks, please read [this reference](https://github.com/juliapy/PyCall.jl#python-virtual-environments).
+
 
 ```@setup bench
 using CSV
@@ -39,7 +47,6 @@ benchdir(args...) = joinpath("..", ".." ,"bench", args...);
 ## ADI Reduction
 
 These benchmarks show the duration to fully reduce ADI data for various algorithms. The data used are $\beta$ Pictoris and HR8799 from [HCIDatasets.jl](https://github.com/JuliaHCI/HCIDatasets.jl).
-
 
 ```@example bench
 adi_data = CSV.File(benchdir("adi_benchmarks.csv")) |> DataFrame |> sort!
@@ -60,6 +67,7 @@ plot(
 )
 ```
 
+*Please note the log-scale for the left figure.*
 
 ## Detection Maps
 
@@ -75,7 +83,6 @@ snrmap_groups = groupby(snrmap_data, :framework)
     :N,
     :time,
     group=:framework,
-    msw=0,
     ms=6,
     xlabel="number of pixels",
     ylabel="time (s)"
@@ -99,6 +106,9 @@ contrast_groups = groupby(contrast_data, :framework)
     :time,
     group=:framework,
     leg=:topleft,
-    ylabel="time (s)"
+    ylabel="time (s)",
+    yscale=:log10,
 )
 ```
+
+*Please note the log-scale.*
