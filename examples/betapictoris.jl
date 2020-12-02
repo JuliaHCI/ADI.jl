@@ -9,7 +9,17 @@ What will *not* be covered in this example are the basics of Julia, the fine det
 
 ## Setup
 
-Let's begin by importing the necessary libraries
+Let's begin by importing the necessary libraries. You may need to add these packages if they are not already on your system.
+```julia
+(@v1.5) pkg> add DataFrames HCIDatasets Plots
+```
+In addition, a `Project.toml` file exists in the [examples/](https://github.com/JuliaHCI/ADI.jl/tree/master/examples) folder with the necessary dependencies. Start the REPL in the base ADI.jl folder, then from Pkg mode
+```julia
+(@v1.5) pkg> activate examples
+(examples) pkg> instantiate
+julia> include("examples/betapictoris.jl")
+```
+---
 =#
 using ADI
 using DataFrames
@@ -17,10 +27,10 @@ using HCIDatasets: BetaPictoris
 using Plots
 
 ## set up plotting
-function imshow(img, args...; kwargs...)
+function imshow(img; kwargs...)
     ylim = extrema(axes(img, 1))
     xlim = extrema(axes(img, 2))
-    heatmap(img, args...; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
+    heatmap(axes(img)..., img; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
 end;
 
 #=
@@ -89,7 +99,7 @@ looks like we've successfully pulled out the companion Beta Pictoris b from the 
 
 We are also interested in analyzing how the algorithm affects our data, especially calculating the *throughput* and the *contrast curve*. These measure, effectively, how much signal is lost during the subtraction step of the algorithm and give us an idea of what the limits of our algorithm are with our data.
 
-Before we move on, we need to create a PSF model for our data. `HCIToolbox.Kernels` includes some simple functional PSFs or we can use an empirical PSF. We will use the empirical PSF provided by HCIDatasets for our calculations
+Before we move on, we need to create a PSF model for our data. `HCIToolbox.Kernels` includes some simple functional PSFs or we can use an empirical PSF (note: `HCIToolbox` is re-exported by ADI.jl, so all its features are usable without importing it directly). We will use the empirical PSF provided by HCIDatasets for our calculations
 =#
 psf = BetaPictoris[:psf] ./ maximum(BetaPictoris[:psf])
 kern_psf = Kernels.Normal(fwhm);

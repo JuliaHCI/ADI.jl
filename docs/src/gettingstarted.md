@@ -75,7 +75,7 @@ For certain types of ADI algorithms, a convenient linear form is used for the sp
 ```
 where $\mathbf{S}$ represents the speckle reconstruction in a flattened matrix (where each row is an unrolled image), $\mathbf{A}$ represents a linear basis (again as a matrix with each row corresponding the a basis image), and $\mathbf{w}$ represents the projection of the target data onto the linear basis (the *weights* of an observation). $\mathbf{S}$ is what is used for subtracting from the target in typical ADI.
 
-Algorithms which share this attribute share the abstract type `ADI.LinearAlgorithm`, and we can retrieve these two matrices via [`decompose`](@ref). Note that all of these terms treat the images as row vectors; to reshape back to a cube, use `HCIToolbox.expand`
+Algorithms which share this attribute share the abstract type `ADI.LinearAlgorithm`, and we can retrieve these two matrices via [`decompose`](@ref). Note that all of these terms treat the images as row vectors; to reshape back to a cube, use `HCIToolbox.expand` (note: HCIToolbox.jl is re-exported by ADI.jl, so all its features are usable without importing it directly).
 
 ```julia
 using ADI: decompose, reconstruct, PCA
@@ -91,6 +91,7 @@ S = reconstruct(PCA(10), A, w)
 ADI.jl took a lot of ideas from VIP and expanded them using the power of Julia. To begin with, Julia typically has smaller and more self-contained packages, so most of the basic image-processing that is used here is actually written in the [HCIToolbox.jl](https://github.com/JuliaHCI/HCIToolbox.jl) package. In the future, I have plans to incorporate forward-modeling distributions in [Firefly.jl](https://github.com/JuliaHCI/Firefly.jl), which currently is an active research project.
 
 Some technical distinctions to VIP
+
 * Julia is 1-indexed. This means all the positions for apertures, bounds, images, etc. start at 1. This is distinct from 0-based indexing in python, but is equivalent to the indexing in DS9 and IRAF.
 * Julia's `std` uses the sample statistic ($n-1$ degrees of freedom) while numpy's `std` uses the population statistic ($n$ degrees of freedom). This may cause very slight differences in measurements that rely on this.
 * Aperture mapping - many of the [`Metrics`](@ref) are derived by measuring statistics in an annulus of apertures. In VIP, this ring is not equally distributed- the angle between apertures is based on the exact number of apertures rather than the integral number of apertures that are actually measured. In ADI.jl the angle between apertures is evenly distributed. The same number of pixels are discarded in both packages, but in VIP they all end up in the same region of the image (see [this figure](assets/aperture_masks.png)).
