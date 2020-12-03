@@ -10,9 +10,12 @@ export detectionmap,
        significance,
        noise,
        contrast_curve,
-       throughput
+       throughput,
+       stim,
+       stim_threshold
 
 include("contrast.jl")
 include("snr.jl")
+include("stim.jl")
 
 end

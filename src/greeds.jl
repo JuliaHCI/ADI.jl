@@ -36,7 +36,7 @@ function decompose(alg::GreeDS, cube, angles, cube_ref=cube; kwargs...)
     _alg = @set _alg.ncomps = 1
     reduced = _alg(target, angles)
     local A
-    @progress for n in 1:max_ncomps
+    @progress "GreeDS" for n in 1:max_ncomps
         resid = target .- expand_rotate(reduced, angles, alg.threshold; kwargs...)
         # use lens to update number of components
         _alg = @set _alg.ncomps = n

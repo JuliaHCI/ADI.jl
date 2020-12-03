@@ -34,3 +34,19 @@ end
     @test maximum(_map) > 0
     @test abs(minimum(_map)) ≥ 0
 end
+
+@testset "stim map" begin
+    S = randn(rng, 100, 512, 512)
+    angles = sort!(90rand(rng, 100))
+
+    sm = stim(S, angles)
+    @test size(sm) == (size(S, 2), size(S, 3))
+    @test all(isfinite, sm)
+    @test eltype(sm) == eltype(S)
+
+    smt = stim_threshold(sm, S, angles)
+    smt2 = stim_threshold(S, angles)
+    @test smt ≈ smt2
+    @test smt ≈ 0.5 rtol=1e-2
+
+end
