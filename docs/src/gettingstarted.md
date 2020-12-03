@@ -6,11 +6,17 @@ Here is a quick-start guide for people familiar with ADI and experience using to
 
 ### ADI Cube
 
-For standard ADI data, we store the values in a 3-dimensional array, where the first dimension is temporal, and the remaining dimensions are pixel coordinates. This is how most ADI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor.
+For standard ADI data, we store the values in a 3-dimensional array, where the first dimension is temporal, and the remaining dimensions are pixel coordinates. This is how most ADI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor. This cube should already be registered with the star in the center of the frames (note the center is only well-defined for odd-sized frames, even though even-sized frames will work fine).
+
+### Parallactic Angles
+
+The parallactic angles should be stored as *degrees* in a vector. The parallactic angle `X[i]` will result in rotating the frame `i` `X[i]` degrees counter-clockwise.
 
 ### SDI Cube/Tensor
 
-For standard SDI data, we store the values in a 4-dimensional array, where the first dimension is spectral, the second is temporal, and the remaining dimensions are pixel coordinates. This is how most SDI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor. In addition to the SDI tensor and parallactic angles, the list of wavelengths are required (for scaling speckles) and a spectral template can be used.
+For standard SDI data, we store the values in a 4-dimensional array, where the first dimension is spectral, the second is temporal, and the remaining dimensions are pixel coordinates. This is how *some* SDI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor. For SDI data that is stored with the temporal axis first, the dimensions should be permuted before processing (see `permutedims`). This cube should also be registered with the star in the center of the frame.
+
+In addition to the SDI tensor and parallactic angles, the list of wavelengths are required (for scaling speckles) and a spectral template can be used. To create a scale list from the wavelengths, use `HCIToolbox.scale_list`. Currently there is not support for spectral templates.
 
 ## Algorithms
 
