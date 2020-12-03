@@ -29,7 +29,9 @@ julia> stimmap = stim(S, angles);
 # See Also
 [`stim_threshold`](@ref)
 """
-stim(residuals::AbstractArray{T,3}, angles) where {T} = _stimmap(derotate(residuals, angles))
+function stim(residuals::AbstractArray{T,3}, angles) where T
+    return stimmap(derotate(residuals, angles))
+end
 
 """
     stim_threshold([stimmap, ] residuals, angles)
