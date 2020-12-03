@@ -24,7 +24,7 @@ julia> stimmap = stim(S, angles);
 ```
 
 # References
-* [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise
+* [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) "STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise"
 
 # See Also
 [`stim_threshold`](@ref)
@@ -43,7 +43,7 @@ If the STIM map has already been calculated, it can be passed in, otherwise it w
 The threshold is derived in section 5.1 of *Pairet et al. 2019* as the ratio of the number of pixels above the approximated noise map.
 
 # References
-* [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise
+* [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) "STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise"
 
 # See Also
 [`stim`](@ref)
@@ -51,10 +51,10 @@ The threshold is derived in section 5.1 of *Pairet et al. 2019* as the ratio of 
 function stim_threshold(stimmap, residuals, angles)
     # estimate noise map by getting STIM map of cube
     # rotated with opposite angles
-    d_opp = stimmap(derotate(residuals, -angles))
+    d_opp = Metrics.stimmap(derotate(residuals, -angles))
     # return ratio of values above the noise
     n_ϵ = count(stimmap .> d_opp)
-    n = length(d)
+    n = length(stimmap)
     return n_ϵ / n
 end
 
