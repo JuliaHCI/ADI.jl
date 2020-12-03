@@ -7,7 +7,7 @@ Calculate the standardized trajectory intensity mean (STIM) map. The inputs are 
 
 This method seeks to improve upon the typical student-t S/N tests ([`snr`](@ref), [`significance`](@ref)) by calculating statistics in the temporal domain instead of the spatial domain. This is why the full residual cube is required rather than a reduced frame. 
 
-In particular, the STIM map is robust to detections with multiple objects or extended sources within the same annuli, which results in very high noise estimates using spatial methods. The STIM map also performs better at small angular separations, since the temporal domain has no limitations suffer from limited resolution elements at small inner working angles.
+In particular, the STIM map is robust to detections with multiple objects or extended sources within the same annuli, which results in very high noise estimates using spatial methods. The STIM map also performs better at small angular separations, since the temporal domain has no limitations from limited resolution elements.
 
 *Pairet et al. 2019* derives a detection threshold of `τ ≈ 0.5` for the STIM map. The detection threshold can be calculated in a similar manner using [`stim_threshold`](@ref).
 
