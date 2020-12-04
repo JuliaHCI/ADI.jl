@@ -39,7 +39,7 @@ end
     S = randn(rng, 100, 512, 512)
     angles = sort!(90rand(rng, 100))
 
-    sm = stim(S, angles)
+    sm = stimmap(S, angles)
     @test size(sm) == (size(S, 2), size(S, 3))
     @test all(isfinite, sm)
     @test eltype(sm) == eltype(S)

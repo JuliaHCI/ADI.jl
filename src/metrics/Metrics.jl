@@ -11,7 +11,7 @@ export detectionmap,
        noise,
        contrast_curve,
        throughput,
-       stim,
+       stimmap,
        stim_threshold
 
 include("contrast.jl")

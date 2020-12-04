@@ -13,7 +13,8 @@ Parallel implementation of arbitrary detection mapping applied to each pixel in 
 
 The following methods are provided in the [`Metrics`](@ref) module:
 * [`snr`](@ref) - signal-to-noise ratio (S/N) using student-t statistics to account for small sample penalty.
-* [`significance`](@ref) - Gaussian signifance using student-t statistics to account for samll sample penalty.
+* [`significance`](@ref) - Gaussian signifance using student-t statistics to account for small samples penalty.
+* [`noise`](@ref) - Standard deviation of apertures in each annulus.
 
 !!! tip
     This code is automatically multi-threaded, so be sure to set `JULIA_NUM_THREADS` before loading your runtime to take advantage of it!

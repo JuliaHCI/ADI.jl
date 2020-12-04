@@ -8,27 +8,17 @@ using StaticKernels
 using LinearAlgebra: dot
 
 """
-    contrast_curve(alg,
-                   cube,
-                   angles,
-                   psf,
-                   args...;
-                   fwhm,
-                   sigma=5,
+    contrast_curve(alg, cube, angles, psf, args...;
+                   fwhm, sigma=5, nbranch=1, theta=0, inner_rad=1,
                    starphot=Metrics.estimate_starphot(cube, fwhm),
-                   nbranch=1,
-                   theta=0,
-                   inner_rad=1,
-                   fc_rad_sep=3,
-                   snr=100,
-                   k=2,
-                   kwargs...)
+                   fc_rad_sep=3, snr=100, k=2, smooth=true,
+                   subsample=true, kwargs...)
 
 Calculate the throughput-calibrated contrast. This first processes the algorithmic [`throughput`](@ref) by injecting instances of `psf` into `cube`. These are processed through `alg` and the ratio of the recovered flux to the injected flux is calculated. These companions are injected in resolution elements across the frame, which can be changed via the various keyword arguments.
 
 The throughput can only be calculated for discrete resolution elements, but we typically want a much smoother curve. To accomplish this, we measure the noise (the standard deviation of all resolution elements in an annulus at a given radius) for every pixel in increasing radii. We then interpolate the throughput to this grid and return the subsampled curves.
 
-# Fields
+# Returned Fields
 * `distance` - The radial distance (in pixels) for each measurement
 * `contrast` - The Gaussian sensitivity
 * `contrast_corr` - The Student-t sensitivity
@@ -55,56 +45,27 @@ The throughput can only be calculated for discrete resolution elements, but we t
     contrast_curve(alg, cube, angles, psf; fwhm=fwhm) |> DataFrame
     ```
 """
-function contrast_curve(alg,
-                        cube,
-                        angles,
-                        psf,
-                        args...;
-                        fwhm,
-                        starphot=estimate_starphot(cube, fwhm),
-                        sigma=5,
-                        inner_rad=1,
-                        fc_rad_sep=3,
-                        theta=0,
-                        nbranch=1,
-                        snr=100,
-                        subsample=true,
-                        k=2,
-                        smooth=true,
-                        kwargs...)
+function contrast_curve(alg, cube, angles, psf, args...;
+        fwhm, sigma=5, nbranch=1, theta=0, inner_rad=1,
+        starphot=Metrics.estimate_starphot(cube, fwhm),
+        fc_rad_sep=3, snr=100, k=2, smooth=true,
+        subsample=true, kwargs...)
 
     # measure the noise and throughput in consecutive resolution elements
     # across azimuthal branches
     @info "Calculating Throughput"
     reduced_empty = alg(cube, angles, args...; kwargs...)
 
-    through, meta = throughput(alg,
-                               cube,
-                               angles,
-                               psf,
-                               args...;
-                               fwhm=fwhm,
-                               inner_rad=inner_rad,
-                               fc_rad_sep=fc_rad_sep,
-                               theta=theta,
-                               nbranch=nbranch,
-                               snr=snr,
-                               reduced_empty=reduced_empty,
-                               kwargs...)
+    through, meta = throughput(alg, cube, angles, psf, args...;
+                               fwhm=fwhm, inner_rad=inner_rad, fc_rad_sep=fc_rad_sep, theta=theta,
+                               nbranch=nbranch, snr=snr, reduced_empty=reduced_empty, kwargs...)
 
     through_mean = mean(through, dims=2) |> vec
 
     if subsample
-        return subsample_contrast(reduced_empty,
-                                  meta.distance,
-                                  through_mean;
-                                  fwhm=fwhm,
-                                  starphot=starphot,
-                                  sigma=sigma,
-                                  inner_rad=inner_rad,
-                                  theta=theta,
-                                  k=k,
-                                  smooth=smooth)
+        return subsample_contrast(reduced_empty, meta.distance, through_mean;
+                                  fwhm=fwhm, starphot=starphot, sigma=sigma, inner_rad=inner_rad,
+                                  theta=theta, smooth=smooth, k=k)
     end
 
     # calculate common terms once
@@ -131,16 +92,9 @@ function correction_factor(radius, fwhm, sigma)
 end
 
 """
-    Metrics.subsample_contrast(empty_frame,
-        distance,
-        throughput;
-        fwhm,
-        starphot,
-        sigma=5,
-        inner_rad=1,
-        theta=0,
-        smooth=true,
-        k=2)
+    Metrics.subsample_contrast(empty_frame, distance, throughput;
+                               fwhm, starphot, sigma=5, inner_rad=1,
+                               theta=0, smooth=true, k=2)
 
 Helper function to subsample and smooth a contrast curve.
 
@@ -163,16 +117,9 @@ reduced_empty = alg(cube, angles)
 cc_sub = Metrics.subsample_contrast(reduced_empty, cc.distance, cc.throughput; fwhm=8.4)
 ```
 """
-function subsample_contrast(empty_frame,
-        distance,
-        throughput;
-        fwhm,
-        starphot,
-        sigma=5,
-        inner_rad=1,
-        theta=0,
-        smooth=true,
-        k=2)
+function subsample_contrast(empty_frame, distance, throughput;
+                            fwhm, starphot, sigma=5, inner_rad=1,
+                            theta=0, smooth=true, k=2)
     # measure the noise with high sub-sampling-
     # at every pixel instead of every resolution element
     cy, cx = center(empty_frame)
@@ -241,18 +188,9 @@ estimate_starphot(cube::AbstractArray{T, 3}, fwhm) where {T} = estimate_starphot
 
 
 """
-    throughput(alg,
-               cube,
-               angles,
-               psf,
-               args...;
-               fwhm,
-               nbranch=1,
-               theta=0,
-               inner_rad=1,
-               fc_rad_sep=3,
-               snr=100,
-               kwargs...)
+    throughput(alg, cube, angles, psf, args...;
+               fwhm, nbranch=1, theta=0, inner_rad=1,
+               fc_rad_sep=3, snr=100, kwargs...)
 
 Calculate the throughput of `alg` by injecting fake companions into `cube` and measuring the relative photometry of each companion in the reduced frame. Any additional `args` or `kwargs` will be passed to `alg` when it is called.
 
@@ -262,20 +200,11 @@ Calculate the throughput of `alg` by injecting fake companions into `cube` and m
 * `inner_rad` - position of innermost planet in FWHM
 * `fc_rad_sep` - the separation between planets in FWHM for a single reduction
 * `snr` - the target signal to noise ratio of the injected planets
+* `reduced_empty` - the collapsed residual frame for estimating the noise. Will process using `alg` if not provided.
 """
-function throughput(alg,
-                    cube::AbstractArray{T,3},
-                    angles,
-                    psf_model,
-                    args...;
-                    fwhm,
-                    nbranch=1,
-                    theta=0,
-                    inner_rad=1,
-                    fc_rad_sep=3,
-                    snr=100,
-                    reduced_empty = nothing,
-                    kwargs...) where T
+function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, args...;
+                    fwhm, nbranch=1, theta=0, inner_rad=1, fc_rad_sep=3,
+                    snr=100, reduced_empty = nothing, kwargs...) where T
     maxfcsep = size(cube, 2) ÷ (2 * fwhm) - 1
     # too large separation between companions in the radial patterns
     3 ≤ fc_rad_sep ≤ maxfcsep || error("`fc_rad_sep` should lie ∈[3, $(maxfcsep)], got $fc_rad_sep")
