@@ -44,14 +44,14 @@ Some notable libraries for HCI tasks include the Vortex Imaging Pipeline (`VIP`)
 
 In general `VIP` offers the most diversity in algorithms and their applications, but not all algorithms are as feature-complete as the PCA implementation. `VIP` also contains many useful utilities for pre-processing and a pipeline framework. `pyKLIP` primarily uses the PCA (KLIP) algorithm, but offers many forward modeling implementations. `PynPoint` has a highly modular pre-processing module that is focused on pipelines.
 
-Table 1: Comparison of features across different HCI frameworks. Techniques marked with * indicate partial support, meaning that not all algorithms are supported. (PP is short for "pre-processing", DM is short for "detection metrics", FM is short for "forward modeling")
+Table 1: Comparison of features across different HCI frameworks. Techniques marked with * indicate partial support, meaning that not all algorithms are supported.
 
- Framework | PP | Algorithms | Techniques | DM | FM
--|-|-|-|-|-
-ADI.jl | no | median, PCA, NMF, fixed-point GreeDS | Full-frame ADI/RDI, SDI (experimental) | detection maps, STIM, contrast curve | no
-VIP | yes | median, LOCI, PCA, NMF, LLSG, ANDROMEDA, pairwise frame differencing | Full-frame ADI/RDI, SDI, annular ADI/RDI* | detection maps, blob detection, STIM, ROC, contrast curve | NegFC
-pyKLIP | no | PCA, NMF, weighted PCA | Full-frame ADI/RDI, SDI, annular ADI/RDI | detection maps, blob detection, contrast curve | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM
-PynPoint | yes | median, PCA | Full-frame ADI/RDI, SDI | detection maps, contrast curve | no
+| Framework | Pre-processing | Algorithms | Techniques | Detection Metrics | Forward Modeling |
+|:-:|:-:|:-|:-|:-|:-|
+| ADI.jl   | no   | median, PCA, NMF, fixed-point GreeDS   | Full-frame ADI/RDI, SDI (experimental)   | detection maps, STIM, contrast curve, STIM   | no   |
+| VIP  | yes  | median, LOCI, PCA, NMF, LLSG, ANDROMEDA, pairwise frame differencing  | Full-frame ADI/RDI, SDI, annular ADI/RDI*  | detection maps, blob detection, STIM, ROC, contrast curve  | NegFC  |
+| pyKLIP  | no  | PCA, NMF, weighted PCA  | Full-frame ADI/RDI, SDI, annular ADI/RDI  | detection maps, blob detection, contrast curve  | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM  |
+| PynPoint  | yes  | median, PCA  | Full-frame ADI/RDI, SDI  | detection maps, contrast curve  | no  |
 
 # Acknowledgments
 

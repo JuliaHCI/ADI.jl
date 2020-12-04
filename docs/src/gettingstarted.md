@@ -105,3 +105,14 @@ Some technical distinctions to VIP
 
 The biggest difference, though, is Julia's multiple-dispatch system and how that allows ADI.jl to *do more with less code*. For example, the [`GreeDS`](@ref) algorithm was designed explicitly for [`PCA`](@ref), but the formalism of it is more generic than that. Rather than hard-coding in PCA, the GreeDS algorithm was written generically, and Julia's multiple-dispatch  allows the use of, say, [`NMF`](@ref) instead of PCA. By making the code *generic* and *modular*, ADI.jl enables rapid experimentation with different post-processing algorithms and techniques as well as minimizing the code required to implement a new algorithm and be able to fully use the ADI.jl API.
 
+## Feature Comparison with other software
+
+Comparison of features across different HCI frameworks. Techniques marked with * indicate partial support, meaning that not all algorithms are supported.
+
+| Framework | Pre-processing | Algorithms                                                           | Techniques                                | Detection Metrics                                         | Forward Modeling                                                          |
+|:----------:|:--------------:|:---------------------------------------------------------------------|:------------------------------------------|:----------------------------------------------------------|:--------------------------------------------------------------------------|
+|   ADI.jl  |       no       | median, PCA, NMF, fixed-point GreeDS                                 | Full-frame ADI/RDI, SDI (experimental)    | detection maps, STIM, contrast curve, STIM                | no                                                                        |
+|    VIP    |       yes      | median, LOCI, PCA, NMF, LLSG, ANDROMEDA, pairwise frame differencing | Full-frame ADI/RDI, SDI, annular ADI/RDI* | detection maps, blob detection, STIM, ROC, contrast curve | NegFC                                                                     |
+|   pyKLIP  |       no       | PCA, NMF, weighted PCA                                               | Full-frame ADI/RDI, SDI, annular ADI/RDI  | detection maps, blob detection, contrast curve            | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM |
+|  PynPoint |       yes      | median, PCA                                                          | Full-frame ADI/RDI, SDI                   | detection maps, contrast curve                            | no                                                                        |
+
