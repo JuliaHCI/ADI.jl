@@ -10,11 +10,14 @@ Spectral differential imaging (SDI) algorithms. These work on 4-D SDI tensors. T
 (::SDIAlgorithm)(data::AbstractArray{T,4}, angles, data_ref, scales; kwargs...)
 ```
 
+The data is expected to be laid out in `(nλ, nf, ny, nx)` format, so you may need to `permutedims` before processing the data. The `scales` correspond to the relative wavelength scales for each spectrum, and can be retrieved with `HCIToolbox.scale_list`.
+
 # Algorithms
 
 The current SDI implementations are
 * [`SingleSDI`](@ref)
 * [`DoubleSDI`](@ref)
+* [`SliceSDI`](@ref)
 """
 abstract type SDIAlgorithm <: ADIAlgorithm end
 

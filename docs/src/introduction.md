@@ -45,3 +45,12 @@ Steps 2-4 are shown in the following figure
 ![](assets/adi_process.png)
 
 After all this processing, finally the substellar companion HR8799e is evident. Hopefully this shows the difficulty of HCI and builds up part of the process that occurs outside of the reduction you'll be doing with ADI.jl.
+
+## References
+
+Here is a selection of further reading for information about high-contrast imaging, ADI, and similar techniques
+
+* [Traub, Oppenheimer 2010, "Direct Imaging of Exoplanets"](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj4rKn8_a3tAhVpvFkKHcepDoEQFjAKegQIBRAC&url=https%3A%2F%2Fwww.amnh.org%2Fcontent%2Fdownload%2F53052%2F796511%2Ffile%2FDirectImagingChapter.pdf&usg=AOvVaw0JT9cGTkuFGknAsfvyMxkY)
+* [Bowler 2016, "Imaging Extrasolar Giant Planets"](https://ui.adsabs.harvard.edu/abs/2016PASP..128j2001B/abstract)
+* [Pueyo 2018, "Direct Imaging as a Detection Technique for Exoplanets"](https://link.springer.com/referenceworkentry/10.1007%2F978-3-319-55333-7_10)
+* [Marois et al. 2006, "Angular Differential Imaging: A Powerful High-Contrast Imaging Technique"](https://ui.adsabs.harvard.edu/abs/2006ApJ...641..556M/abstract)

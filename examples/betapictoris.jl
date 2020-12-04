@@ -9,7 +9,17 @@ What will *not* be covered in this example are the basics of Julia, the fine det
 
 ## Setup
 
-Let's begin by importing the necessary libraries
+Let's begin by importing the necessary libraries. You may need to add these packages if they are not already on your system.
+```julia
+(@v1.5) pkg> add DataFrames HCIDatasets Plots
+```
+In addition, a `Project.toml` file exists in the [examples/](https://github.com/JuliaHCI/ADI.jl/tree/master/examples) folder with the necessary dependencies. Start the REPL in the base ADI.jl folder, then from Pkg mode
+```julia
+(@v1.5) pkg> activate examples
+(examples) pkg> instantiate
+julia> include("examples/betapictoris.jl")
+```
+---
 =#
 using ADI
 using DataFrames
@@ -17,10 +27,10 @@ using HCIDatasets: BetaPictoris
 using Plots
 
 ## set up plotting
-function imshow(img, args...; kwargs...)
+function imshow(img; kwargs...)
     ylim = extrema(axes(img, 1))
     xlim = extrema(axes(img, 2))
-    heatmap(img, args...; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
+    heatmap(axes(img)..., img; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
 end;
 
 #=
@@ -55,7 +65,7 @@ plot(
 )
 
 #=
-You may want to mask out an interior angle since there is an inner limit for our signal to be a real planet (as opposed to systematics from the optical system or noise). We can mask out an interior circle either before processing with the algorithm or afterwards using `HCIToolbox.mask_circle`. HCIToolbox.jl is re-exported by ADI.jl, though so we have it available here
+You may want to mask out an interior angle since there is an inner limit for our signal to be a real planet (as opposed to systematics from the optical system or noise). We can mask out an interior circle either before processing with the algorithm or afterwards using `HCIToolbox.mask_circle` (note: `HCIToolbox` is re-exported by ADI.jl, so all its features are usable without importing it directly).
 =#
 mask_cube = mask_circle(cube, 10)
 mask_reduced = alg(mask_cube, angles)
@@ -104,7 +114,7 @@ plot(
 )
 
 #=
-and now we can calculate the 5σ contrast curve
+and now we can calculate the 5σ contrast curve. Contrast is measured in comparison to the flux of the star, by default ADI.jl finds this flux by measuring the flux in the central fwhm of the median-combined cube.
 =#
 
 cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm, nbranch=6) |> DataFrame

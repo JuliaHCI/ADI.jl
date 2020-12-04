@@ -9,7 +9,7 @@ This method seeks to improve upon the typical student-t S/N tests ([`snr`](@ref)
 
 In particular, the STIM map is robust to detections with multiple objects or extended sources within the same annuli, which results in very high noise estimates using spatial methods. The STIM map also performs better at small angular separations, since the temporal domain has no limitations from limited resolution elements.
 
-*Pairet et al. 2019* derives a detection threshold of `τ ≈ 0.5` for the STIM map. The detection threshold can be calculated for a specific dataset using [`stim_threshold`](@ref).
+*Pairet et al. 2019* derives a detection threshold of `τ = 0.5` for the STIM map. The detection threshold can be calculated for a specific dataset using [`stim_threshold`](@ref).
 
 # Examples
 
@@ -30,7 +30,7 @@ julia> sm = stimmap(S, angles);
 [`stim_threshold`](@ref)
 """
 function stimmap(residuals::AbstractArray{T,3}, angles) where T
-    return stim(derotate(residuals, angles))
+    return stim(derotate(residuals, angles); dims=1)
 end
 
 """
@@ -40,7 +40,7 @@ Calculate the detection threshold for the standardized trajectory intensity mean
 
 If the STIM map has already been calculated, it can be passed in, otherwise it will be calculated in addition to the noise map. Note this will not return the STIM map, only the threshold.
 
-The threshold is derived in section 5.1 of *Pairet et al. 2019* as the ratio of the number of pixels above the approximated noise map.
+The threshold is derived in section 5.1 of *Pairet et al. 2019* as the ratio of the number of pixels above the approximated noise map. They found a value of `τ = 0.5` to be typical.
 
 # Examples
 
@@ -66,7 +66,7 @@ julia> τ = stim_threshold(sm, S, angles);
 function stim_threshold(stimmap, residuals, angles)
     # estimate noise map by getting STIM map of cube
     # rotated with opposite angles
-    d_opp = Metrics.stim(derotate(residuals, -angles))
+    d_opp = Metrics.stim(derotate(residuals, -angles); dims=1)
     # return ratio of values above the noise
     n_ϵ = count(stimmap .> d_opp)
     n = length(stimmap)
@@ -75,19 +75,19 @@ end
 
 function stim_threshold(residuals, angles)
     # calculate stimmap first
-    d = stim(derotate(residuals, angles))
+    d = stim(derotate(residuals, angles); dims=1)
     return stim_threshold(d, residuals, angles)
 end
 
 """
-    Metrics.stim(cube)
+    Metrics.stim(cube; dims)
 
-Calculates the STIM map of a derotated cube. This is roughly equivalent to the temporal mean divided by the temporal standard deviation.
+Calculates the STIM map of a derotated cube along the given `dims`. `dims` should correspond to the temporal axis of the cube. The STIM statistic is the slice mean divided by the slice standard deviation. Invalid values will become 0.
 """
-function stim(cube)
-    μ = mean(cube, dims=1)
-    σ = std(cube, dims=1, mean=μ)
+function stim(cube; dims)
+    μ = mean(cube, dims=dims)
+    σ = std(cube, dims=dims, mean=μ)
     d = zero(μ)
     @. @views d[!iszero(σ)] = μ[!iszero(σ)] / σ[!iszero(σ)]
-    return dropdims(d, dims=1)
+    return dropdims(d, dims=dims)
 end
