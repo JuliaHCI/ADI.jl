@@ -10,7 +10,7 @@ For standard ADI data, we store the values in a 3-dimensional array, where the f
 
 ### Parallactic Angles
 
-The parallactic angles should be stored as *degrees* in a vector. The parallactic angle `X[i]` will result in rotating the frame `i` `X[i]` degrees counter-clockwise.
+The parallactic angles should be stored as *degrees* in a vector. The parallactic angle `X[i]` will result in rotating frame `i` `X[i]` degrees counter-clockwise.
 
 ### SDI Cube/Tensor
 
@@ -99,20 +99,23 @@ ADI.jl took a lot of ideas from VIP and expanded them using the power of Julia. 
 Some technical distinctions to VIP
 
 * Julia is 1-indexed. This means all the positions for apertures, bounds, images, etc. start at 1. This is distinct from 0-based indexing in python, but is equivalent to the indexing in DS9 and IRAF.
-* Julia's `std` uses the sample statistic ($n-1$ degrees of freedom) while numpy's `std` uses the population statistic ($n$ degrees of freedom). This may cause very slight differences in measurements that rely on this.
+* Julia's `std` uses the sample statistic (`n-1` degrees of freedom) while numpy's `std` uses the population statistic (`n` degrees of freedom). This may cause very slight differences in measurements that rely on this.
 * Aperture mapping - many of the [`Metrics`](@ref) are derived by measuring statistics in an annulus of apertures. In VIP, this ring is not equally distributed- the angle between apertures is based on the exact number of apertures rather than the integral number of apertures that are actually measured. In ADI.jl the angle between apertures is evenly distributed. The same number of pixels are discarded in both packages, but in VIP they all end up in the same region of the image (see [this figure](assets/aperture_masks.png)).
 * Collapsing - by default VIP collapses a cube by derotating it then finding the median frame. In ADI.jl, the default collapse method is a weighted sum using the inverse of the temporal variance for weighting. This is documented in `HCIToolbox.collapse` and can be overridden by passing the keyword argument `method=median` or whichever statistical funciton you want to use.
 
 The biggest difference, though, is Julia's multiple-dispatch system and how that allows ADI.jl to *do more with less code*. For example, the [`GreeDS`](@ref) algorithm was designed explicitly for [`PCA`](@ref), but the formalism of it is more generic than that. Rather than hard-coding in PCA, the GreeDS algorithm was written generically, and Julia's multiple-dispatch  allows the use of, say, [`NMF`](@ref) instead of PCA. By making the code *generic* and *modular*, ADI.jl enables rapid experimentation with different post-processing algorithms and techniques as well as minimizing the code required to implement a new algorithm and be able to fully use the ADI.jl API.
 
-## Feature Comparison with other software
+## Feature comparison
 
-Comparison of features across different HCI frameworks. Techniques marked with * indicate partial support, meaning that not all algorithms are supported.
+Some notable libraries for HCI tasks include [VIP](https://github.com/vortex-exoplanet/VIP), [pyKLIP](https://pyklip.readthedocs.io/en/latest/), and [PynPoint](https://github.com/PynPoint/PynPoint). A table of the feature sets of these packages alongside ADI.jl is presented below. In general VIP offers the most diversity in algorithms and their applications, but not all algorithms are as feature-complete as the PCA implementation. VIP also contains many useful utilities for pre-processing and a pipeline framework. pyKLIP primarily uses the PCA (KLIP) algorithm, but offers many forward modeling implementations. PynPoint has a highly modular pre-processing module that is focused on pipelines.
 
-| Framework | Pre-processing | Algorithms                                                           | Techniques                                | Detection Metrics                                         | Forward Modeling                                                          |
-|:----------:|:--------------:|:---------------------------------------------------------------------|:------------------------------------------|:----------------------------------------------------------|:--------------------------------------------------------------------------|
-|   ADI.jl  |       no       | median, PCA, NMF, fixed-point GreeDS                                 | Full-frame ADI/RDI, SDI (experimental)    | detection maps, STIM, contrast curve, STIM                | no                                                                        |
-|    VIP    |       yes      | median, LOCI, PCA, NMF, LLSG, ANDROMEDA, pairwise frame differencing | Full-frame ADI/RDI, SDI, annular ADI/RDI* | detection maps, blob detection, STIM, ROC, contrast curve | NegFC                                                                     |
-|   pyKLIP  |       no       | PCA, NMF, weighted PCA                                               | Full-frame ADI/RDI, SDI, annular ADI/RDI  | detection maps, blob detection, contrast curve            | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM |
-|  PynPoint |       yes      | median, PCA                                                          | Full-frame ADI/RDI, SDI                   | detection maps, contrast curve                            | no                                                                        |
+| - | Pre. | Algs. | Techs. | D.M. | F.M. |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| ADI.jl | ✗ | median, PCA, NMF, fixed-point GreeDS | Full-frame ADI/RDI, SDI (experimental) | detection maps, STIM, contrast curve | ✗ |
+| VIP | ✓ | median, LOCI, PCA, NMF, LLSG, ANDROMEDA, pairwise frame differencing | Full-frame ADI/RDI, SDI, annular ADI/RDI* | detection maps, blob detection, STIM, ROC, contrast curve | NegFC |
+| pyKLIP | ✗ | PCA, NMF, weighted PCA | Full-frame ADI/RDI, SDI, annular ADI/RDI | detection maps, blob detection, contrast curve, cross-correlation | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM |
+| PynPoint | ✓ | median, PCA | Full-frame ADI/RDI, SDI | detection maps, contrast curve | ✗ |
 
+**Column labels:** Pre-processing, Algorithms, Techniques, Detection Metrics, Forward Modeling.
+
+*Techniques marked with * indicate partial support, meaning that not all algorithms are supported.*
