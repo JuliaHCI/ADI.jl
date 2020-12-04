@@ -1,6 +1,6 @@
 # [Getting Started](@id gettingstarted)
 
-Here is a quick-start guide for people familiar with ADI and experience using tools like [VIP](https://github.com/vortex-exoplanet/VIP) or [PyKLIP](https://pyklip.readthedocs.io/en/latest/). For installation and setup information, see the [Installation and Setup](@ref) section.
+Here is a quick-start guide for people familiar with ADI and experience using tools like [VIP](https://github.com/vortex-exoplanet/VIP) or [pyKLIP](https://pyklip.readthedocs.io/en/latest/). For installation and setup information, see the [Installation and Setup](@ref) section.
 
 ## Expected Data Formats
 
