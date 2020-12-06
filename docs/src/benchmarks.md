@@ -36,6 +36,8 @@ $ julia --project=bench -e 'using Pkg; Pkg.instantiate()'
 !!! warning "PyCall.jl and virtual environments"
     The interface between Julia and python is handled by [PyCall.jl](https://github.com/juliapy/PyCall.jl). When using a virtual environment, PyCall may not use the correct python library. Before running the benchmarks, please read [this reference](https://github.com/juliapy/PyCall.jl#python-virtual-environments).
 
+!!! tip "Multi-threading"
+    Some of the image-processing methods in ADI.jl and HCIToolbox.jl are multi-threaded, and will lead to a noticable difference in some benchmarks. To take advantage of this, set the environment variable `JULIA_NUM_THREADS` before starting your runtime. [Multi-Threading documentation](https://docs.julialang.org/en/v1/manual/multi-threading/).
 
 ```@setup bench
 using CSV
