@@ -1,4 +1,5 @@
 using Statistics
+using CoordinateTransformations
 using ImageTransformations: center
 using Photometry
 using HCIToolbox
@@ -192,7 +193,7 @@ estimate_starphot(cube::AbstractArray{T, 3}, fwhm) where {T} = estimate_starphot
                fwhm, nbranch=1, theta=0, inner_rad=1,
                fc_rad_sep=3, snr=100, kwargs...)
 
-Calculate the throughput of `alg` by injecting fake companions into `cube` and measuring the relative photometry of each companion in the reduced frame. Any additional `args` or `kwargs` will be passed to `alg` when it is called.
+Calculate the throughput of `alg` by injecting fake companions into `cube` and measuring the relative photometry of each companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `args` or `kwargs` will be passed to `alg` when it is called.
 
 # Keyword Arguments
 * `nbranch` - number of azimuthal branches to use
@@ -257,6 +258,56 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, args...;
 
     return output, (distance=radii, fake_comps=fake_comps_full, noise=noise)
 end
+
+"""
+    throughput(alg, cube, angls, psf, position, args...;
+               fwhm, snr=100, reduced_empty=nothing, kwargs...)
+
+Calculate the throughput of `alg` by injecting `psf` into `cube` at the given `position` and measuring the relative photometry of the companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `args` or `kwargs` will be passed to `alg` when it is called.
+
+If `position` is a tuple or a vector, it will be parsed as the cartesian coordinate `(x, y)`. If `position` is a `CoordinateTransformations.Polar` it will be parsed as polar coordinates from the center of the cube. Note the `Polar` type expects angles in radians.
+
+# Keyword Arguments
+* `fwhm` - the full width at half-maximum
+* `snr` - the target signal to noise ratio of the injected planets
+* `reduced_empty` - the collapsed residual frame for estimating the noise. Will process using `alg` if not provided.
+* `verbose` - show informative messages during process
+"""
+function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, position, args...;
+    fwhm, snr=100, reduced_empty=nothing, verbose=true, kwargs...) where T
+
+    if reduced_empty === nothing
+        verbose && @info "Calculating empty reduced frame"
+        reduced_empty = alg(cube, angles, args...; kwargs...)
+    end
+
+    cent = center(cube)[2:3]
+    r, θ = _coordinates(position, reverse(cent))
+    noise = annulus_noise(reduced_empty, fwhm, cent..., r, θ)
+    A = snr * noise
+
+    verbose && @info "Injecting companion at r=$r θ=$θ with A=$A"
+    fake_comp = inject!(zero(reduced_empty), psf_model; A=A, r=r, θ=θ)
+    fake_comp_cube = inject(cube, psf_model, angles; A=A, r=r, θ=θ)
+
+    verbose && @info "Calculating reduced frame with fake companion injected"
+    reduced = alg(fake_comp_cube, angles, args...; kwargs...)
+
+    x, y = convert(SVector, Polar(r, deg2rad(θ))) + cent
+    ap = CircularAperture(x, y, fwhm/2)
+
+    verbose && @info "Calculating throughput"
+    injected_flux = photometry(ap, fake_comp).aperture_sum
+    recovered_flux = photometry(ap, reduced .- reduced_empty).aperture_sum
+    throughput = max(zero(T), recovered_flux / injected_flux)
+
+    return throughput
+end
+
+# get r, θ from cartesian coords
+_coordinates(pos::Tuple, center) = _coordinates(SVector(pos), center)
+_coordinates(pos::AbstractVector, center) = _coordinates(convert(Polar, pos .- center), center)
+_coordinates(pos::Polar, center) = (pos.r, rad2deg(pos.θ))
 
 function annulus_noise(frame, fwhm, cy, cx, r, θ=0)
     δy, δx = sincosd(θ)
