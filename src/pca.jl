@@ -12,7 +12,7 @@ Use principal components analysis (PCA) to form a low-rank orthonormal basis of 
 If `ncomps` is `nothing`, it will be set to the number of frames in the reference cube when processed.
 
 # References
-* [Soummer, Pueyo, and Larkin (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...755L..28S) "Detection and Characterization of Exoplanets and Disks Using Projections on Karhunen-Loève Eigenimages"
+1. [Soummer, Pueyo, and Larkin (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...755L..28S) "Detection and Characterization of Exoplanets and Disks Using Projections on Karhunen-Loève Eigenimages"
 
 # Implements
 * [`decompose`](@ref)

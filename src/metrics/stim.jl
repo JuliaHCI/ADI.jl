@@ -24,7 +24,7 @@ julia> sm = stimmap(S, angles);
 ```
 
 # References
-* [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) "STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise"
+1. [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) "STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise"
 
 # See Also
 [`stim_threshold`](@ref)
@@ -58,7 +58,7 @@ julia> τ = stim_threshold(sm, S, angles);
 ```
 
 # References
-* [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) "STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise"
+1. [Pairet et al. 2019](http://adsabs.harvard.edu/abs/2019MNRAS.487.2262P) "STIM map: detection map for exoplanets imaging beyond asymptotic Gaussian residual speckle noise"
 
 # See Also
 [`stimmap`](@ref)
