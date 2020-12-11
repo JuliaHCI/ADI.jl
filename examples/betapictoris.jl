@@ -76,7 +76,7 @@ imshow(mask_reduced)
 
 Now that we have our reduced frame, let's look at the signal-to-noise ratio (SNR, S/N). We use the exact S/N calculation here, implemented in a fast, multi-threaded framework. In order to measure the S/N, though, we need the effective FWHM of our instrument. Normally, we would measure this from an off-axis (or non-coronagraphic) PSF, but for simplicity I'll hard-code a value.
 =#
-fwhm = 4.6
+fwhm = 4.7
 snrmap = detectionmap(snr, reduced, fwhm)
 imshow(snrmap)
 
