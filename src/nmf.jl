@@ -4,7 +4,7 @@ using NMF: nnmf, solve!, CoordinateDescent, nndsvd
     NMF(;ncomps=nothing) <: LinearAlgorithm
     NMF(ncomps)
 
-Use non-negative matrix factorization (NMF, NNMF) to form a non-negative low-rank orthonormal basis of the input. The implementation of the underlying NMF is provided by [NMF.jl](https://github.com/JuliaStats/NMF.jl). The implementation uses a non-negative SVD for initialization and a coordinate-descent solver to fit.
+Use non-negative matrix factorization (NMF, NNMF) to form a non-negative, low-rank, and orthonormal basis of the input. The implementation of the underlying NMF is provided by [NMF.jl](https://github.com/JuliaStats/NMF.jl). The implementation uses a non-negative SVD for initialization and a coordinate-descent solver to fit.
 
 If `ncomps` is `nothing`, it will be set to the number of frames in the reference cube when processed.
 
@@ -14,7 +14,7 @@ If `ncomps` is `nothing`, it will be set to the number of frames in the referenc
     target = cube .- minimum(cube)
     S = reconstruct(NMF(), target, angles)
     ```
-    When doing full-frame reduction (e.g. `NMF()(cube, angles)`) this is handled automatically, so this constraint only applies to the lower-level API and methods which rely on those, such as [`GreeDS`](@ref). In general, if you see warnings, heed them.
+    When doing full-frame reduction (e.g. `NMF()(cube, angles)`) *this is handled automatically*, so this constraint only applies to the lower-level API and methods which rely on those, such as [`GreeDS`](@ref). **In general, if you see warnings, heed them.**
 
 # Implements
 * [`decompose`](@ref)
