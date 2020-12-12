@@ -74,9 +74,9 @@ imshow(mask_reduced)
 #=
 ## S/N and Significance Maps
 
-Now that we have our reduced frame, let's look at the signal-to-noise ratio (SNR, S/N). We use the exact S/N calculation here, implemented in a fast, multi-threaded framework. In order to measure the S/N, though, we need the effective FWHM of our instrument. Normally, we would measure this from an off-axis (or non-coronagraphic) PSF, but for simplicity I'll hard-code a value.
+Now that we have our reduced frame, let's look at the signal-to-noise ratio (SNR, S/N). We use the exact S/N calculation here, implemented in a fast, multi-threaded framework using [`detectionmap`](@ref). In order to measure the S/N, though, we need the effective FWHM of our instrument. Normally, we would measure this from an off-axis (or non-coronagraphic) PSF, but for simplicity I'll hard-code a value.
 =#
-fwhm = 4.7
+fwhm = 4.6
 snrmap = detectionmap(snr, reduced, fwhm)
 imshow(snrmap)
 
@@ -114,7 +114,7 @@ plot(
 )
 
 #=
-and now we can calculate the 5σ contrast curve. Contrast is measured in comparison to the flux of the star, by default ADI.jl finds this flux by measuring the flux in the central fwhm of the median-combined cube.
+and now we can calculate the 5σ contrast curve using [`contrast_curve`](@ref). Contrast is defined by the ratio of astrophysical flux to Contrast is measured in comparison to the flux of the star; by default ADI.jl finds this flux by measuring the flux with a circular aperture in the central fwhm of the median-combined cube.
 =#
 
 cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm, nbranch=6) |> DataFrame
@@ -131,7 +131,7 @@ plot(
     xlabel="radius [px]"
 )
 #=
-You'll notice a pretty severe bump indicating poor contrast where the original companion is! Because this companion is very bright (it can even be seen in the raw frames!) it will bias the contrast measurement.
+You'll notice a pretty severe bump indicating poor contrast where the original companion is! Because this companion is very bright it will bias the contrast measurement.
 
 Typically you'd like to fit the companion signal and remove it in a maximum likelihood framework. For convenience here, let's use the `:cube_empty` entry for `BetaPictoris`, which already has the companion removed.
 =#

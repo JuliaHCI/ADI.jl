@@ -261,7 +261,8 @@ end
 
 """
     throughput(alg, cube, angls, psf, position, args...;
-               fwhm, snr=100, reduced_empty=nothing, kwargs...)
+               fwhm, snr=100, reduced_empty=nothing,
+               verbose=true, kwargs...)
 
 Calculate the throughput of `alg` by injecting `psf` into `cube` at the given `position` and measuring the relative photometry of the companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `args` or `kwargs` will be passed to `alg` when it is called.
 
