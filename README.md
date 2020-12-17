@@ -31,6 +31,10 @@ julia> using ADI
 To exit Pkg mode, just backspace. Once the package is installed it can be imported with
 For more information, see the [Pkg documentation](https://docs.julialang.org/en/v1/stdlib/Pkg/).
 
+## Citations
+
+If you use ADI.jl or derivates in your work, please consider citing both the JOSS paper and the code record. The JOSS paper citation can be found in [`CITATION.bib`](CITATION.bib). The code will have a unique reference for each released version, so visit the [zenodo record](https://doi.org/10.5281/zenodo.3977789) to grab the BibTeX for whichever version you used.
+
 ## Usage
 
 The following is an extremely brief PCA reduction of an ADI cube. Please see the [documentation](https://juliahci.github.io/ADI.jl/dev/) for further usage, tutorials, and api reference.

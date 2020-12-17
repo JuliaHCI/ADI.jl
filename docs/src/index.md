@@ -32,6 +32,10 @@ julia> using ADI
 
 For more information, see the [Pkg documentation](https://docs.julialang.org/en/v1/stdlib/Pkg/).
 
+## Citations
+
+If you use ADI.jl or derivates in your work, please consider citing both the JOSS paper and the code record. The JOSS paper citation can be found in [`CITATION.bib`](https://github.com/juliahci/ADI.jl/blob/master/CITATION.bib). The code will have a unique reference for each released version, so visit the [zenodo record](https://doi.org/10.5281/zenodo.3977789) to grab the BibTeX for whichever version you used.
+
 ## Contributing and Support
 
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
