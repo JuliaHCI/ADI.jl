@@ -242,9 +242,9 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, args...;
 
                 A = snr * noise[ann]
 
-                inject!(fake_comps, psf_model; A=A, r=r, θ=θ)
+                inject!(fake_comps, psf_model, Polar(r, deg2rad(θ)); A=A)
                 fake_comps_full .+= fake_comps
-                inject!(cube_fake_comps, psf_model, angles; A=A, r=r, θ=θ)
+                inject!(cube_fake_comps, angles, psf_model, Polar(r, deg2rad(θ)); A=A)
 
                 return CircularAperture(x, y, fwhm / 2)
             end
@@ -288,8 +288,8 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, position, 
     A = snr * noise
 
     verbose && @info "Injecting companion at r=$r θ=$θ with A=$A"
-    fake_comp = inject!(zero(reduced_empty), psf_model; A=A, r=r, θ=θ)
-    fake_comp_cube = inject(cube, psf_model, angles; A=A, r=r, θ=θ)
+    fake_comp = inject!(zero(reduced_empty), psf_model, Polar(r, deg2rad(θ)); A=A)
+    fake_comp_cube = inject(cube, angles, psf_model, Polar(r, deg2rad(θ)); A=A)
 
     verbose && @info "Calculating reduced frame with fake companion injected"
     reduced = alg(fake_comp_cube, angles, args...; kwargs...)
