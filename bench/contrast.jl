@@ -3,8 +3,8 @@ using BenchmarkTools
 using CSV
 using DataFrames
 using HCIDatasets: BetaPictoris, HR8799
-using HCIToolbox
 using InvertedIndices
+using PSFModels
 using PyCall
 
 results = []
@@ -16,7 +16,7 @@ fwhm = 8
 # julia benchmarks
 
 alg = PCA(20)
-psf = construct(Kernels.Normal(5), (21, 21))
+psf = PSFModels.Gaussian(5) |> collect
 
 for dataset in (BetaPictoris, HR8799)
     @info "Benchmarking - $dataset Contrast Curve"

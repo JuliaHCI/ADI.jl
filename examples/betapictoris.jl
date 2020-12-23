@@ -11,7 +11,7 @@ What will *not* be covered in this example are the basics of Julia, the fine det
 
 Let's begin by importing the necessary libraries. You may need to add these packages if they are not already on your system.
 ```julia
-(@v1.5) pkg> add DataFrames HCIDatasets Plots
+(@v1.5) pkg> add DataFrames HCIDatasets Plots PSFModels
 ```
 In addition, a `Project.toml` file exists in the [examples/](https://github.com/JuliaHCI/ADI.jl/tree/master/examples) folder with the necessary dependencies. Start the REPL in the base ADI.jl folder, then from Pkg mode
 ```julia
@@ -99,14 +99,15 @@ looks like we've successfully pulled out the companion Beta Pictoris b from the 
 
 We are also interested in analyzing how the algorithm affects our data, especially calculating the *throughput* and the *contrast curve*. These measure, effectively, how much signal is lost during the subtraction step of the algorithm and give us an idea of what the limits of our algorithm are with our data.
 
-Before we move on, we need to create a PSF model for our data. `HCIToolbox.Kernels` includes some simple functional PSFs or we can use an empirical PSF. We will use the empirical PSF provided by HCIDatasets for our calculations
+Before we move on, we need to create a PSF model for our data. [PSFModels.jl](https://github.com/JuliaAstro/PSFModels.jl) contains some simple functional PSFs, or we can use an empirical PSF. We will use the empirical PSF provided by HCIDatasets for our calculations
 =#
+using PSFModels
 psf = BetaPictoris[:psf] ./ maximum(BetaPictoris[:psf])
-kern_psf = Kernels.Normal(fwhm);
+kern_psf = PSFModels.Gaussian(fwhm);
 #-
 plot(
     imshow(psf),
-    imshow(construct(kern_psf, size(psf))),
+    plot(kern_psf, -19:19, -19:19),
     layout=2,
     size=(500, 250),
     cbar=false,
