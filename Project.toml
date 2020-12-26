@@ -1,7 +1,7 @@
 name = "ADI"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"
 authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
-version = "0.5.4"
+version = "0.5.5"
 
 [deps]
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
@@ -36,7 +36,7 @@ NMF = "0.4.1, 0.5"
 Parameters = "0.12"
 Photometry = "0.7"
 ProgressLogging = "0.1"
-Reexport = "0.2"
+Reexport = "0.2, 1"
 Rotations = "1"
 Setfield = "0.7"
 StaticArrays = "0.12, 1.0"
