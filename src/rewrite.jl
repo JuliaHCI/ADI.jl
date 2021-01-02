@@ -99,17 +99,38 @@ end
 GreeDS(alg=PCA(); threshold=0.0) = GreeDS(alg, threshold)
 GreeDS(ncomps::Int; threshold=0.0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
 
-function fit(alg::ADIAlgorithm, cube::AbstractArray{T,3}, args...; kwargs...) where T
+function fit(alg::ADIAlgorithm, cube::AbstractArray{T,3}; kwargs...) where T
     data = flatten(cube)
-    return fit(alg, data, args...; kwargs...)
+    if :ref in keys(kwargs)
+        kwargs[:ref] isa AbstractArray{<:Any,3} || error("reference data geometry does not match target data")
+        ref_data = flatten(kwargs[:ref])
+        return fit(alg, data; kwargs..., ref=ref_data)
+    end
+    return fit(alg, data; kwargs...)
+end
+function fit(alg::ADIAlgorithm, cube::AnnulusView; kwargs...)
+    data = cube()
+    if :ref in keys(kwargs)
+        kwargs[:ref] isa AnnulusView || error("reference data geometry does not match target data")
+        ref_data = kwargs[:ref]()
+        return fit(alg, data; kwargs..., ref=ref_data)
+    end
+    return fit(alg, data; kwargs...)
 end
 
-function fit(alg::ADIAlgorithm, cube::MultiAnnulusView, args...; kwargs...)
-    return StructArray(fit(alg, ann, args...; kwargs...) for ann in eachannulus(cube))
+function fit(alg::ADIAlgorithm, cube::MultiAnnulusView; kwargs...)
+    if :ref in keys(kwargs)
+        kwargs[:ref] isa MultiAnnulusView || error("reference data geometry does not match target data")
+        anns = eachannulus(cube)
+        ref_anns = eachannulus(kwargs[:ref])
+        return StructArray(fit(alg, ann; kwargs..., ref=ref_ann) for (ann, ref_ann) in zip(anns, ref_anns))
+    else
+        return StructArray(fit(alg, ann; kwargs...) for ann in eachannulus(cube))
+    end
 end
 
-function reconstruct(alg::ADIAlgorithm, cube, angles; kwargs...)
-    design = fit(alg, cube, angles; kwargs...)
+function reconstruct(alg::ADIAlgorithm, cube; kwargs...)
+    design = fit(alg, cube; kwargs...)
     S = reconstruct(design)
     return expand_geometry(cube, S)
 end
@@ -118,26 +139,29 @@ expand_geometry(::AbstractArray{T,3}, arr) where {T} = expand(arr)
 expand_geometry(cube::AnnulusView, arr) = inverse(cube, arr)
 expand_geometry(cube::MultiAnnulusView, arrs) = inverse(cube, arrs)
 
-function process(alg::ADIAlgorithm, cube, args...; kwargs...)
-    S = reconstruct(alg, cube, args...; kwargs...)
+function process(alg::ADIAlgorithm, cube; kwargs...)
+    S = reconstruct(alg, cube; kwargs...)
     return cube .- S
 end
 
-function process(alg::NMF, cube, args...; kwargs...)
+function process(alg::NMF, cube; kwargs...)
     if any(<(0), cube)
         target = copy(cube)
         target .-= minimum(target)
     else
         target = cube
     end
-    S = reconstruct(alg, target, args...; kwargs...)
+    S = reconstruct(alg, target; kwargs...)
     return target .- S
 end
 
-function (alg::ADIAlgorithm)(cube, angles; kwargs...)
-    return collapse!(process(alg, cube, angles; kwargs...), angles)
+function (alg::ADIAlgorithm)(cube, angles; method=:deweight, kwargs...)
+    return collapse!(process(alg, cube; kwargs...), angles, method=method)
 end
 
+function (alg::GreeDS)(cube, angles; method=:deweight, kwargs...)
+    return collapse!(process(alg, cube; angles=angles, kwargs...), angles, method=method)
+end
 
 ###########################
 ###   DATA STRUCTURES   ###
@@ -168,7 +192,7 @@ design(des::NMFDesign) = (des.components, des.weights)
 
 function reconstruct(des::LinearDesign)
     A, weights = design(des)
-    S = weights * A
+    return weights * A
 end
 reconstruct(des::ClassicDesign) = repeat(des.frame, des.n, 1)
 reconstruct(designs::AbstractVector{<:AbstractDesign}) = map(reconstruct, designs)
@@ -177,11 +201,11 @@ reconstruct(designs::AbstractVector{<:AbstractDesign}) = map(reconstruct, design
 ###   ALGORITHMS   ###
 ######################
 
-function fit(alg::PCA, data::AbstractMatrix, args...)
+function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # get number of components (using dispatch for symbolic args)
-    k = get_ncomps(alg.ncomps, data; alg.opts...)
+    k = get_ncomps(alg.ncomps, ref; alg.opts...)
     # fit SVD to get principal subspace of reference
-    decomp = svd(data)
+    decomp = svd(ref)
     # Get the principal components (principal subspace) and weights
     P = decomp.Vt[begin:k, :]
     weights = data * P'
@@ -241,12 +265,12 @@ function pratio_ncomps(data; pratio=0.9)
     return last(searchsorted(ratio_cumsum, pratio))
 end
 
-function fit(alg::Classic, data::AbstractMatrix, args...)
+function fit(alg::Classic, data::AbstractMatrix; ref=data)
     n = size(data, 1)
-    return ClassicDesign(n, alg.method(data, dims=1))
+    return ClassicDesign(n, alg.method(ref, dims=1))
 end
 
-function fit(alg::NMF, data::AbstractMatrix{T}, args...) where T
+function fit(alg::NMF, data::AbstractMatrix{T}) where T
     if any(<(0), data)
         @warn "Negative values encountered in input. Make sure to rescale your data"
     end
@@ -259,14 +283,14 @@ end
 
 
 
-function fit(alg::GreeDS{<:PCA}, data::AbstractArray{T,3}, angles::AbstractVector) where T
-    target = flatten(data)
+function fit(alg::GreeDS{<:PCA}, data::AbstractArray{T,3}; angles, ref=data) where T
+    target = flatten(ref)
     # get the number of components as a range from the underlying alg
     max_ncomps = get_ncomps(alg.kernel.ncomps, target)
     # use the underlyhing algorithm with a lens for further processing
     f = alg.kernel
     f = @set f.ncomps = 1
-    design = fit(f, target, angles)
+    design = fit(f, target)
     R = expand(target .- reconstruct(design))
     reduced = collapse!(R, angles)
     @progress "GreeDS" for n in 1:max_ncomps
@@ -274,29 +298,35 @@ function fit(alg::GreeDS{<:PCA}, data::AbstractArray{T,3}, angles::AbstractVecto
         # use lens to update number of components
         f = @set f.ncomps = n
         # use the `resid` cube as the reference frames for the next reduction
-        design = fit(f, resid, angles)
-        design.weights .= target * design.components'
+        design = fit(f, target; ref=flatten(resid))
         R = expand(target .- reconstruct(design))
         reduced = collapse!(R, angles)
+    end
+    if ref !== data
+        A = design.components
+        design.weights .= flatten(data) * A'A
     end
     return design
 end
 
-function fit(alg::GreeDS{<:PCA}, data::AnnulusView, angles::AbstractVector)
+function fit(alg::GreeDS{<:PCA}, data::AnnulusView; angles, ref=data)
     target = data()
+    tmpAnn = copy(data)
     # get the number of components as a range from the underlying alg
     max_ncomps = get_ncomps(alg.kernel.ncomps, target)
     # use the underlyhing algorithm with a lens for further processing
     f = alg.kernel
     f = @set f.ncomps = 1
-    design = fit(f, target, angles)
-    reduced = collapse!(target .- reconstruct(design), angles)
+    design = fit(f, target)
+    R = inverse(data, target .- reconstruct(design))
+    reduced = collapse!(R, angles)
     @progress "GreeDS" for n in 1:max_ncomps
-        resid = data .- expand_rotate(reduced, angles, alg.threshold)
+        tmpAnn.parent .= data .- expand_rotate(reduced, angles, alg.threshold)
+        resid = tmpAnn()
         # use lens to update number of components
         f = @set f.ncomps = n
         # use the `resid` cube as the reference frames for the next reduction
-        design = fit(f, resid, angles)
+        design = fit(f, target; ref=resid)
         design.weights .= target * design.components'
         R = inverse(data, target .- reconstruct(design))
         reduced = collapse!(R, angles)
