@@ -16,7 +16,7 @@ For large data cubes the iteration can cause slowdowns, so a progress bar is pro
     The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically. It is important to clarify, *these angles should correspond to the reference data in the case of RDI*, e.g. `GreeDS()(cube, angles; ref=ref_cube, angles=ref_angles)`
 
 # Algorithms
-Originally multiple algorithms were supported, but currently only [`PCA`](@ref) and [`TPCA`](@ref) work properly with the GreeDS algorithm.
+Currently only [`PCA`](@ref) and [`TPCA`](@ref) work properly with the GreeDS algorithm.
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"

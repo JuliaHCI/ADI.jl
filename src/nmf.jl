@@ -2,7 +2,7 @@
 using NMF: nndsvd, solve!, CoordinateDescent
 
 """
-    NMF(;ncomps=nothing) <: LinearAlgorithm
+    NMF(;ncomps=nothing)
     NMF(ncomps)
 
 Use non-negative matrix factorization (NMF, NNMF) to form a non-negative, low-rank, and orthonormal basis of the input. The implementation of the underlying NMF is provided by [NMF.jl](https://github.com/JuliaStats/NMF.jl). The implementation uses a non-negative SVD for initialization and a coordinate-descent solver to fit.
