@@ -31,30 +31,29 @@ See the extended help (`??ADIAlgorithm`) for interface details.
 ## Interface
 To extend `ADIAlgorithm` you may implement the following
 
-    fit(::Alg, data::AbstractMatrix; kwargs...)
+    ADI.fit(::Alg, data::AbstractMatrix; kwargs...)
 
-Fit the data (flattened into a matrix). To support RDI, ensure the `ref` keyword argument is usable (`ref` is also a flattened matrix).
+Fit the data (flattened into a matrix). To support RDI, ensure the `ref` keyword argument is usable (`ref` is also a flattened matrix). This is the only method you *need* to implement for a new `ADIAlgorithm`, along with a suitable [`ADIDesign`](@ref).
+
+ADI.jl automatically coaxes the `cube` input into a matrix for use with `fit`, appropriately handling the various geometries. If a given algorithm doesn't support the default operations, all that needs to be done is override the default behavior (for an example, see the [`GreeDS`](@ref) implementation).
+
+---
 
     reconstruct(::Alg, cube; kwargs...)
 
 Fit the data using the algorithm and return a cube with the estimate of the PSF. By default uses the reconstruction from the [`ADIDesign`](@ref) fit to the data.
 
+---
+
     subtract(::Alg, cube; kwargs...)
 
 Fit the data using the algorithm and return a cube that has had the PSF estimate subtracted. By default, calls [`reconstruct`](@ref) and subtracts it from `cube`.
 
+---
+
     (::ADIAlgorithm)(cube; kwargs...)
 
 Fully process the data (estimate, subtract, collapse). By default, derotates and collapses output from [`subtract`](@ref).
-
-| function | default | description |
-|----------|---------|-------------|
-| `fit(::Alg, data::AbstractMatrix; kwargs...)` | | Fit the data (flattened into a matrix). To support RDI, ensure the `ref` keyword argument is usable (`ref` is also a flattened matrix). |
-| `reconstruct(::Alg, cube; kwargs...)` | Uses the reconstruction from the [`ADIDesign`](@ref) fit to the data | Fit the data using the algorithm and return a cube with the estimate of the PSF |
-| `subtract(::Alg, cube; kwargs...)` | calls [`reconstruct`](@ref) and subtracts it from `cube` | Fit the data using the algorithm and return a cube that has had the PSF estimate subtracted. |
-| `(::ADIAlgorithm)(cube; kwargs...)` | derotates and collapses output from `subtract` | Fully process the data (estimate, subtract, collapse) |
-
-ADI.jl automatically coaxes the `cube` input into a matrix for use with `fit`, appropriately handling the various geometries. If a given algorithm doesn't support the default operations, all that needs to be done is override the default behavior (for an example, see the [`GreeDS`](@ref) implementation).
 """
 abstract type ADIAlgorithm end
 
@@ -93,7 +92,7 @@ Return the pertinent data required to form the PSF approximation. For example, w
 function design end
 
 """
-    fit(::ADIAlgorithm, cube; [ref], kwargs...)
+    ADI.fit(::ADIAlgorithm, cube; [ref], kwargs...)
 
 Given the description of an algorithm and the appropriate options, take the pixels from `cube` and fit them, returning a design ([`ADIDesign`](@ref)) containing the necessary information from the fit (e.g. the principal components from PCA decomposition).
 

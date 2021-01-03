@@ -42,7 +42,7 @@ end
 (alg::ADIAlgorithm)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where {T} =
     SingleSDI(alg)(spcube, angles, scales; kwargs...)
 
-function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
+function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
     nλ, n, ny, nx = size(spcube)
     frame_size = (ny, nx)
     big_cube = scale_and_stack(spcube, scales)
@@ -57,7 +57,7 @@ function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...)
     # bin across spectral dim
     resid_cube = invscale_and_collapse(big_resid_cube, scales, frame_size)
     # derotate and combine
-    return collapse!(resid_cube, angles; kwargs...)
+    return collapse!(resid_cube, angles; method=method, kwargs...)
 end
 
 """
@@ -85,7 +85,7 @@ end
 
 DoubleSDI(alg) = DoubleSDI(alg, alg)
 
-function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
+function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
     nλ, n, ny, nx = size(spcube)
     frame_size = (ny, nx)
     spec_resids = similar(spcube, n, ny, nx)
@@ -104,7 +104,7 @@ function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...)
         spec_resids[n, :, :] .= collapse(spec_resid)
     end
     # do second pass in temporal domain
-    return sdi.alg_temp(spec_resids, angles; kwargs...)
+    return sdi.alg_temp(spec_resids, angles; method=method, kwargs...)
 end
 
 """

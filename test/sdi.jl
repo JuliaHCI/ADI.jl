@@ -20,7 +20,7 @@ end
 end
 
 @testset "Trivial Double SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic()),
-                                                 ALG2 in (PCA(5), Classic())
+                                                 ALG2 in (PCA(5), GreeDS(5), Classic())
     cube = ones(5, 10, 100, 100) 
     angles = zeros(10)
     scales = collect(range(1.2, 1, length=5))
@@ -32,7 +32,7 @@ end
 end
 
 @testset "Trivial Slice SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic()),
-                                                 ALG2 in (PCA(5), Classic())
+                                                 ALG2 in (PCA(5), GreeDS(5), Classic())
     cube = ones(5, 10, 100, 100) 
     angles = zeros(10)
     scales = collect(range(1.2, 1, length=5))
