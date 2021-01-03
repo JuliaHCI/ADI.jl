@@ -37,7 +37,6 @@ end
     data = randn(rng, 30, 101, 101)
     angles = sort!(90rand(rng, 30)) |> normalize_par_angles
 
-    # not supported for GreeDS alg
     S = subtract(GreeDS(1), data; angles=angles, ref=zeros(30, 101, 101))
     @test S ≈ data rtol=2e-1
 end
