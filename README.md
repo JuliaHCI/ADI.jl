@@ -48,7 +48,7 @@ julia> alg = PCA(ncomps=10)
 
 julia> flat_resid = alg(cube, angles) # ADI
 
-julia> flat_resid_rdi = alg(cube, angles, cube_ref) # flexible RDI
+julia> flat_resid_rdi = alg(cube, angles; ref=cube_ref) # flexible RDI
 ```
 
 get the S/N and significance

@@ -75,26 +75,6 @@ resid = collapse(R, angles)
 
 Notice how the only part of this specific to the algorithm is [`reconstruct`](@ref)? This lets us have the super-compact functional form from above without having to copy the common code for each algorithm.
 
-### Decomposition
-
-For certain types of ADI algorithms, a convenient linear form is used for the speckle approximation
-```math
-\mathbf{S} \approx \mathbf{w} \cdot \mathbf{A}
-```
-where $\mathbf{S}$ represents the speckle reconstruction in a flattened matrix (where each row is an unrolled image), $\mathbf{A}$ represents a linear basis (again as a matrix with each row corresponding the a basis image), and $\mathbf{w}$ represents the projection of the target data onto the linear basis (the *weights* of an observation). $\mathbf{S}$ is what is used for subtracting from the target in typical ADI.
-
-Algorithms which share this attribute share the abstract type `ADI.LinearAlgorithm`, and we can retrieve these two matrices via [`decompose`](@ref). Note that all of these terms treat the images as row vectors; to reshape back to a cube, use `HCIToolbox.expand` (note: HCIToolbox.jl is re-exported by ADI.jl, so all its features are usable without importing it directly).
-
-```julia
-using ADI
-cube, angles = # load data
-des = ADI.fit(PCA(10), cube)
-A, w = ADI.design(des)
-S = reconstruct(des)
-@assert S ≈ w * A
-@assert size(expand(S)) == size(cube)
-```
-
 ## Comparison to VIP
 
 ADI.jl took a lot of ideas from VIP and expanded them using the power of Julia. To begin with, Julia typically has smaller and more self-contained packages, so most of the basic image-processing that is used here is actually written in the [HCIToolbox.jl](https://github.com/JuliaHCI/HCIToolbox.jl) package. In the future, I have plans to incorporate forward-modeling distributions in [Firefly.jl](https://github.com/JuliaHCI/Firefly.jl), which currently is an active research project.

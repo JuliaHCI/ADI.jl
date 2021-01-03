@@ -101,7 +101,7 @@ function design end
 """
     ADI.fit(::ADIAlgorithm, cube; [ref], kwargs...)
 
-Given the description of an algorithm and the appropriate options, take the pixels from `cube` and fit them, returning a design ([`ADIDesign`](@ref)) containing the necessary information from the fit (e.g. the principal components from PCA decomposition).
+Given the description of an algorithm and the appropriate options, take the pixels from `cube` and fit them, returning an ([`ADIDesign`](@ref)) containing the necessary information from the fit (e.g. the principal components from PCA decomposition).
 
 If the algorithm supports reference differential imaging (RDI), the reference cube can be passed by the keyword argument `ref`.
 """

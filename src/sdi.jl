@@ -75,7 +75,7 @@ julia> data, angles, scales = # load data...
 
 # Median subtraction for each spectral slice,
 # GreeDS{PCA} subtraction on spectral residual cube
-julia> res = DoubleSDI(Median(), GreeDS(15))(data, angles, scales)
+julia> res = DoubleSDI(Classic(), GreeDS(15))(data, angles, scales)
 ```
 """
 struct DoubleSDI{ALG<:ADIAlgorithm, ALG2<:ADIAlgorithm} <: SDIAlgorithm
@@ -122,7 +122,7 @@ julia> data, angles, scales = # load data...
 
 # Median subtraction for each spectral slice,
 # GreeDS{PCA} subtraction on spectral residual cube
-julia> res = SliceSDI(Median(), GreeDS(15))(data, angles, scales)
+julia> res = SliceSDI(Classic(), GreeDS(15))(data, angles, scales)
 ```
 """
 struct SliceSDI{ALG<:ADIAlgorithm, ALG2<:ADIAlgorithm} <: SDIAlgorithm
