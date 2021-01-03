@@ -4,4 +4,5 @@
 
 ```@docs
 Classic
+ADI.ClassicDesign
 ```

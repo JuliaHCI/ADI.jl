@@ -16,4 +16,5 @@ rng = StableRNG(8799)
 @testset "Metrics" begin include("metrics.jl") end
 
 @testset "SDI" begin include("sdi.jl") end
+@testset "Geometries" begin include("geometries.jl") end
 

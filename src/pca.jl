@@ -127,6 +127,6 @@ function fit(alg::TPCA, data::AbstractMatrix; ref=data, kwargs...)
     U, Σ, V = tsvd(ref, k)
     # Get the principal components (principal subspace) and weights
     P = V'
-    weights = data * V
+    weights = data * P'
     return LinearDesign(P, weights)
 end

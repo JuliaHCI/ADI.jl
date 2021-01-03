@@ -13,6 +13,11 @@ struct Classic <: ADIAlgorithm
 end
 Classic(;method=median) = Classic(method)
 
+"""
+    ADI.ClassicDesign(n, frame)
+
+Output for the [`Classic`](@ref) algorithm which contains the static frame unrolled into a vector (with size `(1, Npx)`). [`reconstruct`](@ref) will tile this vector in a non-allocating way `n` times to appear like a flattened cube. [`ADI.design`](@ref) will return the static frame .
+"""
 struct ClassicDesign{FT} <: ADIDesign
     n::Int # number of frames in original data
     frame::FT

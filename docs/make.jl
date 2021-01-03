@@ -35,7 +35,8 @@ makedocs(;
             "algorithms/classic.md",
             "algorithms/pca.md",
             "algorithms/nmf.md",
-            "algorithms/greeds.md"
+            "algorithms/greeds.md",
+            "algorithms/api.md"
         ],
         "SDI" => "sdi.md",
         "Metrics" => "metrics.md",
@@ -43,7 +44,7 @@ makedocs(;
             "examples/betapictoris.md"
         ],
         "Benchmarks" => "benchmarks.md",
-        "API/Reference" => "api.md"
+        "Index" => "api.md"
     ],
 )
 
