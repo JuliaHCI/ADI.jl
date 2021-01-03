@@ -12,7 +12,7 @@ This method is an iterative approach to standard ADI reduction which seeks to mi
 For large data cubes the iteration can cause slowdowns, so a progress bar is provided using the [`ProgressLogging`](https://github.com/JunoLab/ProgressLogging.jl) API along with the `progress` keyword. It won't appear without a logging backend, such as [`TerminalLoggers`](https://github.com/c42f/TerminalLoggers.jl).
 
 !!! note
-    The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically.
+    The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically. It is important to clarify, *these angles should correspond to the reference data in the case of RDI*, e.g. `GreeDS()(cube, angles; ref=ref_cube, angles=ref_angles)`
 
 # Algorithms
 Originally multiple algorithms were supported, but currently only [`PCA`](@ref) and [`TPCA`](@ref) work properly with the GreeDS algorithm.
@@ -44,7 +44,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     R = expand(target .- reconstruct(design))
     reduced = collapse!(R, angles)
     @progress "GreeDS" for n in 1:max_ncomps
-        resid = data .- expand_rotate(reduced, angles, alg.threshold)
+        resid = ref .- expand_rotate(reduced, angles, alg.threshold)
         # use lens to update number of components
         f = @set f.ncomps = n
         # use the `resid` cube as the reference frames for the next reduction
@@ -52,9 +52,10 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
         R = expand(target .- reconstruct(design))
         reduced = collapse!(R, angles)
     end
+    # RDI not defined in Pairet 19,20; project onto components
     if ref !== data
         A = design.components
-        weights .= flatten(data) * A'A
+        weights = flatten(data) * A'
         return PCADesign(max_ncomps, A, weights)
     end
     return design
@@ -72,7 +73,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref=data
     R = inverse(data, target .- reconstruct(design))
     reduced = collapse!(R, angles)
     @progress "GreeDS" for n in 1:max_ncomps
-        tmpAnn.parent .= data .- expand_rotate(reduced, angles, alg.threshold)
+        tmpAnn.parent .= ref .- expand_rotate(reduced, angles, alg.threshold)
         resid = tmpAnn()
         # use lens to update number of components
         f = @set f.ncomps = n
@@ -83,7 +84,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref=data
     end
     if ref !== data
         A = design.components
-        weights = data() * A'A
+        weights = data() * A'
         return PCADesign(max_ncomps, A, weights)
     end
     return design
