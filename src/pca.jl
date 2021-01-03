@@ -45,7 +45,7 @@ function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # fit SVD to get principal subspace of reference
     decomp = svd(ref)
     # Get the principal components (principal subspace) and weights
-    P = decomp.Vt[begin:k, :]
+    P = decomp.Vt[1:k, :]
     weights = data * P'
     return LinearDesign(P, weights)
 end
@@ -77,7 +77,7 @@ function noise_decay_ncomps(data; collapse=false, noise_error=1e-3)
     tmpr = similar(data)
     τ1 = τ2 = 0
     @progress "Optimizing ncomps using residual noise" for ncomp in axes(data, 1)
-        Pv = @view P[begin:ncomp, :]
+        Pv = @view P[1:ncomp, :]
         tmpr .= X * (I - Pv'Pv)
         # calculate noise (standard deviation) optionally collapsing
         noise = collapse ? std(median(tmpr, dims=1)) : std(tmpr)

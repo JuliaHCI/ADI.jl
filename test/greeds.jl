@@ -11,8 +11,7 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        des = @inferred ADI.fit(GreeDS(PCA(ncomps=N)), data; angles=angles)
-        A, w = ADI.design(des)
+        A, w = @inferred ADI.fit(GreeDS(PCA(ncomps=N)), data; angles=angles)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (30, N)
     end
@@ -49,8 +48,7 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        # A, w = @inferred decompose(GreeDS(TPCA(N)), data, angles)
-        A, w = ADI.fit(GreeDS(TPCA(N)), data; angles=angles) |> ADI.design
+        A, w = ADI.fit(GreeDS(TPCA(N)), data; angles=angles)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (30, N)
     end

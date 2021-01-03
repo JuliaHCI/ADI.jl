@@ -9,16 +9,15 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        des = @inferred ADI.fit(PCA(ncomps=N), data)
-        A, w = ADI.design(des)
+        A, w = @inferred ADI.fit(PCA(ncomps=N), data)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (30, N)
     end
-    A, w = ADI.fit(PCA(:pratio; pratio=0.5), data) |> ADI.design
+    A, w = ADI.fit(PCA(:pratio; pratio=0.5), data)
     @test size(A, 1) < 30
     @test size(w, 2) < 30
 
-    A, w = ADI.fit(PCA(:noise), data) |> ADI.design
+    A, w = ADI.fit(PCA(:noise), data)
     @test size(A, 1) ≤ 30
     @test size(w, 2) ≤ 30
 

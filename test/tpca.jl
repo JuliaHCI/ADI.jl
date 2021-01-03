@@ -9,7 +9,7 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        A, w = ADI.fit(TPCA(N), data) |> ADI.design
+        A, w = ADI.fit(TPCA(N), data)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (30, N)
     end
