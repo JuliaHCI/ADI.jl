@@ -20,9 +20,27 @@ end
 
 design(des::ClassicDesign) = des.frame
 
-reconstruct(des::ClassicDesign) = repeat(des.frame, des.n, 1)
+reconstruct(des::ClassicDesign) = TiledArray(des.frame, des.n)
 
 function fit(alg::Classic, data::AbstractMatrix; ref=data)
     n = size(data, 1)
     return ClassicDesign(n, alg.method(ref, dims=1))
+end
+
+#######################################
+
+struct TiledArray{T,N,AT<:AbstractArray{T,N},RT} <: AbstractArray{T,N}
+    parent::AT
+    tilerange::RT
+end
+
+Base.size(t::TiledArray) = map(length, axes(t))
+Base.axes(t::TiledArray) = (t.tilerange, Base.tail(axes(t.parent))...)
+Base.parent(t::TiledArray) = t.parent
+
+TiledArray(parent::AbstractArray, n::Int) = TiledArray(parent, Base.OneTo(n))
+
+Base.@propagate_inbounds function Base.getindex(t::TiledArray{T,N}, idxs::Vararg{Int,N}) where {T,N}
+    @boundscheck checkbounds(t, idxs...)
+    return t.parent[firstindex(t.parent, 1), Base.tail(idxs)...]
 end

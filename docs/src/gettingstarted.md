@@ -21,7 +21,7 @@ In addition to the SDI tensor and parallactic angles, the list of wavelengths ar
 ## Algorithms
 
 The following algorithms are implemented:
-* [Median Subtraction](@ref med)
+* [Classic Subtraction](@ref classic)
 * [PCA](@ref pca)
 * [NMF](@ref nmf)
 * [GreeDS](@ref greeds)
@@ -47,7 +47,7 @@ The only difference here is the inclusion of a reference cube.
 ```julia
 julia> alg = PCA(ncomps=5)
 
-julia> resid = alg(cube, angles, cube_ref)
+julia> resid = alg(cube, angles; ref=cube_ref)
 ```
 
 ### Reduction Process
@@ -63,11 +63,13 @@ In ADI.jl this process looks like this:
 
 ```julia
 cube, angles = # load data
-S = reconstruct(PCA(10), cube, angles)
+S = reconstruct(PCA(10), cube)
 R = cube .- S
 R_derotate = derotate(R, angles)
 resid = collapse(R_derotate)
+
 # or, more succinctly
+R = subtract(PCA(10), cube)
 resid = collapse(R, angles)
 ```
 
@@ -86,8 +88,9 @@ Algorithms which share this attribute share the abstract type `ADI.LinearAlgorit
 ```julia
 using ADI
 cube, angles = # load data
-A, w = decompose(PCA(10), cube, angles)
-S = reconstruct(PCA(10), A, w)
+des = ADI.fit(PCA(10), cube)
+A, w = ADI.design(des)
+S = reconstruct(des)
 @assert S ≈ w * A
 @assert size(expand(S)) == size(cube)
 ```

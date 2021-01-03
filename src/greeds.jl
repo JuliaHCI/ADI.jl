@@ -2,8 +2,8 @@ using ProgressLogging
 using Setfield
 
 """
-    GreeDS(alg=PCA(); threshold=0.0)
-    GreeDS(ncomps; threshold=0.0, options...)
+    GreeDS(alg=PCA(); threshold=0)
+    GreeDS(ncomps; threshold=0, options...)
 
 Performs the greedy disk subtraction (GreeDS) algorithm.
 
@@ -25,8 +25,8 @@ struct GreeDS{AT} <: ADIAlgorithm
     kernel::AT
     threshold
 end
-GreeDS(alg=PCA(); threshold=0.0) = GreeDS(alg, threshold)
-GreeDS(ncomps::Int; threshold=0.0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
+GreeDS(alg=PCA(); threshold=0) = GreeDS(alg, threshold)
+GreeDS(ncomps::Int; threshold=0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
 
 # make sure angles get passed automatically if doing full processing
 function (alg::GreeDS)(cube, angles; method=:deweight, kwargs...)
@@ -54,9 +54,9 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     end
     # RDI not defined in Pairet 19,20; project onto components
     if ref !== data
-        A = design.components
+        A = design.basis
         weights = flatten(data) * A'
-        return PCADesign(max_ncomps, A, weights)
+        return LinearDesign(A, weights)
     end
     return design
 end
@@ -83,9 +83,9 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref=data
         reduced = collapse!(R, angles)
     end
     if ref !== data
-        A = design.components
+        A = design.basis
         weights = data() * A'
-        return PCADesign(max_ncomps, A, weights)
+        return LinearDesign(A, weights)
     end
     return design
 end
@@ -105,3 +105,7 @@ function expand_rotate(frame, angles, threshold; kwargs...)
     end
     return cube
 end
+
+##############################
+
+

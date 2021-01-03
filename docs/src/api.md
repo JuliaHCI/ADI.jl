@@ -11,7 +11,10 @@ For now, here is a dump of all documented functions and types.
 
 ```@docs
 ADI.ADIAlgorithm
-ADI.LinearAlgorithm
 reconstruct
-decompose
+subtract
+ADI.fit
+ADI.ADIDesign
+ADI.LinearDesign
+ADI.design
 ```

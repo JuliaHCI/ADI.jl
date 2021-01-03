@@ -28,7 +28,7 @@ struct NMF <: ADIAlgorithm
 end
 NMF(; ncomps=nothing) = NMF(ncomps)
 
-function process(alg::NMF, cube; kwargs...)
+function subtract(alg::NMF, cube; kwargs...)
     if any(<(0), cube)
         target = copy(cube)
         target .-= minimum(target)
@@ -38,13 +38,6 @@ function process(alg::NMF, cube; kwargs...)
     S = reconstruct(alg, target; kwargs...)
     return target .- S
 end
-
-struct NMFDesign{AT,WT} <: LinearDesign
-    components::AT
-    weights::WT
-end
-
-design(des::NMFDesign) = (des.components, des.weights)
 
 function fit(alg::NMF, data::AbstractMatrix{T}) where T
     if any(<(0), data)
@@ -58,7 +51,7 @@ function fit(alg::NMF, data::AbstractMatrix{T}) where T
 
     W, H = nndsvd(data, k)
     solve!(CoordinateDescent{T}(), data, W, H)
-    return NMFDesign(H, W)
+    return LinearDesign(H, W)
 end
 
 # # TODO this doesn't quite match what sklearn does

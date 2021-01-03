@@ -31,6 +31,22 @@ See the extended help (`??ADIAlgorithm`) for interface details.
 ## Interface
 To extend `ADIAlgorithm` you may implement the following
 
+    fit(::Alg, data::AbstractMatrix; kwargs...)
+
+Fit the data (flattened into a matrix). To support RDI, ensure the `ref` keyword argument is usable (`ref` is also a flattened matrix).
+
+    reconstruct(::Alg, cube; kwargs...)
+
+Fit the data using the algorithm and return a cube with the estimate of the PSF. By default uses the reconstruction from the [`ADIDesign`](@ref) fit to the data.
+
+    subtract(::Alg, cube; kwargs...)
+
+Fit the data using the algorithm and return a cube that has had the PSF estimate subtracted. By default, calls [`reconstruct`](@ref) and subtracts it from `cube`.
+
+    (::ADIAlgorithm)(cube; kwargs...)
+
+Fully process the data (estimate, subtract, collapse). By default, derotates and collapses output from [`subtract`](@ref).
+
 | function | default | description |
 |----------|---------|-------------|
 | `fit(::Alg, data::AbstractMatrix; kwargs...)` | | Fit the data (flattened into a matrix). To support RDI, ensure the `ref` keyword argument is usable (`ref` is also a flattened matrix). |
@@ -48,21 +64,26 @@ abstract type ADIAlgorithm end
 
 ## Interface
 To extend `ADIDesign` you may implement the following
+
 | function | default | description |
-|----------|---------|-------------|
+|:---------|:--------|:------------|
 | `ADI.design(::Design)` | | return the pertinent data to approximate the PSF
 | `reconstruct(::Design)` | | return the approximate PSF estimate as a matrix
 """
 abstract type ADIDesign end
 
 """
-    LinearDesign <: ADIDesign
+    LinearDesign(basis, coeffs)
 
-A "linear" design implies the use of some linear basis for reconstructing data along with a set of coefficients or weights. Designs which subtype `LinearDesign` must implement the [`ADI.design`](@ref) method, which returns the basis and weights (in that order) that were fit to the data.
-
-`LinearDesign`s have a default implementation of `reconstruct` which uses the matrix product of the weights and the basis, `w * Z`.
+A "linear" design implies the use of some linear basis for reconstructing data along with a set of coefficients or weights. The reconstruction will be the matrix product of the weights and the basis, `w * Z`. [`ADI.design`](@ref) will return `(basis, ceoffs)`.
 """
-abstract type LinearDesign <: ADIDesign end
+struct LinearDesign{BT,WT} <: ADIDesign
+    basis::BT
+    coeffs::WT
+end
+
+design(des::LinearDesign) = des.basis, des.coeffs
+reconstruct(des::LinearDesign) = des.coeffs * des.basis
 
 """
     ADI.design(::ADIDesign)
@@ -135,12 +156,6 @@ end
 # eg MultiAnnulusView
 reconstruct(designs::AbstractVector{<:ADIDesign}) = map(reconstruct, designs)
 
-function reconstruct(des::LinearDesign)
-    A, weights = design(des)
-    return weights * A
-end
-
-
 expand_geometry(::AbstractArray{T,3}, arr) where {T} = expand(arr)
 expand_geometry(cube::AnnulusView, arr) = inverse(cube, arr)
 expand_geometry(cube::MultiAnnulusView, arrs) = inverse(cube, arrs)
@@ -171,19 +186,22 @@ end
 """
     (::ADIAlgorithm)(cube, angles; [ref], kwargs...)
 
-Fully process an ADI data cube using [`reconstruct`](@ref) and collapsing the residuals. Keyword arguments will be passed to `HCIToolbox.collapse!`.
+Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. Keyword arguments will be passed to [`ADI.fit`](@ref).
 """
 function (alg::ADIAlgorithm)(cube, angles; method=:deweight, kwargs...)
     return collapse!(subtract(alg, cube; kwargs...), angles, method=method)
 end
 
+# Further techniques
+include("sdi.jl")
+
 # The core decomposition routines
 include("classic.jl")
 include("pca.jl")
-include("greeds.jl")
 include("nmf.jl")
-include("sdi.jl")
+include("greeds.jl")
 
+# Metrics
 include("metrics/Metrics.jl")
 @reexport using .Metrics
 

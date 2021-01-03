@@ -39,15 +39,6 @@ end
 PCA(ncomps; options...) = PCA(ncomps, options)
 PCA(; ncomps=nothing, options...) = PCA(ncomps, options)
 
-struct PCADesign{AT,WT} <: LinearDesign
-    ncomps::Int
-    components::AT
-    weights::WT
-end
-
-design(des::PCADesign) = (des.components, des.weights)
-
-
 function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # get number of components (using dispatch for symbolic args)
     k = get_ncomps(alg.ncomps, ref; alg.opts...)
@@ -56,7 +47,7 @@ function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # Get the principal components (principal subspace) and weights
     P = decomp.Vt[begin:k, :]
     weights = data * P'
-    return PCADesign(k, P, weights)
+    return LinearDesign(P, weights)
 end
 
 # get ncomps using given value or num frames, whichever is smaller
@@ -137,5 +128,5 @@ function fit(alg::TPCA, data::AbstractMatrix; ref=data, kwargs...)
     # Get the principal components (principal subspace) and weights
     P = V'
     weights = data * V
-    return PCADesign(k, P, weights)
+    return LinearDesign(P, weights)
 end

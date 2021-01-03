@@ -32,7 +32,7 @@ makedocs(;
         "Introduction to HCI" => "introduction.md",
         "Getting Started with ADI.jl" => "gettingstarted.md",
         "Algorithms" => [
-            "algorithms/median.md",
+            "algorithms/classic.md",
             "algorithms/pca.md",
             "algorithms/nmf.md",
             "algorithms/greeds.md"
