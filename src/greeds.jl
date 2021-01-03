@@ -11,8 +11,11 @@ This method is an iterative approach to standard ADI reduction which seeks to mi
 
 For large data cubes the iteration can cause slowdowns, so a progress bar is provided using the [`ProgressLogging`](https://github.com/JunoLab/ProgressLogging.jl) API along with the `progress` keyword. It won't appear without a logging backend, such as [`TerminalLoggers`](https://github.com/c42f/TerminalLoggers.jl).
 
+!!! note
+    The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically.
+
 # Algorithms
-Originally multiple algorithms were supported, but currently only [`PCA`](@ref) works properly with the GreeDS algorithm. 
+Originally multiple algorithms were supported, but currently only [`PCA`](@ref) and [`TPCA`](@ref) work properly with the GreeDS algorithm.
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
@@ -25,6 +28,7 @@ end
 GreeDS(alg=PCA(); threshold=0.0) = GreeDS(alg, threshold)
 GreeDS(ncomps::Int; threshold=0.0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
 
+# make sure angles get passed automatically if doing full processing
 function (alg::GreeDS)(cube, angles; method=:deweight, kwargs...)
     return collapse!(subtract(alg, cube; angles=angles, kwargs...), angles, method=method)
 end

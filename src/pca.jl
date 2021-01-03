@@ -7,7 +7,7 @@ using TSVD: tsvd
 
 Use principal components analysis (PCA) to form a low-rank orthonormal basis of the input. Uses deterministic singular-value decomposition (SVD) to decompose data.
 
-If `ncomps` is `nothing`, the basis will not be truncated (i.e. `ncomps` is equal to the number of frames). `ncomps` can be set to `:noise` or `:pratio` to automatically choose the number of components using the residual frame noise or principal ratio, respectively. For more information, see the extended help. 
+If `ncomps` is `nothing`, the basis will not be truncated (i.e. `ncomps` is equal to the number of frames). `ncomps` can be set to `:noise` or `:pratio` to automatically choose the number of components using the residual frame noise or principal ratio, respectively. For more information, see the extended help.
 
 # References
 1. [Soummer, Pueyo, and Larkin (2012)](https://ui.adsabs.harvard.edu/abs/2012ApJ...755L..28S) "Detection and Characterization of Exoplanets and Disks Using Projections on Karhunen-Loève Eigenimages"
@@ -131,7 +131,7 @@ TPCA(; ncomps=nothing, options...) = TPCA(ncomps, options)
 function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # get number of components (using dispatch for symbolic args)
     # TODO using automatic methods is not valid for TPCA using different SVD methods
-    k = get_ncomps(alg.ncomps, ref; alg.opts...) 
+    k = get_ncomps(alg.ncomps, ref; alg.opts...)
     # fit SVD to get principal subspace of reference
     U, Σ, V = tsvd(ref, k)
     # Get the principal components (principal subspace) and weights
