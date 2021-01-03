@@ -9,7 +9,7 @@ using StaticKernels
 using LinearAlgebra: dot
 
 """
-    contrast_curve(alg, cube, angles, psf, args...;
+    contrast_curve(alg, cube, angles, psf;
                    fwhm, sigma=5, nbranch=1, theta=0, inner_rad=1,
                    starphot=Metrics.estimate_starphot(cube, fwhm),
                    fc_rad_sep=3, snr=100, k=2, smooth=true,
@@ -40,6 +40,8 @@ The throughput can only be calculated for discrete resolution elements, but we t
 * `k` - The order of the BSpline used for subsampling the throughput
 * `smooth` - If true, will smooth the subsampled noise measurements with a 2nd order Savitzky-Golay filter
 
+Any additional `kwargs` will be passed to `alg` when it is called.
+
 !!! tip
     If you prefer a tabular format, simply pipe the output of this function into any type supporting the Tables.jl interface, e.g.
     ```
@@ -55,7 +57,7 @@ function contrast_curve(alg, cube, angles, psf, args...;
     # measure the noise and throughput in consecutive resolution elements
     # across azimuthal branches
     @info "Calculating Throughput"
-    reduced_empty = alg(cube, angles, args...; kwargs...)
+    reduced_empty = alg(cube, angles; kwargs...)
 
     through, meta = throughput(alg, cube, angles, psf, args...;
                                fwhm=fwhm, inner_rad=inner_rad, fc_rad_sep=fc_rad_sep, theta=theta,
@@ -185,15 +187,14 @@ function estimate_starphot(frame::AbstractMatrix, fwhm)
     return photometry(ap, frame).aperture_sum
 end
 
-estimate_starphot(cube::AbstractArray{T, 3}, fwhm) where {T} = estimate_starphot(collapse(cube, method=median), fwhm)
-
+estimate_starphot(cube::AbstractArray{T,3}, fwhm) where {T} = estimate_starphot(collapse(cube, method=median), fwhm)
 
 """
-    throughput(alg, cube, angles, psf, args...;
+    throughput(alg, cube, angles, psf;
                fwhm, nbranch=1, theta=0, inner_rad=1,
                fc_rad_sep=3, snr=100, kwargs...)
 
-Calculate the throughput of `alg` by injecting fake companions into `cube` and measuring the relative photometry of each companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `args` or `kwargs` will be passed to `alg` when it is called.
+Calculate the throughput of `alg` by injecting fake companions into `cube` and measuring the relative photometry of each companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `kwargs` will be passed to `alg` when it is called.
 
 # Keyword Arguments
 * `nbranch` - number of azimuthal branches to use
@@ -203,7 +204,7 @@ Calculate the throughput of `alg` by injecting fake companions into `cube` and m
 * `snr` - the target signal to noise ratio of the injected planets
 * `reduced_empty` - the collapsed residual frame for estimating the noise. Will process using `alg` if not provided.
 """
-function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, args...;
+function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
                     fwhm, nbranch=1, theta=0, inner_rad=1, fc_rad_sep=3,
                     snr=100, reduced_empty = nothing, kwargs...) where T
     maxfcsep = size(cube, 2) ÷ (2 * fwhm) - 1
@@ -248,7 +249,7 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, args...;
 
                 return CircularAperture(x, y, fwhm / 2)
             end
-            reduced = alg(cube_fake_comps, angles, args...; kwargs...)
+            reduced = alg(cube_fake_comps, angles; kwargs...)
 
             injected_flux = photometry(apertures, fake_comps).aperture_sum
             recovered_flux = photometry(apertures, reduced .- reduced_empty).aperture_sum
@@ -260,11 +261,11 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, args...;
 end
 
 """
-    throughput(alg, cube, angls, psf, position, args...;
+    throughput(alg, cube, angls, psf, position;
                fwhm, snr=100, reduced_empty=nothing,
                verbose=true, kwargs...)
 
-Calculate the throughput of `alg` by injecting `psf` into `cube` at the given `position` and measuring the relative photometry of the companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `args` or `kwargs` will be passed to `alg` when it is called.
+Calculate the throughput of `alg` by injecting `psf` into `cube` at the given `position` and measuring the relative photometry of the companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `kwargs` will be passed to `alg` when it is called.
 
 If `position` is a tuple or a vector, it will be parsed as the cartesian coordinate `(x, y)`. If `position` is a `CoordinateTransformations.Polar` it will be parsed as polar coordinates from the center of the cube. Note the `Polar` type expects angles in radians.
 
@@ -274,12 +275,12 @@ If `position` is a tuple or a vector, it will be parsed as the cartesian coordin
 * `reduced_empty` - the collapsed residual frame for estimating the noise. Will process using `alg` if not provided.
 * `verbose` - show informative messages during process
 """
-function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, position, args...;
+function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, position;
     fwhm, snr=100, reduced_empty=nothing, verbose=true, kwargs...) where T
 
     if reduced_empty === nothing
         verbose && @info "Calculating empty reduced frame"
-        reduced_empty = alg(cube, angles, args...; kwargs...)
+        reduced_empty = alg(cube, angles; kwargs...)
     end
 
     cent = center(cube)[2:3]
@@ -292,7 +293,7 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, position, 
     fake_comp_cube = inject(cube, angles, psf_model, Polar(r, deg2rad(θ)); A=A)
 
     verbose && @info "Calculating reduced frame with fake companion injected"
-    reduced = alg(fake_comp_cube, angles, args...; kwargs...)
+    reduced = alg(fake_comp_cube, angles; kwargs...)
 
     x, y = convert(SVector, Polar(r, deg2rad(θ))) + cent
     ap = CircularAperture(x, y, fwhm/2)
