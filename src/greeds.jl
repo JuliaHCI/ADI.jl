@@ -54,7 +54,8 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     end
     if ref !== data
         A = design.components
-        design.weights .= flatten(data) * A'A
+        weights .= flatten(data) * A'A
+        return PCADesign(max_ncomps, A, weights)
     end
     return design
 end
@@ -82,7 +83,8 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref=data
     end
     if ref !== data
         A = design.components
-        design.weights .= flatten(data) * A'A
+        weights = data() * A'A
+        return PCADesign(max_ncomps, A, weights)
     end
     return design
 end

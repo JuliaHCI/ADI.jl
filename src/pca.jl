@@ -128,7 +128,7 @@ end
 TPCA(ncomps; options...) = TPCA(ncomps, options)
 TPCA(; ncomps=nothing, options...) = TPCA(ncomps, options)
 
-function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
+function fit(alg::TPCA, data::AbstractMatrix; ref=data, kwargs...)
     # get number of components (using dispatch for symbolic args)
     # TODO using automatic methods is not valid for TPCA using different SVD methods
     k = get_ncomps(alg.ncomps, ref; alg.opts...)
