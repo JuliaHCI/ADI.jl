@@ -69,7 +69,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::Ann
     R = inverse(data, target .- reconstruct(design))
     reduced = collapse!(R, angles)
     @progress "GreeDS" for n in 1:max_ncomps
-        tmpAnn.parent .= ref .- expand_rotate(reduced, angles, alg.threshold)
+        tmpAnn .= ref .- expand_rotate(reduced, angles, alg.threshold)
         resid = tmpAnn()
         # use lens to update number of components
         f = @set f.ncomps = n

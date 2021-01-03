@@ -148,6 +148,6 @@ function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) 
     end
     # do second pass in temporal domain
     scaled_resid_cube = scale(temp_resids, scales)
-    resid = sdi.alg_spec(scaled_resid_cube, angles; kwargs...)
+    resid = sdi.alg_spec(scaled_resid_cube, Zeros(nλ); kwargs...)
     return invscale(resid, maximum(scales))
 end
