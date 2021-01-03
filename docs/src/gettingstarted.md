@@ -50,6 +50,23 @@ julia> alg = PCA(ncomps=5)
 julia> resid = alg(cube, angles; ref=cube_ref)
 ```
 
+### Altering the Geometry
+
+[HCIToolbox.jl](https://github.com/JuliaHCI/HCIToolbox.jl) has utilities for geometrically filtering the input data, such as only taking an annulus of the input cube or iterating over many annuli. This is exactly the purpose of `AnnulusView` and `MultiAnnulusView`, which use indexing tricks to retrieve the pixels *only* within the spatial region of interest without having to copy the input data.
+
+If you wrap a cube in one of these views, ADI.jl will handle it automatically (if the algorithm supports it). Since these views filter the pixels, the runtime performance will generally be faster than the full-frame equivalents.
+
+```julia
+ann = AnnulusView(cube; inner=15, outer=25)
+res = PCA(10)(ann, angles)
+```
+
+```julia
+# annuli of width 5 starting at 5 pixels and ending at the edge of the cube
+anns = MultiAnnulusView(cube, 5; inner=5)
+res = PCA(10)(anns, angles)
+```
+
 ### Reduction Process
 
 The process for producing the flat, residual frame follows this general workflow
@@ -85,6 +102,7 @@ Some technical distinctions to VIP
 * Julia's `std` uses the sample statistic (`n-1` degrees of freedom) while numpy's `std` uses the population statistic (`n` degrees of freedom). This may cause very slight differences in measurements that rely on this.
 * Aperture mapping - many of the [`Metrics`](@ref) are derived by measuring statistics in an annulus of apertures. In VIP, this ring is not equally distributed- the angle between apertures is based on the exact number of apertures rather than the integral number of apertures that are actually measured. In ADI.jl the angle between apertures is evenly distributed. The same number of pixels are discarded in both packages, but in VIP they all end up in the same region of the image (see [this figure](assets/aperture_masks.png)).
 * Collapsing - by default VIP collapses a cube by derotating it then finding the median frame. In ADI.jl, the default collapse method is a weighted sum using the inverse of the temporal variance for weighting. This is documented in `HCIToolbox.collapse` and can be overridden by passing the keyword argument `method=median` or whichever statistical funciton you want to use.
+* Annular and framewise processing - some of the VIP algorithms allow you to go annulus-by-annulus and optionally filter the frames using parallactic angle thresholds. ADI.jl does not bake these options in using keyword arguments; instead, the geometric filtering is achieved through `AnnulusView` and `MultiAnnulusView`. In the future, parallactic angle thresholding will be implemented into a `Framewise` algorithm wrapper. I've separated these techniques because they are fundamentally independent and because it greatly increases the composability of the algorithms.
 
 The biggest difference, though, is Julia's multiple-dispatch system and how that allows ADI.jl to *do more with less code*. For example, the [`GreeDS`](@ref) algorithm was designed explicitly for [`PCA`](@ref), but the formalism of it is more generic than that. Rather than hard-coding in PCA, the GreeDS algorithm was written generically, and Julia's multiple-dispatch  allows the use of, say, [`NMF`](@ref) instead of PCA. By making the code *generic* and *modular*, ADI.jl enables rapid experimentation with different post-processing algorithms and techniques as well as minimizing the code required to implement a new algorithm and be able to fully use the ADI.jl API.
 

@@ -117,7 +117,9 @@ cube, angles, psf = # load data
 alg = PCA(10)
 cc = contrast_curve(alg, cube, angles, psf; fwhm=8.4, subsample=false)
 reduced_empty = alg(cube, angles)
-cc_sub = Metrics.subsample_contrast(reduced_empty, cc.distance, cc.throughput; fwhm=8.4)
+sp = Metrics.estimate_starphot(cube, 8.4)
+cc_sub = Metrics.subsample_contrast(reduced_empty, cc.distance, cc.throughput;
+                                    fwhm=8.4, starphot=sp)
 ```
 """
 function subsample_contrast(empty_frame, distance, throughput;
@@ -213,7 +215,7 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
 
     # compute noise in concentric annuli on the empty frame
     if isnothing(reduced_empty)
-        reduced_empty = alg(cube, angles, args...; kwargs...)
+        reduced_empty = alg(cube, angles; kwargs...)
     end
 
     cy, cx = center(reduced_empty)
@@ -261,7 +263,7 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
 end
 
 """
-    throughput(alg, cube, angls, psf, position;
+    throughput(alg, cube, angles, psf, position;
                fwhm, snr=100, reduced_empty=nothing,
                verbose=true, kwargs...)
 

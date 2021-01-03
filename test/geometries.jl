@@ -35,10 +35,12 @@ end
         @test_throws ErrorException ALG(mav, angles; ref=cube)
     end
 
-    des = ADI.fit(ALG, mav)
-    N = length(eachannulus(mav))
-    recons = reconstruct(des)
-    @test length(des) == length(recons) == N
-    S = reconstruct(ALG, mav)
-    @test S ≈ inverse(mav, recons)
+    if !(ALG isa GreeDS)
+        des = ADI.fit(ALG, mav)
+        N = length(eachannulus(mav))
+        recons = reconstruct(des)
+        @test length(des) == length(recons) == N
+        S = reconstruct(ALG, mav)
+        @test S ≈ inverse(mav, recons)
+    end
 end

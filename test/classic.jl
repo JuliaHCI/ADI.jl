@@ -1,4 +1,18 @@
 
+@testset "interface" begin
+    cube = randn(rng, 10, 101, 101) .+ 100
+    X = flatten(cube)
+    med = median(X, dims=1)
+
+    d = ADI.fit(Classic(), cube)
+    @test ADI.design(d) ≈ med
+
+    t = reconstruct(d)
+    @test size(t) == size(X)
+    @test X .- t ≈ X .- med
+
+end
+
 @testset "evaluation" begin
     cube = randn(rng, 10, 101, 101) .+ 100
     angles = 90 .* rand(rng, 10)
