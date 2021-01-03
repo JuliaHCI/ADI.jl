@@ -97,9 +97,6 @@ S = reconstruct(design)
 return expand_geometry(cube, S)
 end
 
-# eg MultiAnnulusView
-reconstruct(designs::AbstractVector{<:ADIDesign}) = map(reconstruct, designs)
-
 expand_geometry(::AbstractArray{T,3}, arr) where {T} = expand(arr)
 expand_geometry(cube::AnnulusView, arr) = inverse(cube, arr)
 expand_geometry(cube::MultiAnnulusView, arrs) = inverse(cube, arrs)

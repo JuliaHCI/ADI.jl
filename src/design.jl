@@ -20,6 +20,9 @@ return the approximate PSF estimate as a matrix
 """
 abstract type ADIDesign end
 
+# eg MultiAnnulusView
+reconstruct(designs::AbstractVector{<:ADIDesign}) = map(reconstruct, designs)
+
 """
     ADI.LinearDesign(basis, coeffs)
 
