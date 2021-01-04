@@ -1,8 +1,8 @@
 
 @testset "Interface" begin
-    @test GreeDS().alg == PCA()
+    @test GreeDS().kernel == PCA()
     @test GreeDS().threshold == 0
-    @test GreeDS(7).alg == PCA(7)
+    @test GreeDS(7).kernel == PCA(7)
 end
 
 @testset "Decomposition" begin
@@ -11,17 +11,13 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        A, w = @inferred decompose(GreeDS(PCA(ncomps=N)), data, angles)
+        A, w = @inferred ADI.fit(GreeDS(PCA(ncomps=N)), data; angles=angles)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (30, N)
     end
-    @test_throws ErrorException decompose(GreeDS(PCA(40)), data, angles)
-    A, w = decompose(PCA(30; pratio=0.5), data, angles)
-    @test size(A, 1) < 30
-    @test size(w, 2) < 30
 
     # default is to use whole cube
-    S = reconstruct(GreeDS(PCA()), data, angles)
+    S = reconstruct(GreeDS(), data; angles=angles)
     @test size(S) == (30, 101, 101)
 end
 
@@ -41,8 +37,7 @@ end
     data = randn(rng, 30, 101, 101)
     angles = sort!(90rand(rng, 30)) |> normalize_par_angles
 
-    # not supported for GreeDS alg
-    S = data .- reconstruct(GreeDS(PCA(1)), data, angles, zeros(30, 101, 101))
+    S = subtract(GreeDS(1), data; angles=angles, ref=zeros(30, 101, 101))
     @test S ≈ data rtol=2e-1
 end
 
@@ -52,31 +47,29 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        # A, w = @inferred decompose(GreeDS(TPCA(N)), data, angles)
-        A, w = decompose(GreeDS(TPCA(N)), data, angles)
+        A, w = ADI.fit(GreeDS(TPCA(N)), data; angles=angles)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (30, N)
     end
-    @test_throws ErrorException decompose(GreeDS(TPCA(40)), data, angles)
 
     # default is to use whole cube
-    S = reconstruct(GreeDS(TPCA()), data, angles)
+    S = reconstruct(GreeDS(TPCA()), data; angles=angles)
     @test size(S) == (30, 101, 101)
 end
 
-@testset "Decomposition - NMF" begin
-    data = 4 .* randn(rng, 10, 101, 101) .+ 10
-    angles = sort!(90randn(rng, 10)) |> normalize_par_angles
+# @testset "Decomposition - NMF" begin
+#     data = 4 .* randn(rng, 10, 101, 101) .+ 10
+#     angles = sort!(90randn(rng, 10)) |> normalize_par_angles
 
-    # get sizes correct for ncomps
-    N = 3
-    A, w = decompose(GreeDS(NMF(N)), data, angles)
-    @test size(A) == (N, 101 * 101)
-    @test size(w) == (10, N)
+#     # get sizes correct for ncomps
+#     N = 3
+#     A, w = decompose(GreeDS(NMF(N)), data, angles)
+#     @test size(A) == (N, 101 * 101)
+#     @test size(w) == (10, N)
 
-    @test_throws ErrorException decompose(GreeDS(NMF(40)), data, angles)
+#     @test_throws ErrorException decompose(GreeDS(NMF(40)), data, angles)
 
-    # default is to use whole cube
-    S = reconstruct(GreeDS(NMF()), data, angles)
-    @test size(S) == (10, 101, 101)
-end
+#     # default is to use whole cube
+#     S = reconstruct(GreeDS(NMF()), data, angles)
+#     @test size(S) == (10, 101, 101)
+# end

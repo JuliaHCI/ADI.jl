@@ -9,15 +9,13 @@ end
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        # A, w = @inferred decompose(TPCA(N), data, angles) TODO type stability
-        A, w = decompose(TPCA(N), data, angles)
+        A, w = ADI.fit(TPCA(N), data)
         @test size(A) == (N, 101 * 101)
         @test size(w) == (30, N)
     end
-    @test_throws ErrorException decompose(TPCA(40), data, angles)
 
     # default is to use whole cube
-    S = reconstruct(TPCA(), data, angles)
+    S = reconstruct(TPCA(), data)
     @test size(S) == (30, 101, 101)
 end
 
@@ -37,6 +35,6 @@ end
 #     data = randn(rng, 30, 101, 101)
 #     angles = sort!(90rand(rng, 30)) |> normalize_par_angles
     
-#     S = data .- reconstruct(TPCA(2), data, angles, zeros(10, 101, 101))
+#     S = subtract(TPCA(2), data; ref=zeros(10, 101, 101))
 #     @test S ≈ data rtol=2e-2
 # end

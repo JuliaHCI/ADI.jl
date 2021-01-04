@@ -16,9 +16,7 @@ In particular, the STIM map is robust to detections with multiple objects or ext
 ```julia
 julia> cube, angles = # load data
 
-julia> L = reconstruct(PCA(10), cube, angles);
-
-julia> S = cube .- L;
+julia> S = subtract(PCA(10), cube, angles);
 
 julia> sm = stimmap(S, angles);
 ```
@@ -48,9 +46,7 @@ The threshold is derived in section 5.1 of *Pairet et al. 2019* as the ratio of 
 ```julia
 julia> cube, angles = # load data
 
-julia> L = reconstruct(PCA(10), cube, angles);
-
-julia> S = cube .- L;
+julia> S = subtract(PCA(10), cube, angles);
 
 julia> sm = stimmap(S, angles);
 
@@ -88,6 +84,7 @@ function stim(cube; dims)
     μ = mean(cube, dims=dims)
     σ = std(cube, dims=dims, mean=μ)
     d = zero(μ)
-    @. @views d[!iszero(σ)] = μ[!iszero(σ)] / σ[!iszero(σ)]
+    mask = @. !iszero(σ)
+    @. d[mask] = μ[mask] / σ[mask]
     return dropdims(d, dims=dims)
 end
