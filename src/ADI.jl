@@ -16,6 +16,7 @@ export reconstruct,
        GreeDS,
        TPCA,
        NMF,
+       Framewise,
        SingleSDI,
        DoubleSDI,
        SliceSDI
