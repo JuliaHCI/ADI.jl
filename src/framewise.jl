@@ -12,7 +12,7 @@ function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, 
     S = similar(data)
     p = Progress(length(angles); desc="framewise ")
     @views Threads.@threads for i in axes(data, 1)
-        inds = find_angles(angles, i, pa_threshold; alg.limit)
+        inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
         target = data[i:i, :]
         ref = data[inds, :]
         angs = angles[inds]
@@ -29,7 +29,7 @@ function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, 
     S = similar(data)
     p = Progress(length(angles); desc="framewise ")
     @views Threads.@threads for i in axes(data, 1)
-        inds = find_angles(angles, i, pa_threshold; alg.limit)
+        inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
         target = data[i:i, :]
         ref = data[inds, :]
         angs = angles[inds]
@@ -48,7 +48,7 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
         S = similar(ann)
         p = Progress(length(angles); desc="framewise ")
         @views Threads.@threads for j in axes(ann, 1)
-            inds = find_angles(angles, j, pa_threshold; alg.limit)
+            inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
             target = ann[j:j, :]
             ref = ann[inds, :]
             angs = angles[inds]
@@ -70,7 +70,7 @@ function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; a
         S = similar(ann)
         p = Progress(length(angles); desc="framewise ")
         @views Threads.@threads for j in axes(ann, 1)
-            inds = find_angles(angles, j, pa_threshold; alg.limit)
+            inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
             target = ann[j:j, :]
             ref = ann[inds, :]
             angs = angles[inds]
