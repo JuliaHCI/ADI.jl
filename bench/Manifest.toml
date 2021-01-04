@@ -1,16 +1,18 @@
 # This file is machine-generated - editing it directly is not advised
 
 [[ADI]]
-deps = ["CoordinateTransformations", "Dierckx", "Distributions", "FillArrays", "HCIToolbox", "ImageTransformations", "LinearAlgebra", "NMF", "Parameters", "Photometry", "ProgressLogging", "Reexport", "Rotations", "Setfield", "StaticArrays", "StaticKernels", "Statistics", "StatsBase", "TSVD", "UnPack"]
-git-tree-sha1 = "019a1e5e1f8f3d77cb9b98635acec67f220fd115"
+deps = ["CoordinateTransformations", "Dierckx", "Distributions", "FillArrays", "HCIToolbox", "ImageTransformations", "LinearAlgebra", "NMF", "Photometry", "ProgressLogging", "Reexport", "Rotations", "Setfield", "StaticArrays", "StaticKernels", "Statistics", "StatsBase", "StructArrays", "TSVD"]
+git-tree-sha1 = "90f939e1f1d857ef480749b054a26a4208ab854c"
+repo-rev = "master"
+repo-url = "https://github.com/JuliaHCI/ADI.jl.git"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"
-version = "0.5.4"
+version = "0.6.0"
 
 [[AbstractFFTs]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "051c95d6836228d120f5f4b984dd5aba1624f716"
+git-tree-sha1 = "8ed9de2f1b1a9b1dee48582ad477c6e67b83eb2c"
 uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
-version = "0.5.0"
+version = "1.0.0"
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
@@ -283,10 +285,10 @@ deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
-deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "StaticArrays", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "2cce211af0abaa01354904e2af2232a4431d8b14"
+deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
+git-tree-sha1 = "5c6a645ea65af6aac4f96b5dedaae660b7b56267"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.24.8"
+version = "0.24.10"
 
 [[EllipsisNotation]]
 git-tree-sha1 = "18ee049accec8763be17a933737c1dd0fdf8673a"
@@ -306,9 +308,9 @@ version = "0.3.1"
 
 [[FFTW]]
 deps = ["AbstractFFTs", "FFTW_jll", "IntelOpenMP_jll", "Libdl", "LinearAlgebra", "MKL_jll", "Reexport"]
-git-tree-sha1 = "8b7c16b56936047ca41bf25effa137ae0b381ae8"
+git-tree-sha1 = "c31e446bf3b12aad2ec8fc500fe19528c148d811"
 uuid = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
-version = "1.2.4"
+version = "1.3.1"
 
 [[FFTW_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -318,9 +320,9 @@ version = "3.3.9+7"
 
 [[FITSIO]]
 deps = ["CFITSIO", "Printf", "Reexport"]
-git-tree-sha1 = "0d902af015cc308db655ff86dbe5323c0dec7a6b"
+git-tree-sha1 = "2fa19c79f9656db6468034a8da14612c19b175d5"
 uuid = "525bcba6-941b-5504-bd06-fd0dc1a4d2eb"
-version = "0.16.4"
+version = "0.16.5"
 
 [[FastRounding]]
 deps = ["ErrorfreeArithmetic", "Test"]
@@ -394,9 +396,9 @@ version = "0.2.1"
 
 [[HCIToolbox]]
 deps = ["Compat", "CoordinateTransformations", "Distributions", "FillArrays", "ImageFiltering", "ImageTransformations", "Interpolations", "LinearAlgebra", "PSFModels", "PaddedViews", "Photometry", "Rotations", "SpecialFunctions", "StaticArrays", "Statistics", "StatsBase"]
-git-tree-sha1 = "3d4254309bec30786aa511423c9b3b8d6e0b7e60"
+git-tree-sha1 = "7fca4829a7b3fa1501795433fa9862f118ab953e"
 uuid = "b6cd55e5-4d02-4e12-b82c-005f67e784bf"
-version = "0.5.2"
+version = "0.5.3"
 
 [[HTTP]]
 deps = ["Base64", "Dates", "IniFile", "MbedTLS", "Sockets", "URIs"]
@@ -507,9 +509,9 @@ uuid = "82899510-4779-5014-852e-03e436cf321d"
 version = "1.0.0"
 
 [[JLLWrappers]]
-git-tree-sha1 = "c70593677bbf2c3ccab4f7500d0f4dacfff7b75c"
+git-tree-sha1 = "04b49c556240b62d5a799e94c63d5fc14d3c07cd"
 uuid = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
-version = "1.1.3"
+version = "1.1.4"
 
 [[JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
@@ -531,9 +533,9 @@ version = "0.21.5"
 
 [[LazySets]]
 deps = ["Distributed", "GLPK", "GLPKMathProgInterface", "InteractiveUtils", "IntervalArithmetic", "JuMP", "LinearAlgebra", "MathProgBase", "Random", "RecipesBase", "Reexport", "Requires", "SharedArrays", "SparseArrays"]
-git-tree-sha1 = "97733b5f7f520e898151d8c811355f3beb4bc735"
+git-tree-sha1 = "ccb5168a38f01c6f0bd3b947937174f4dfabd87e"
 uuid = "b4f0291d-fe17-52bc-9479-3d1a343d9043"
-version = "1.37.16"
+version = "1.37.17"
 
 [[LibCURL_jll]]
 deps = ["LibSSH2_jll", "Libdl", "MbedTLS_jll", "Pkg", "Zlib_jll", "nghttp2_jll"]
@@ -635,9 +637,9 @@ version = "0.2.2"
 
 [[MutableArithmetics]]
 deps = ["LinearAlgebra", "SparseArrays", "Test"]
-git-tree-sha1 = "7631203bddc2424717fa42ecda2a5fed9ff36af0"
+git-tree-sha1 = "90c8d17c4120915732fd2c4c2e80078206a1296e"
 uuid = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
-version = "0.2.12"
+version = "0.2.13"
 
 [[NMF]]
 deps = ["LinearAlgebra", "Printf", "Random", "Statistics", "StatsBase"]
@@ -658,9 +660,9 @@ version = "0.4.8"
 
 [[OffsetArrays]]
 deps = ["Adapt"]
-git-tree-sha1 = "b0cc1c42b63e30b759f4e1cf045ad8a51069d6cc"
+git-tree-sha1 = "5b9ed21d50a91bb783c87f37c8da9266f0265504"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
-version = "1.4.2"
+version = "1.4.4"
 
 [[OpenSpecFun_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
@@ -705,9 +707,9 @@ version = "1.0.15"
 
 [[Photometry]]
 deps = ["ImageFiltering", "ImageTransformations", "Interpolations", "LazySets", "NearestNeighbors", "Parameters", "RecipesBase", "Reexport", "Rotations", "StaticArrays", "Statistics", "StatsBase", "Transducers", "TypedTables"]
-git-tree-sha1 = "a535bb8f2734462f6a8069598cc43f686ca43819"
+path = "../../Photometry"
 uuid = "af68cb61-81ac-52ed-8703-edc140936be4"
-version = "0.7.5"
+version = "0.7.6"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
@@ -896,6 +898,12 @@ deps = ["Rmath", "SpecialFunctions"]
 git-tree-sha1 = "3b9f665c70712af3264b61c27a7e1d62055dafd1"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "0.9.6"
+
+[[StructArrays]]
+deps = ["Adapt", "DataAPI", "Tables"]
+git-tree-sha1 = "8099ed9fb90b6e754d6ba8c6ed8670f010eadca0"
+uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
+version = "0.4.4"
 
 [[StructTypes]]
 deps = ["Dates", "UUIDs"]
