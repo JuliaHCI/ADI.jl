@@ -4,7 +4,7 @@ struct Framewise{AT} <: ADIAlgorithm
     delta_rot
 end
 
-Framewise(alg::ADIAlgorithm; limit=Inf, delta_rot=1) = Framewise(alg, limit, delta_rot)
+Framewise(alg; limit=Inf, delta_rot=1) = Framewise(alg, limit, delta_rot)
 
 function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, kwargs...) where T
     pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
@@ -53,6 +53,28 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
             ref = ann[inds, :]
             angs = angles[inds]
             des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
+            S[j:j, :] .= reconstruct(des)
+            next!(p)
+        end
+        return S
+    end
+    
+    return inverse(cube, recons)
+end
+
+function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; angles, fwhm=cube.width, kwargs...)
+    radii = cube.radii
+    itr = enumerate(eachannulus(cube, true))
+    recons = @showprogress "annulus " map(itr) do (i, ann)
+        pa_threshold = compute_pa_thresh(angles, radii[i], fwhm, alg.delta_rot)
+        S = similar(ann)
+        p = Progress(length(angles); desc="framewise ")
+        @views Threads.@threads for j in axes(ann, 1)
+            inds = find_angles(angles, j, pa_threshold; alg.limit)
+            target = ann[j:j, :]
+            ref = ann[inds, :]
+            angs = angles[inds]
+            des = fit(alg.kernel[i], target; kwargs..., ref=ref, angles=angs)
             S[j:j, :] .= reconstruct(des)
             next!(p)
         end

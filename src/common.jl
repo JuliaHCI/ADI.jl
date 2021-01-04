@@ -73,6 +73,19 @@ function fit(alg::ADIAlgorithm, cube::MultiAnnulusView; kwargs...)
     end
 end
 
+function fit(algs::AbstractVector{<:ADIAlgorithm}, cube::MultiAnnulusView; kwargs...)
+    if :ref in keys(kwargs)
+        kwargs[:ref] isa MultiAnnulusView || error("reference data geometry does not match target data")
+        anns = eachannulus(cube, true)
+        ref_anns = eachannulus(kwargs[:ref], true)
+        itr = zip(algs, anns, ref_anns)
+        return StructArray(fit(alg, ann; kwargs..., ref=ref_ann) for (alg, ann, ref_ann) in itr)
+    else
+        itr = zip(algs, eachannulus(cube, true))
+        return StructArray(fit(alg, ann; kwargs...) for (alg, ann) in itr)
+    end
+end
+
 """
     reconstruct(::ADIAlgorithm, cube; [ref], kwargs...)
 
@@ -91,7 +104,7 @@ true
 julia> flat_res = collapse(cube .- S, angles); # form resid, derotate, and combine
 ```
 """
-function reconstruct(alg::ADIAlgorithm, cube; kwargs...)
+function reconstruct(alg, cube; kwargs...)
     design = fit(alg, cube; kwargs...)
     S = reconstruct(design)
     return expand_geometry(cube, S)
@@ -119,7 +132,7 @@ true
 julia> flat_res = collapse(R, angles); # derotate, and combine
 ```
 """
-function subtract(alg::ADIAlgorithm, cube; kwargs...)
+function subtract(alg, cube; kwargs...)
     S = reconstruct(alg, cube; kwargs...)
     return cube .- S
 end
