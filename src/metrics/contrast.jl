@@ -221,7 +221,8 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
     cy, cx = center(reduced_empty)
 
     n_annuli = floor(Int, (cy - fwhm) / fwhm) - 1
-    radii = fwhm .* (inner_rad:n_annuli)
+    radii = _fix_range(fwhm .* (inner_rad:n_annuli), cube)
+
     δy, δx = sincosd(theta)
     noise = @. annulus_noise((reduced_empty,), fwhm, cy, cx, radii, theta)
 
@@ -251,6 +252,7 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
 
                 return CircularAperture(x, y, fwhm / 2)
             end
+            # make sure geometries are maintained
             reduced = alg(cube_fake_comps, angles; kwargs...)
 
             injected_flux = photometry(apertures, fake_comps).aperture_sum
@@ -260,6 +262,13 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
     end
 
     return output, (distance=radii, fake_comps=fake_comps_full, noise=noise)
+end
+
+_fix_range(radii, cube::AbstractArray{T,3}) where {T} = radii
+_fix_range(radii, cube::AnnulusView) = filter(r -> cube.rmin ≤ r ≤ cube.rmax, radii)
+function _fix_range(radii, cube::MultiAnnulusView)
+    rmin, rmax = extrema(cube.radii) .- cube.width / 2
+    filter(r -> rmin ≤ r ≤ rmax, radii)
 end
 
 """

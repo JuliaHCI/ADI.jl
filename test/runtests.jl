@@ -1,9 +1,10 @@
 using ADI
 using HCIToolbox
-using Test
-using Statistics
 using LinearAlgebra
+using PSFModels
 using StableRNGs
+using Statistics
+using Test
 
 rng = StableRNG(8799)
 

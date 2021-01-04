@@ -34,3 +34,31 @@ end
         @test v1_ ≈ v2_
     end
 end
+
+@testset "throughput - AnnulusView - $alg" for alg in [Classic(), PCA(10), GreeDS(3)]
+    av = AnnulusView(cube; inner=8)
+    tt, meta = throughput(alg, av, angles, psf; fwhm=4)
+
+    @test length(tt) == 9
+    @test length(meta.distance) == length(meta.noise) == 9
+    @test size(meta.fake_comps) == size(cube)[2:3]
+    @test keys(meta) == (:distance, :fake_comps, :noise)
+
+    t1 = throughput(alg, cube, angles, psf, (51, 61); fwhm=4)
+    t2 = throughput(alg, cube, angles, psf, Polar(10, deg2rad(90)); fwhm=4)
+    @test t1 ≈ t2
+end
+
+@testset "throughput - MultiAnnulusView - $alg" for alg in [Classic(), PCA(10)]
+    av = MultiAnnulusView(cube, 4; inner=8)
+    tt, meta = throughput(alg, av, angles, psf; fwhm=4)
+
+    @test length(tt) == 9
+    @test length(meta.distance) == length(meta.noise) == 9
+    @test size(meta.fake_comps) == size(cube)[2:3]
+    @test keys(meta) == (:distance, :fake_comps, :noise)
+
+    t1 = throughput(alg, cube, angles, psf, (51, 61); fwhm=4)
+    t2 = throughput(alg, cube, angles, psf, Polar(10, deg2rad(90)); fwhm=4)
+    @test t1 ≈ t2
+end
