@@ -30,7 +30,7 @@ The following algorithms are implemented:
 
 ### Full Frame ADI Reduction
 
-Given an algorithm `alg`, we can fully process ADI data by calling `alg` like a function
+Given an algorithm `alg`, we can fully process ADI data by calling `alg` like a function, or using the [`process`](@ref) method
 
 ```julia
 julia> using ADI
@@ -38,6 +38,9 @@ julia> using ADI
 julia> alg = PCA(ncomps=5)
 
 julia> resid = alg(cube, angles)
+
+julia> resid === process(alg, cube, angles)
+true
 ```
 
 ### Full Frame RDI Reduction
@@ -48,23 +51,6 @@ The only difference here is the inclusion of a reference cube.
 julia> alg = PCA(ncomps=5)
 
 julia> resid = alg(cube, angles; ref=cube_ref)
-```
-
-### Altering the Geometry
-
-[HCIToolbox.jl](https://github.com/JuliaHCI/HCIToolbox.jl) has utilities for geometrically filtering the input data, such as only taking an annulus of the input cube or iterating over many annuli. This is exactly the purpose of `AnnulusView` and `MultiAnnulusView`, which use indexing tricks to retrieve the pixels *only* within the spatial region of interest without having to copy the input data.
-
-If you wrap a cube in one of these views, ADI.jl will handle it automatically (if the algorithm supports it). Since these views filter the pixels, the runtime performance will generally be faster than the full-frame equivalents.
-
-```julia
-ann = AnnulusView(cube; inner=15, outer=25)
-res = PCA(10)(ann, angles)
-```
-
-```julia
-# annuli of width 5 starting at 5 pixels and ending at the edge of the cube
-anns = MultiAnnulusView(cube, 5; inner=5)
-res = PCA(10)(anns, angles)
 ```
 
 ### Reduction Process
@@ -91,6 +77,28 @@ resid = collapse(R, angles)
 ```
 
 Notice how the only part of this specific to the algorithm is [`reconstruct`](@ref)? This lets us have the super-compact functional form from above without having to copy the common code for each algorithm.
+
+### Altering the Geometry
+
+[HCIToolbox.jl](https://github.com/JuliaHCI/HCIToolbox.jl) has utilities for geometrically filtering the input data, such as only taking an annulus of the input cube or iterating over many annuli. This is exactly the purpose of `AnnulusView` and `MultiAnnulusView`, which use indexing tricks to retrieve the pixels *only* within the spatial region of interest without having to copy the input data.
+
+If you wrap a cube in one of these views, ADI.jl will handle it automatically (if the algorithm supports it). Since these views filter the pixels, the runtime performance will generally be faster than the full-frame equivalents.
+
+```julia
+ann = AnnulusView(cube; inner=15, outer=25)
+res = PCA(10)(ann, angles)
+```
+
+```julia
+# annuli of width 5 starting at 5 pixels and ending at the edge of the cube
+anns = MultiAnnulusView(cube, 5; inner=5)
+res = PCA(10)(anns, angles)
+
+# use different algorithms for each annulus
+N_ann = length(anns.indices)
+algs = [PCA(10), PCA(9), PCA(8), ...]
+res = process(algs, anns, angles)
+```
 
 ## Comparison to VIP
 
