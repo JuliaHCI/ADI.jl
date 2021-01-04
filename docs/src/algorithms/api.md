@@ -12,6 +12,7 @@ Pages = ["algorithms/api.md",
 ADI.ADIAlgorithm
 reconstruct
 subtract
+process
 ADI.fit
 ADI.design
 ADI.ADIDesign

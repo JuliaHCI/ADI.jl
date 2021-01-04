@@ -30,9 +30,10 @@ Fit the data using the algorithm and return a cube that has had the PSF estimate
 
 ---
 
+    process(::ADIAlgorithm, cube; kwargs...)
     (::ADIAlgorithm)(cube; kwargs...)
 
-Fully process the data (estimate, subtract, collapse). By default, derotates and collapses output from [`subtract`](@ref).
+Fully process the data (estimate, subtract, collapse). By default, derotates and collapses output from [`subtract`](@ref). You only need to define [`process`](@ref), since the functor version is supplied automatically.
 """
 abstract type ADIAlgorithm end
 
@@ -137,12 +138,21 @@ function subtract(alg, cube; kwargs...)
     return cube .- S
 end
 
+
+
 """
-    (::ADIAlgorithm)(cube, angles; [ref], kwargs...)
+    process(::ADIAlgorithm, cube, angles; [ref], kwargs...)
 
 Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. Keyword arguments will be passed to [`ADI.fit`](@ref).
 """
-function (alg::ADIAlgorithm)(cube, angles; method=:deweight, kwargs...)
+function process(alg, cube, angles; method=:deweight, kwargs...)
     R = subtract(alg, cube; angles=angles, kwargs...)
     return collapse!(R, angles, method=method)
 end
+
+"""
+    (::ADIAlgorithm)(cube, angles; [ref], kwargs...)
+
+Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. This is a convenient alias for calling [`process`](@ref) Keyword arguments will be passed to [`ADI.fit`](@ref).
+"""
+(alg::ADIAlgorithm)(cube, angles; kwargs...) = process(alg, cube, angles; kwargs...)

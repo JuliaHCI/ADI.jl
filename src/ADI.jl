@@ -10,7 +10,7 @@ using StructArrays
 
 export reconstruct,
        subtract,
-       decompose,
+       process,
        Classic,
        PCA,
        GreeDS,

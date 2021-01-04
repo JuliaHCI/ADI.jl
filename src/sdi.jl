@@ -3,7 +3,7 @@ using FillArrays
 """
     ADI.SDIAlgorithm <: ADI.ADIAlgorithm
 
-Spectral differential imaging (SDI) algorithms. These work on 4-D SDI tensors. To use these algorithms, simply treat them like functions
+Spectral differential imaging (SDI) algorithms. These work on 4-D SDI tensors. To use these algorithms, simply treat them like functions (or call [`process`](@ref))
 
 ```julia
 (::SDIAlgorithm)(data::AbstractArray{T,4}, angles, scales; [ref] kwargs...)
@@ -39,10 +39,10 @@ struct SingleSDI{ALG<:ADIAlgorithm} <: SDIAlgorithm
     alg::ALG
 end
 
-(alg::ADIAlgorithm)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where {T} =
-    SingleSDI(alg)(spcube, angles, scales; kwargs...)
+process(alg, spcube::AbstractArray{T,4}, angles, scales; kwargs...) where {T} =
+    process(SingleSDI(alg), spcube, angles, scales; kwargs...)
 
-function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
+function process(sdi::SingleSDI, spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
     nλ, n, ny, nx = size(spcube)
     frame_size = (ny, nx)
     big_cube = scale_and_stack(spcube, scales)
@@ -86,7 +86,7 @@ end
 
 DoubleSDI(alg) = DoubleSDI(alg, alg)
 
-function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
+function process(sdi::DoubleSDI, spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
     nλ, n, ny, nx = size(spcube)
     frame_size = (ny, nx)
     spec_resids = similar(spcube, n, ny, nx)
@@ -134,7 +134,7 @@ end
 
 SliceSDI(alg) = SliceSDI(alg, alg)
 
-function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
+function process(sdi::SliceSDI, spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
     nλ, n, ny, nx = size(spcube)
     frame_size = (ny, nx)
     temp_resids = similar(spcube, nλ, ny, nx)
