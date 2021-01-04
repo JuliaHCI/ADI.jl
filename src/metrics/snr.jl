@@ -1,10 +1,9 @@
+using Distributions
+using HCIToolbox: get_annulus_segments
 using ImageTransformations: center
 using Photometry
-using Distributions
-using Statistics
-using HCIToolbox: get_annulus_segments
-using StaticArrays
 using Rotations
+using StaticArrays
 
 """
     detectionmap([method=snr], data, fwhm; fill=0)

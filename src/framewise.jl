@@ -9,25 +9,33 @@ function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, 
     pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
     data = flatten(cube)
     S = similar(data)
+    N = length(angles)
+    p = Progress(N; desc="framewise ")
     Threads.@threads for i in axes(data, 1)
         inds = find_angles(angles, i, pa_threshold; alg.limit)
         target = @view data[i, :]
         ref = @view data[inds, :]
-        if alg.kernal isa GreeDS
-            angs = @view angles[inds]
-            S[i, :] .= reconstruct(alg.kernel, target; kwargs..., angles=angs)
-        else
-            S[i, :] .= reconstruct(alg.kernel, target; kwargs...)
-        end
-
+        angs = @view angles[inds]
+        S[i, :] .= reconstruct(alg.kernel, target; kwargs..., ref=ref, angles=angs)
+        next!(p)
     end
+    return expand(S)
 end
 
 function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, r=(cube.rmax - cube.rmin)/2, kwargs...)
     pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
+    data = cube(true)
+    S = similar(data)
+    p = Progress(N; desc="framewise ")
     Threads.@threads for i in axes(data, 1)
         inds = find_angles(angles, i, pa_threshold; alg.limit)
+        target = @view data[i, :]
+        ref = @view data[inds, :]
+        angs = @view angles[inds]
+        S[i, :] .= reconstruct(alg.kernel, target; kwargs..., ref=ref, angles=angs)
+        next!(p)
     end
+    return inverse(cube, S)
 end
 
 # function reconstruct(alg::Framewise, cube::MultiAnnulusView; ref=cube, angles, fwhm=cube.width, kwargs...)

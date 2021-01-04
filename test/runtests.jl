@@ -19,6 +19,7 @@ rng = StableRNG(8799)
     include("contrast.jl")
 end
 
+@testset "Framewise" begin include("framewise.jl") end
 @testset "SDI" begin include("sdi.jl") end
 @testset "Geometries" begin include("geometries.jl") end
 

@@ -1,5 +1,4 @@
 using FillArrays
-using ProgressLogging
 using Setfield
 
 """
@@ -9,8 +8,6 @@ using Setfield
 Performs the greedy disk subtraction (GreeDS) algorithm.
 
 This method is an iterative approach to standard ADI reduction which seeks to minimize over-subtraction by constraining the low-rank matrix approximation from `alg`. By default, uses [`PCA`](@ref). If `ncomps` or other PCA options are provided, they will be passed to the constructor.
-
-For large data cubes the iteration can cause slowdowns, so a progress bar is provided using the [`ProgressLogging`](https://github.com/JunoLab/ProgressLogging.jl) API along with the `progress` keyword. It won't appear without a logging backend, such as [`TerminalLoggers`](https://github.com/c42f/TerminalLoggers.jl).
 
 !!! note
     The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically. It is important to clarify, *these angles should correspond to the reference data in the case of RDI*, e.g. `GreeDS()(cube, angles; ref=ref_cube, angles=ref_angles)`
@@ -39,7 +36,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     design = fit(f, target)
     R = expand(target .- reconstruct(design))
     reduced = collapse!(R, angles)
-    @progress "GreeDS" for n in 1:max_ncomps
+    @showprogress "GreeDS " for n in 1:max_ncomps
         resid = ref .- expand_rotate(reduced, angles, alg.threshold)
         # use lens to update number of components
         f = @set f.ncomps = n
@@ -68,7 +65,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::Ann
     design = fit(f, target)
     R = inverse(data, target .- reconstruct(design))
     reduced = collapse!(R, angles)
-    @progress "GreeDS" for n in 1:max_ncomps
+    @showprogress "GreeDS " for n in 1:max_ncomps
         tmpAnn .= ref .- expand_rotate(reduced, angles, alg.threshold)
         resid = tmpAnn()
         # use lens to update number of components
