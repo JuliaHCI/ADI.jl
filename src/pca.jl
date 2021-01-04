@@ -43,7 +43,7 @@ function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # get number of components (using dispatch for symbolic args)
     k = get_ncomps(alg.ncomps, ref; alg.opts...)
     # fit SVD to get principal subspace of reference
-    decomp = svd(ref)
+    decomp = svd(collect(ref))
     # Get the principal components (principal subspace) and weights
     P = decomp.Vt[1:k, :]
     weights = data * P'
@@ -124,7 +124,7 @@ function fit(alg::TPCA, data::AbstractMatrix; ref=data, kwargs...)
     # TODO using automatic methods is not valid for TPCA using different SVD methods
     k = get_ncomps(alg.ncomps, ref; alg.opts...)
     # fit SVD to get principal subspace of reference
-    U, Σ, V = tsvd(ref, k)
+    U, Σ, V = tsvd(collect(ref), k)
     # Get the principal components (principal subspace) and weights
     P = V'
     weights = data * P'

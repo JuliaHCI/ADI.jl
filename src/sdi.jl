@@ -96,7 +96,7 @@ function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales; method=:de
         scaled_cube = scale(cube, scales)
         angs = Zeros(nλ)
         if :ref in keys(kwargs)
-            cube_ref = @view kwargs[:ref][:, n, :, :]
+            cube_ref = view(kwargs[:ref], :, n, :, :)
             scaled_cube_ref = scale(cube_ref, scales)
             R = subtract(sdi.alg_spec, scaled_cube; angles=angs, kwargs..., ref=scaled_cube_ref)
         else
@@ -140,9 +140,9 @@ function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) 
     temp_resids = similar(spcube, nλ, ny, nx)
     # do first pass in temporal domain
     Threads.@threads for n in axes(spcube, 1)
-        cube = spcube[n, :, :, :]
+        cube = @view spcube[n, :, :, :]
         if :ref in keys(kwargs)
-            cube_ref = kwargs[:ref][n, :, :, :]
+            cube_ref = @view kwargs[:ref][n, :, :, :]
             temp_resids[n, :, :] .= sdi.alg_temp(cube, angles; kwargs..., ref=cube_ref)
         else
             temp_resids[n, :, :] .= sdi.alg_temp(cube, angles; kwargs...)

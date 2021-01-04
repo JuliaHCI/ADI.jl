@@ -52,7 +52,7 @@ function fit(alg::NMF, data::AbstractMatrix{T}; kwargs...) where T
         k = min(alg.ncomps, size(data, 1))
     end
 
-    W, H = nndsvd(data, k)
+    W, H = nndsvd(collect(data), k)
     solve!(CoordinateDescent{T}(), data, W, H)
     return LinearDesign(H, W)
 end

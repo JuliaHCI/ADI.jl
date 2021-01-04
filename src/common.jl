@@ -14,7 +14,7 @@ To extend `ADIAlgorithm` you may implement the following
 
 Fit the data (flattened into a matrix). To support RDI, ensure the `ref` keyword argument is usable (`ref` is also a flattened matrix). This is the only method you *need* to implement for a new `ADIAlgorithm`, along with a suitable [`ADIDesign`](@ref).
 
-ADI.jl automatically coaxes the `cube` input into a matrix for use with `fit`, appropriately handling the various geometries. If a given algorithm doesn't support the default operations, all that needs to be done is override the default behavior (for an example, see the [`GreeDS`](@ref) implementation).
+ADI.jl automatically coaxes the `cube` input into a matrix for use with `fit`, appropriately handling the various geometries. When available, this input is a view, so if the algorithm requires dense arrays, make sure to call `collect` when appropriate. If a given algorithm doesn't support the default operations, all that needs to be done is override the default behavior (for an example, see the [`GreeDS`](@ref) implementation).
 
 ---
 
@@ -53,10 +53,10 @@ function fit(alg::ADIAlgorithm, cube::AbstractArray{T,3}; kwargs...) where T
     return fit(alg, data; kwargs...)
 end
 function fit(alg::ADIAlgorithm, cube::AnnulusView; kwargs...)
-    data = cube()
+    data = cube(true) # as view
     if :ref in keys(kwargs)
         kwargs[:ref] isa AnnulusView || error("reference data geometry does not match target data")
-        ref_data = kwargs[:ref]()
+        ref_data = kwargs[:ref](true)
         return fit(alg, data; kwargs..., ref=ref_data)
     end
     return fit(alg, data; kwargs...)
@@ -65,11 +65,11 @@ end
 function fit(alg::ADIAlgorithm, cube::MultiAnnulusView; kwargs...)
     if :ref in keys(kwargs)
         kwargs[:ref] isa MultiAnnulusView || error("reference data geometry does not match target data")
-        anns = eachannulus(cube)
-        ref_anns = eachannulus(kwargs[:ref])
+        anns = eachannulus(cube, true)
+        ref_anns = eachannulus(kwargs[:ref], true)
         return StructArray(fit(alg, ann; kwargs..., ref=ref_ann) for (ann, ref_ann) in zip(anns, ref_anns))
     else
-        return StructArray(fit(alg, ann; kwargs...) for ann in eachannulus(cube))
+        return StructArray(fit(alg, ann; kwargs...) for ann in eachannulus(cube, true))
     end
 end
 
