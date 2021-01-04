@@ -9,6 +9,7 @@ Pages = ["algorithms/api.md",
 ```
 
 ```@docs
+ADI.ADIAlgorithm
 reconstruct
 subtract
 ADI.fit
