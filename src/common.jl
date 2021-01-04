@@ -130,5 +130,6 @@ end
 Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. Keyword arguments will be passed to [`ADI.fit`](@ref).
 """
 function (alg::ADIAlgorithm)(cube, angles; method=:deweight, kwargs...)
-    return collapse!(subtract(alg, cube; kwargs...), angles, method=method)
+    R = subtract(alg, cube; angles=angles, kwargs...)
+    return collapse!(R, angles, method=method)
 end

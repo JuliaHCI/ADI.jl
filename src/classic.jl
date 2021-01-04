@@ -27,7 +27,7 @@ design(des::ClassicDesign) = des.frame
 
 reconstruct(des::ClassicDesign) = TiledArray(des.frame, des.n)
 
-function fit(alg::Classic, data::AbstractMatrix; ref=data)
+function fit(alg::Classic, data::AbstractMatrix; ref=data, kwargs...)
     n = size(data, 1)
     return ClassicDesign(n, alg.method(ref, dims=1))
 end

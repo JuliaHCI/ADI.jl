@@ -46,12 +46,13 @@ function (sdi::SingleSDI)(spcube::AbstractArray{T,4}, angles, scales; method=:de
     nλ, n, ny, nx = size(spcube)
     frame_size = (ny, nx)
     big_cube = scale_and_stack(spcube, scales)
+    angs = repeat(angles, inner=nλ)
     # do single-pass reconstruction
     if :ref in keys(kwargs)
         big_cube_ref = scale_and_stack(kwargs[:ref], scales)
-        big_resid_cube = subtract(sdi.alg, big_cube; kwargs..., ref=big_cube_ref)
+        big_resid_cube = subtract(sdi.alg, big_cube; angles=angs, kwargs..., ref=big_cube_ref)
     else
-        big_resid_cube = subtract(sdi.alg, big_cube; kwargs...)
+        big_resid_cube = subtract(sdi.alg, big_cube; angles=angs, kwargs...)
     end
 
     # bin across spectral dim
@@ -93,18 +94,19 @@ function (sdi::DoubleSDI)(spcube::AbstractArray{T,4}, angles, scales; method=:de
     Threads.@threads for n in axes(spcube, 2)
         cube = @view spcube[:, n, :, :]
         scaled_cube = scale(cube, scales)
+        angs = Zeros(nλ)
         if :ref in keys(kwargs)
             cube_ref = @view kwargs[:ref][:, n, :, :]
             scaled_cube_ref = scale(cube_ref, scales)
-            R = subtract(sdi.alg_spec, scaled_cube; kwargs..., ref=scaled_cube_ref)
+            R = subtract(sdi.alg_spec, scaled_cube; angles=angs, kwargs..., ref=scaled_cube_ref)
         else
-            R = subtract(sdi.alg_spec, scaled_cube; kwargs...)
+            R = subtract(sdi.alg_spec, scaled_cube; angles=angs, kwargs...)
         end
         spec_resid = invscale(R, scales, frame_size)
         spec_resids[n, :, :] .= collapse(spec_resid)
     end
     # do second pass in temporal domain
-    return sdi.alg_temp(spec_resids, angles; method=method, kwargs...)
+    return sdi.alg_temp(spec_resids, angles; method=method, angles=angles, kwargs...)
 end
 
 """
@@ -148,6 +150,7 @@ function (sdi::SliceSDI)(spcube::AbstractArray{T,4}, angles, scales; kwargs...) 
     end
     # do second pass in temporal domain
     scaled_resid_cube = scale(temp_resids, scales)
-    resid = sdi.alg_spec(scaled_resid_cube, Zeros(nλ); kwargs...)
+    angs = Zeros(nλ)
+    resid = sdi.alg_spec(scaled_resid_cube, angs; angles=angs, kwargs...)
     return invscale(resid, maximum(scales))
 end

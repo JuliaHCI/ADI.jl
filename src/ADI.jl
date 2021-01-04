@@ -25,6 +25,7 @@ include("common.jl")
 include("design.jl")
 
 # further techniques
+include("framewise.jl")
 include("sdi.jl")
 
 # algorithms
