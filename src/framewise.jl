@@ -10,15 +10,19 @@ function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, 
     pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
     data = flatten(cube)
     S = similar(data)
-    p = Progress(length(angles); desc="framewise ")
-    @views Threads.@threads for i in axes(data, 1)
-        inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
-        target = data[i:i, :]
-        ref = data[inds, :]
-        angs = angles[inds]
-        des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
-        S[i:i, :] .= reconstruct(des)
-        next!(p)
+    @withprogress name="framewise" begin
+        n = 0
+        M = size(data, 1)
+        @views Threads.@threads for i in axes(data, 1)
+            inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
+            target = data[i:i, :]
+            ref = data[inds, :]
+            angs = angles[inds]
+            des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
+            S[i:i, :] .= reconstruct(des)
+            n += 1
+            @logprogress n/M
+        end
     end
     return expand(S)
 end
@@ -27,15 +31,19 @@ function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, 
     pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
     data = cube(true)
     S = similar(data)
-    p = Progress(length(angles); desc="framewise ")
-    @views Threads.@threads for i in axes(data, 1)
-        inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
-        target = data[i:i, :]
-        ref = data[inds, :]
-        angs = angles[inds]
-        des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
-        S[i:i, :] .= reconstruct(des)
-        next!(p)
+    @withprogress name="framewise" begin
+        n = 0
+        M = size(data, 1)
+        @views Threads.@threads for i in axes(data, 1)
+            inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
+            target = data[i:i, :]
+            ref = data[inds, :]
+            angs = angles[inds]
+            des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
+            S[i:i, :] .= reconstruct(des)
+            n += 1
+            @logprogress n/M
+        end
     end
     return inverse(cube, S)
 end
@@ -43,20 +51,31 @@ end
 function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.width, kwargs...)
     radii = cube.radii
     itr = enumerate(eachannulus(cube, true))
-    recons = @showprogress "annulus " map(itr) do (i, ann)
-        pa_threshold = compute_pa_thresh(angles, radii[i], fwhm, alg.delta_rot)
-        S = similar(ann)
-        p = Progress(length(angles); desc="framewise ")
-        @views Threads.@threads for j in axes(ann, 1)
-            inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
-            target = ann[j:j, :]
-            ref = ann[inds, :]
-            angs = angles[inds]
-            des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
-            S[j:j, :] .= reconstruct(des)
-            next!(p)
+    local recons
+    @withprogress name="annulus" begin
+        i_ann = 0
+        N_ann = length(cube.indices)
+        recons = map(itr) do (i, ann)
+            pa_threshold = compute_pa_thresh(angles, radii[i], fwhm, alg.delta_rot)
+            S = similar(ann)
+            i_angs = 0
+            N_angs = length(angles)
+            @withprogress name="framewise" begin
+                @views Threads.@threads for j in axes(ann, 1)
+                    inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
+                    target = ann[j:j, :]
+                    ref = ann[inds, :]
+                    angs = angles[inds]
+                    des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
+                    S[j:j, :] .= reconstruct(des)
+                    i_angs += 1
+                    @logprogress i_angs/N_angs
+                end
+            end
+            i_ann += 1
+            @logprogress i_ann/N_ann
+            return S
         end
-        return S
     end
     
     return inverse(cube, recons)
@@ -65,22 +84,32 @@ end
 function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; angles, fwhm=cube.width, kwargs...)
     radii = cube.radii
     itr = enumerate(eachannulus(cube, true))
-    recons = @showprogress "annulus " map(itr) do (i, ann)
-        pa_threshold = compute_pa_thresh(angles, radii[i], fwhm, alg.delta_rot)
-        S = similar(ann)
-        p = Progress(length(angles); desc="framewise ")
-        @views Threads.@threads for j in axes(ann, 1)
-            inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
-            target = ann[j:j, :]
-            ref = ann[inds, :]
-            angs = angles[inds]
-            des = fit(alg.kernel[i], target; kwargs..., ref=ref, angles=angs)
-            S[j:j, :] .= reconstruct(des)
-            next!(p)
+    local recons
+    @withprogress name="annulus" begin
+        i_ann = 0
+        N_ann = length(cube.indices)
+        recons = map(itr) do (i, ann)
+            pa_threshold = compute_pa_thresh(angles, radii[i], fwhm, alg.delta_rot)
+            S = similar(ann)
+            @withprogress name="framewise" begin
+                i_angs = 0
+                N_angs = length(angles)
+                @views Threads.@threads for j in axes(ann, 1)
+                    inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
+                    target = ann[j:j, :]
+                    ref = ann[inds, :]
+                    angs = angles[inds]
+                    des = fit(alg.kernel[i], target; kwargs..., ref=ref, angles=angs)
+                    S[j:j, :] .= reconstruct(des)
+                    i_angs += 1
+                    @logprogress i_angs/N_angs
+                end
+            end
+            i_ann += 1
+            @logprogress i_ann/N_ann
+            return S
         end
-        return S
     end
-    
     return inverse(cube, recons)
 end
 

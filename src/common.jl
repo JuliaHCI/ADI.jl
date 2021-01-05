@@ -155,4 +155,4 @@ end
 
 Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. This is a convenient alias for calling [`process`](@ref) Keyword arguments will be passed to [`ADI.fit`](@ref).
 """
-(alg::ADIAlgorithm)(cube, angles; kwargs...) = process(alg, cube, angles; kwargs...)
+(alg::ADIAlgorithm)(args...; kwargs...) = process(alg, args...; kwargs...)

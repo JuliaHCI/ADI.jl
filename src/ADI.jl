@@ -1,7 +1,7 @@
 module ADI
 
 using LinearAlgebra
-using ProgressMeter
+using ProgressLogging
 using Reexport
 using Statistics
 using StructArrays

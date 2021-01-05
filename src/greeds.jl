@@ -26,7 +26,7 @@ end
 GreeDS(alg=PCA(); threshold=0) = GreeDS(alg, threshold)
 GreeDS(ncomps::Int; threshold=0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
 
-function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data) where {T,S}
+function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data, kwargs...) where {T,S}
     target = flatten(ref)
     # get the number of components as a range from the underlying alg
     max_ncomps = get_ncomps(alg.kernel.ncomps, target)
@@ -36,7 +36,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     design = fit(f, target)
     R = expand(target .- reconstruct(design))
     reduced = collapse!(R, angles)
-    @showprogress "GreeDS " for n in 1:max_ncomps
+    @progress name="GreeDS" for n in 1:max_ncomps
         resid = ref .- expand_rotate(reduced, angles, alg.threshold)
         # use lens to update number of components
         f = @set f.ncomps = n
@@ -54,7 +54,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     return design
 end
 
-function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::AnnulusView=data)
+function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::AnnulusView=data, kwargs...)
     target = data()
     tmpAnn = copy(data)
     # get the number of components as a range from the underlying alg
@@ -65,7 +65,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::Ann
     design = fit(f, target)
     R = inverse(data, target .- reconstruct(design))
     reduced = collapse!(R, angles)
-    @showprogress "GreeDS " for n in 1:max_ncomps
+    @progress name="GreeDS" for n in 1:max_ncomps
         tmpAnn .= ref .- expand_rotate(reduced, angles, alg.threshold)
         resid = tmpAnn()
         # use lens to update number of components

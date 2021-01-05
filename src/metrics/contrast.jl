@@ -4,7 +4,7 @@ using HCIToolbox
 using ImageTransformations: center
 using LinearAlgebra: dot
 using Photometry
-using ProgressMeter
+using ProgressLogging
 using StaticKernels
 
 """
@@ -229,9 +229,9 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
     output = similar(cube, length(radii), nbranch)
 
     fake_comps_full = zero(reduced_empty)
-    @showprogress "branch " for branch in 1:nbranch
+    @progress name="branch" for branch in 1:nbranch
         θ = theta + angle_per_branch * (branch - 1)
-        @showprogress "pattern " for init_rad in 1:fc_rad_sep
+        @progress name="pattern" for init_rad in 1:fc_rad_sep
             slice = init_rad:fc_rad_sep:lastindex(radii)
             fake_comps = zero(reduced_empty)
 

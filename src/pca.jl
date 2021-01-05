@@ -76,7 +76,7 @@ function noise_decay_ncomps(data; collapse=false, noise_error=1e-3)
     P = svd(X).Vt
     tmpr = similar(data)
     τ1 = τ2 = 0
-    @showprogress "Optimizing ncomps using residual noise " for ncomp in axes(data, 1)
+    @progress name="Optimizing ncomps using residual noise" for ncomp in axes(data, 1)
         Pv = @view P[1:ncomp, :]
         tmpr .= X * (I - Pv'Pv)
         # calculate noise (standard deviation) optionally collapsing
