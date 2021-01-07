@@ -27,7 +27,7 @@ function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, 
     return expand(S)
 end
 
-function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, r=(cube.rmax - cube.rmin)/2, kwargs...)
+function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, r=cube.rmin + (cube.rmax - cube.rmin)/2, kwargs...)
     pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
     data = cube(true)
     S = similar(data)

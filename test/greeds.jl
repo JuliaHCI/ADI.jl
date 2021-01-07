@@ -1,4 +1,6 @@
 
+cube, angles = BetaPictoris[:cube, :pa]
+
 @testset "Interface" begin
     @test GreeDS().kernel == PCA()
     @test GreeDS().threshold == 0
@@ -6,27 +8,25 @@
 end
 
 @testset "Decomposition" begin
-    data = 4 .* randn(rng, 30, 101, 101) .+ 10
-    angles = sort!(90randn(rng, 30)) |> normalize_par_angles
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        A, w = @inferred ADI.fit(GreeDS(PCA(ncomps=N)), data; angles=angles)
+        A, w = @inferred ADI.fit(GreeDS(PCA(ncomps=N)), cube; angles=angles)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (30, N)
+        @test size(w) == (size(cube, 1), N)
     end
 
     # default is to use whole cube
-    S = reconstruct(GreeDS(), data; angles=angles)
-    @test size(S) == (30, 101, 101)
+    S = reconstruct(GreeDS(), cube; angles=angles)
+    @test size(S) == size(cube)
 end
 
 @testset "ADI Trivial" begin
-    cube = ones(10, 100, 100) 
-    angles = zeros(10)
+    data = ones(10, 100, 100) 
+    angs = zeros(10)
 
-    reduced_5 = GreeDS(PCA(5))(cube, angles)
-    reduced_10 = GreeDS(PCA(10))(cube, angles)
+    reduced_5 = GreeDS(PCA(5))(data, angs)
+    reduced_10 = GreeDS(PCA(10))(data, angs)
 
     @test size(reduced_5) == size(reduced_10) == (100, 100)
     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_5)
@@ -34,27 +34,22 @@ end
 end
 
 @testset "RDI Trivial" begin
-    data = randn(rng, 30, 101, 101)
-    angles = sort!(90rand(rng, 30)) |> normalize_par_angles
 
-    S = subtract(GreeDS(1), data; angles=angles, ref=zeros(30, 101, 101))
-    @test S ≈ data rtol=2e-1
+    S = subtract(GreeDS(1), cube; angles=angles, ref=zero(cube))
+    @test S ≈ cube rtol=2e-1
 end
 
 @testset "Decomposition - TPCA" begin
-    data = 4 .* randn(rng, 30, 101, 101) .+ 10
-    angles = sort!(90randn(rng, 30)) |> normalize_par_angles
-
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        A, w = ADI.fit(GreeDS(TPCA(N)), data; angles=angles)
+        A, w = ADI.fit(GreeDS(TPCA(N)), cube; angles=angles)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (30, N)
+        @test size(w) == (size(cube, 1), N)
     end
 
     # default is to use whole cube
-    S = reconstruct(GreeDS(TPCA()), data; angles=angles)
-    @test size(S) == (30, 101, 101)
+    S = reconstruct(GreeDS(TPCA()), cube; angles=angles)
+    @test size(S) == size(cube)
 end
 
 # @testset "Decomposition - NMF" begin

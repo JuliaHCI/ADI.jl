@@ -1,22 +1,23 @@
+
+cube, angles = BetaPictoris[:cube, :pa]
+
 @testset "Interface" begin
     @test TPCA(5) == TPCA(ncomps=5)
     @test isnothing(TPCA().ncomps)
 end
 
 @testset "Decomposition" begin
-    data = 4 .* randn(rng, 30, 101, 101) .+ 10
-    angles = sort!(90randn(rng, 30)) |> normalize_par_angles
 
     # get sizes correct for ncomps
     for N in [1, 3, 5]
-        A, w = ADI.fit(TPCA(N), data)
+        A, w = ADI.fit(TPCA(N), cube)
         @test size(A) == (N, 101 * 101)
-        @test size(w) == (30, N)
+        @test size(w) == (size(cube, 1), N)
     end
 
     # default is to use whole cube
-    S = reconstruct(TPCA(), data)
-    @test size(S) == (30, 101, 101)
+    S = reconstruct(TPCA(), cube)
+    @test size(S) == size(cube)
 end
 
 # @testset "ADI Trivial" begin

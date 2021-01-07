@@ -1,6 +1,6 @@
-cube = 4 .* randn(rng, 30, 101, 101) .+ 100
-angles = sort!(90rand(30))
-psf = ones(11, 11)
+
+cube, angles, _psf = BetaPictoris[:cube, :pa, :psf]
+psf = _psf ./ maximum(_psf)
 
 @testset "throughput - $alg" for alg in [Classic(), PCA(10), GreeDS(3)]
     tt, meta = throughput(alg, cube, angles, psf; fwhm=4)

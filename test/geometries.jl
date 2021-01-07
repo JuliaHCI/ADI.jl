@@ -1,6 +1,5 @@
 
-cube = 4 .* randn(rng, 30, 101, 101) .+ 1000
-angles = sort!(90rand(rng, 30))
+cube, angles = BetaPictoris[:cube, :pa]
 av = AnnulusView(cube, inner=10, outer=20)
 mav = MultiAnnulusView(cube, 5)
 
@@ -35,12 +34,36 @@ end
         @test_throws ErrorException ALG(mav, angles; ref=cube)
     end
 
-    if !(ALG isa GreeDS)
-        des = ADI.fit(ALG, mav)
-        N = length(eachannulus(mav))
-        recons = reconstruct(des)
-        @test length(des) == length(recons) == N
-        S = reconstruct(ALG, mav)
-        @test S ≈ inverse(mav, recons)
-    end
+    des = ADI.fit(ALG, mav)
+    N = length(mav.indices)
+    recons = reconstruct(des)
+    @test length(des) == length(recons) == N
+    S = reconstruct(ALG, mav)
+    @test S ≈ inverse(mav, recons)
+
+    # test vector algs
+    S2 = reconstruct(repeat([ALG], N), mav)
+    @test S ≈ S2
+end
+
+@testset "av - framewise - $alg" for alg in [PCA(10), Classic()]
+    fr_alg = Framewise(alg)
+    # gets radius automatically
+    S1 = reconstruct(fr_alg, av; angles=angles, fwhm=4.7)
+    S2 = reconstruct(fr_alg, av; angles=angles, r=15, fwhm=4.7)
+    @test S1 ≈ S2
+end
+
+@testset "mav - framewise - $alg" for alg in [PCA(10), Classic()]
+    fr_alg = Framewise(alg)
+    # gets fwhm automatically
+    S1 = reconstruct(fr_alg, mav; angles=angles)
+    S2 = reconstruct(fr_alg, mav; angles=angles, fwhm=5)
+    @test S1 ≈ S2
+
+    # test repeated
+    k = length(mav.indices)
+    algs = Framewise(repeat([alg], k))
+    S3 = reconstruct(algs, mav; angles=angles)
+    @test S1 ≈ S3
 end

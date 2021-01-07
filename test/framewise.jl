@@ -13,3 +13,9 @@ using ADI: find_angles, compute_pa_thresh
     @test compute_pa_thresh(angles, r, fwhm, 1.5) ≈ 26.449102384427057
     @test compute_pa_thresh(angles, r, fwhm, 5) ≈ 36
 end
+
+@testset "framewise - $alg" for alg in [PCA(10), TPCA(10), NMF(2), Classic(), GreeDS()]
+
+    cube, angles = BetaPictoris[:cube, :pa]
+
+end
