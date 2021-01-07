@@ -14,8 +14,12 @@ using ADI: find_angles, compute_pa_thresh
     @test compute_pa_thresh(angles, r, fwhm, 5) ≈ 36
 end
 
-@testset "framewise - $alg" for alg in [PCA(10), TPCA(10), NMF(2), Classic(), GreeDS()]
+cube, angles = BetaPictoris[:cube, :pa]
 
-    cube, angles = BetaPictoris[:cube, :pa]
+@testset "framewise - $alg" for alg in [PCA(10), Classic()]
+    fr_alg = Framewise(alg)
+    S = reconstruct(fr_alg, cube; angles=angles, fwhm=4.7, r=15)
+    @test size(S) == size(cube)
 
+    @test fr_alg(cube, angles; r=15, fwhm=4.7) ≈ collapse!(cube .- S, angles)
 end
