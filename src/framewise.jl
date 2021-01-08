@@ -56,7 +56,7 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
     @withprogress name="annulus" begin
         i_ann = 0
         N_ann = length(cube.indices)
-        recons = map(anns, cube.radii) do (ann, r)
+        recons = map(anns, cube.radii) do ann, r
             pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
             S = similar(ann)
             i_angs = 0
@@ -88,7 +88,7 @@ function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; a
     @withprogress name="annulus" begin
         i_ann = 0
         N_ann = length(cube.indices)
-        recons = map(anns, cube.radii) do (ann, r)
+        recons = map(anns, cube.radii, alg.kernel) do ann, r, _alg
             pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
             S = similar(ann)
             @withprogress name="framewise" begin
@@ -99,7 +99,7 @@ function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; a
                     target = ann[j:j, :]
                     ref = ann[inds, :]
                     angs = angles[inds]
-                    des = fit(alg.kernel[i], target; kwargs..., ref=ref, angles=angs)
+                    des = fit(_alg, target; kwargs..., ref=ref, angles=angs)
                     S[j:j, :] .= reconstruct(des)
                     i_angs += 1
                     @logprogress i_angs/N_angs
