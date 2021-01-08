@@ -1,6 +1,6 @@
 
 cube, angles = BetaPictoris[:cube, :pa]
-av = AnnulusView(cube, inner=10, outer=20)
+av = AnnulusView(cube; inner=10, outer=20)
 mav = MultiAnnulusView(cube, 5)
 
 @testset "Annulus - $ALG" for ALG in [PCA(10), Classic(), NMF(3), GreeDS(3)]
@@ -42,7 +42,7 @@ end
     @test S ≈ inverse(mav, recons)
 
     # test vector algs
-    S2 = reconstruct(repeat([ALG], N), mav)
+    S2 = reconstruct(fill(ALG, N), mav)
     @test S ≈ S2
 end
 
@@ -63,7 +63,7 @@ end
 
     # test repeated
     k = length(mav.indices)
-    algs = Framewise(repeat([alg], k))
+    algs = Framewise(fill(alg, k))
     S3 = reconstruct(algs, mav; angles=angles)
     @test S1 ≈ S3
 end

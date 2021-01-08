@@ -27,9 +27,9 @@ function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, 
     return expand(S)
 end
 
-function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, r=cube.rmin + (cube.rmax - cube.rmin)/2, kwargs...)
+function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, r=_radius(cube), kwargs...)
     pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
-    data = cube(true)
+    data = cube(true) # as view
     S = similar(data)
     @withprogress name="framewise" begin
         n = 0
@@ -48,15 +48,16 @@ function reconstruct(alg::Framewise, cube::AnnulusView; ref=cube, angles, fwhm, 
     return inverse(cube, S)
 end
 
+_radius(cube::AnnulusView) = cube.rmin + (cube.rmax - cube.rmin)/2
+
 function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.width, kwargs...)
-    radii = cube.radii
-    itr = enumerate(eachannulus(cube, true))
     local recons
+    anns = eachannulus(cube, true) # as views
     @withprogress name="annulus" begin
         i_ann = 0
         N_ann = length(cube.indices)
-        recons = map(itr) do (i, ann)
-            pa_threshold = compute_pa_thresh(angles, radii[i], fwhm, alg.delta_rot)
+        recons = map(anns, cube.radii) do (ann, r)
+            pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
             S = similar(ann)
             i_angs = 0
             N_angs = length(angles)
@@ -82,14 +83,13 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
 end
 
 function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; angles, fwhm=cube.width, kwargs...)
-    radii = cube.radii
-    itr = enumerate(eachannulus(cube, true))
+    anns = eachannulus(cube, true) # as views
     local recons
     @withprogress name="annulus" begin
         i_ann = 0
         N_ann = length(cube.indices)
-        recons = map(itr) do (i, ann)
-            pa_threshold = compute_pa_thresh(angles, radii[i], fwhm, alg.delta_rot)
+        recons = map(anns, cube.radii) do (ann, r)
+            pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
             S = similar(ann)
             @withprogress name="framewise" begin
                 i_angs = 0
