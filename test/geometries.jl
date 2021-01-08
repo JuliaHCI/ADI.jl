@@ -44,6 +44,13 @@ end
     # test vector algs
     S2 = reconstruct(fill(ALG, N), mav)
     @test S ≈ S2
+    if !(ALG isa NMF)
+        S3 = reconstruct(fill(ALG, N), mav; ref=mav)
+        @test S ≈ S3
+    end
+    
+    # make sure ref is same type
+    @test_throws ErrorException reconstruct(fill(ALG, N), mav; ref=cube)
 end
 
 @testset "av - framewise - $alg" for alg in [PCA(10), Classic()]
