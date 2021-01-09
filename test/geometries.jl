@@ -73,4 +73,11 @@ end
     algs = Framewise(fill(alg, k))
     S3 = reconstruct(algs, mav; angles=angles)
     @test S1 ≈ S3
+
+    # test delta rot cases
+    fr_alg = Framewise(alg, delta_rot=(0.1, 1))
+    fr_alg2 = Framewise(alg, delta_rot=range(0.1, 1, length=k))
+    S1 = reconstruct(fr_alg, mav; angles=angles)
+    S2 = reconstruct(fr_alg2, mav; angles=angles)
+    @test S1 ≈ S2
 end
