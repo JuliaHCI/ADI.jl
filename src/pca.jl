@@ -85,7 +85,10 @@ function noise_decay_ncomps(data; collapse=false, noise_error=1e-3)
         if ncomp > firstindex(data, 1) + 2
             px_noise_decay = τ2 - noise
             @debug noise_decay=px_noise_decay noise=noise
-            px_noise_decay < noise_error && return ncomp
+            if px_noise_decay < noise_error
+                @info "noise threshold reached with $ncomp components"
+                return ncomp
+            end
         end
         # update recursion variables
         τ2, τ1 = τ1, noise
@@ -100,7 +103,9 @@ function pratio_ncomps(data; pratio=0.9)
     n = length(Λ)
     exp_var = @. Λ^2 / (n - 1)
     ratio_cumsum = cumsum(exp_var ./ sum(exp_var))
-    return last(searchsorted(ratio_cumsum, pratio))
+    k = last(searchsorted(ratio_cumsum, pratio))
+    @info "$(pratio*100)% of variance explained with $k components"
+    return k
 end
 
 """

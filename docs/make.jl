@@ -6,6 +6,7 @@ using Literate: markdown
 examplesdir(args...) = joinpath(@__DIR__, "..", "examples", args...)
 outdir = joinpath(@__DIR__, "src", "examples")
 markdown(examplesdir("betapictoris.jl"), outdir)
+markdown(examplesdir("geometries.jl"), outdir)
 
 # now do Documenter commands
 
@@ -41,7 +42,8 @@ makedocs(;
         "SDI" => "sdi.md",
         "Metrics" => "metrics.md",
         "Examples" => [
-            "examples/betapictoris.md"
+            "examples/betapictoris.md",
+            "examples/geometries.md"
         ],
         "Benchmarks" => "benchmarks.md",
         "Index" => "api.md"
