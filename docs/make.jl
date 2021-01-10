@@ -1,5 +1,6 @@
 using ADI
 using Documenter
+using HCIToolbox
 using Literate: markdown
 
 # weave in examples using literate
@@ -18,8 +19,10 @@ end
 
 DocMeta.setdocmeta!(ADI, :DocTestSetup, setup; recursive = true)
 
+doctest(ADI)
+
 makedocs(;
-    modules = [ADI],
+    modules = [ADI, HCIToolbox],
     authors = "Miles Lucas <mdlucas@hawaii.edu>",
     repo = "https://github.com/juliahci/ADI.jl/blob/{commit}{path}#L{line}",
     sitename = "ADI.jl",
@@ -39,6 +42,7 @@ makedocs(;
             "algorithms/greeds.md",
             "algorithms/api.md"
         ],
+        "Framewise" => "framewise.md",
         "SDI" => "sdi.md",
         "Metrics" => "metrics.md",
         "Examples" => [
@@ -48,6 +52,7 @@ makedocs(;
         "Benchmarks" => "benchmarks.md",
         "Index" => "api.md"
     ],
+    doctest = false
 )
 
 deploydocs(;

@@ -4,6 +4,37 @@ struct Framewise{AT} <: ADIAlgorithm
     delta_rot
 end
 
+"""
+    Framewise(alg; limit=Inf, delta_rot=1)
+    Framewise(algs::AbstractVector; limit=Inf, delta_rot=1)
+
+Wrap an algorithm such that the underlying data will be processed frame by frame. For each frame a reference library is created from the data. This reference can be filtered by rejecting frames which have not rotated a sufficient parallactic angle. `delta_rot` sets the required arc length for rotation in units of the FWHM. The number of frames retained can be specified with `limit`, e.g. the 4 closest frames in time with the target frame.
+
+Because the framewise application of an algorithm requires additional information, the following keyword arguments must be provided to [`reconstruct`](@ref) or [`subtract`](@ref).
+* `fwhm` - the FWHM of the instrument in pixels. Will be set to the width of a [`MultiAnnulusView`](@ref)
+* `angles` - the measured parallactic angles for each frame
+* `r` - The radius of the arc to calculate the parallactic angle threshold. Will be set automatically if using [`AnnulusView`](@ref) or [`MultiAnnulusView`](@ref).
+
+In addition, `Framewise` versions of algorithms do not implement [`ADI.fit`](@ref) and do not currently support RDI.
+
+## Annular reduction
+
+In the case of reducing a [`MultiAnnulusView`](@ref), a vector of algorithms can be used, each one corresponding to each annulus of the view. In this case, too, `delta_rot` can be given as a vector or as a tuple. If it is given as a tuple, `delta_rot` will increase linearly from the first value to the last value across each annulus.
+
+# Examples
+
+```julia
+julia> cube, angles = # load data
+
+julia> alg = PCA(10) # the algorithm to use on each reference
+
+julia> res = Framewise(alg)(cube, angles; r=10, fwhm=5);
+
+julia> mav = MultiAnnulusView(cube, 5; inner=5);
+
+julia> res_ann = Framewise(alg, delta_rot=(0.1, 1))(mav, angles);
+```
+"""
 Framewise(alg; limit=Inf, delta_rot=1) = Framewise(alg, limit, delta_rot)
 
 function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, kwargs...) where T

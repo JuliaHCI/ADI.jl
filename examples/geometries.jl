@@ -1,5 +1,5 @@
 #=
-# Exploring geometric and temporal filtering
+# [Exploring spatial and temporal filtering](@id ex2)
 
 This example will walk through a more advanced reduction exploiting geometric and temporal filtering techniques.
 
@@ -48,7 +48,7 @@ The four companions (HR8799b,c,d, and e) should be evident in this residual.
 
 Geometric filtering is the process of using sub-region(s) in each frame to use as the target and reference libraries. Geometric filtering is useful to select pixels with similar noise distributions, such as an annulus, as well as to reduce the total number of pixels, increasing runtime performance.
 
-For our example, lets start by looking at annuli for each companion and optimizing the number of principal components. We can use `HCIToolbox.AnnulusView` to wrap `cube` and filter the input. `AnnulusView` works by calculating the *indices* for a single annulus and creates a view into `cube` with those indices. It does not copy any data, and let's us access only the pixels within the annulus.
+For our example, lets start by looking at annuli for each companion and optimizing the number of principal components. We can use [`AnnulusView`](@ref) to wrap `cube` and filter the input. [`AnnulusView`](@ref) works by calculating the *indices* for a single annulus and creates a view into `cube` with those indices. It does not copy any data, and let's us access only the pixels within the annulus.
 =#
 av = AnnulusView(cube; inner=31, outer=51)
 imshow(av[1, :, :], xlim=(198, 304), ylim=(198, 304))
@@ -76,7 +76,7 @@ imshow(combined_res, title="PCA - Annular", xlim=(57, 445), ylim=(57, 445))
 #=
 ## Handling multiple annuli
 
-Instead of doing each annulus by hand, we can use `MultiAnnulusView` to assemble the annuli
+Instead of doing each annulus by hand, we can use [`MultiAnnulusView`](@ref) to assemble the annuli
 =#
 width = 20
 radii = [41, 67, 96, 173]
@@ -88,7 +88,7 @@ name = "PCA(noise_error=25) - Annular"
 push!(results, name => res)
 imshow(res, title=name, xlim=(57, 445), ylim=(57, 445))
 #=
-When reducing `MultiAnnulusView`, we can specify a separate algorithm for each annulus, and even combine that with [`Framewise`](@ref)
+When reducing [`MultiAnnulusView`](@ref), we can specify a separate algorithm for each annulus, and even combine that with [`Framewise`](@ref)
 =#
 algs = [PCA(6), PCA(5), PCA(5), PCA(3)]
 res = process(algs, mav, angles)
@@ -138,17 +138,18 @@ imshow(res, title=name, xlim=(57, 445), ylim=(57, 445))
 ## Gallery of results
 =#
 p = plot(layout=(2, 3), ticks=false, xlim=(57, 445), ylim=(57, 445),
-        aspect_ratio=1, size=(800, 400), dpi=95, titlefontsize=10)
+        aspect_ratio=1, size=(800, 400), titlefontsize=9)
 for (i, (name, res)) in enumerate(results)
     heatmap!(res; title=name, sp=i)
 end
 p #hide
 #=
+### S/N maps
 For comparing reductions, we'll use signal-to-noise ratio (S/N, SNR) of the residual frame. All the frames below are shown on the same color scale, from S/N=0 to 13.
 =#
-p = plot(layout=(2, 3), size=(800, 600), clim=(0, 13),
+p = plot(layout=(2, 3), size=(800, 550), clim=(0, 13),
         cbar=false, ticks=false, aspect_ratio=1, xlim=(57, 445),
-        ylim=(57, 445), titlefontsize=8)
+        ylim=(57, 445), titlefontsize=9)
 for (i, (name, res)) in enumerate(results)
     sn = detectionmap(res, fwhm)
     heatmap!(sn; title=name, sp=i)
