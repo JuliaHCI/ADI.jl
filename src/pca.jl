@@ -43,7 +43,7 @@ function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # get number of components (using dispatch for symbolic args)
     k = get_ncomps(alg.ncomps, ref; alg.opts...)
     # fit SVD to get principal subspace of reference
-    decomp = svd(ref)
+    decomp = svd(collect(ref))
     # Get the principal components (principal subspace) and weights
     P = decomp.Vt[1:k, :]
     weights = data * P'
@@ -76,7 +76,7 @@ function noise_decay_ncomps(data; collapse=false, noise_error=1e-3)
     P = svd(X).Vt
     tmpr = similar(data)
     τ1 = τ2 = 0
-    @progress "Optimizing ncomps using residual noise" for ncomp in axes(data, 1)
+    @progress name="Optimizing ncomps using residual noise" for ncomp in axes(data, 1)
         Pv = @view P[1:ncomp, :]
         tmpr .= X * (I - Pv'Pv)
         # calculate noise (standard deviation) optionally collapsing
@@ -85,7 +85,10 @@ function noise_decay_ncomps(data; collapse=false, noise_error=1e-3)
         if ncomp > firstindex(data, 1) + 2
             px_noise_decay = τ2 - noise
             @debug noise_decay=px_noise_decay noise=noise
-            px_noise_decay < noise_error && return ncomp
+            if px_noise_decay < noise_error
+                @info "noise threshold reached with $ncomp components"
+                return ncomp
+            end
         end
         # update recursion variables
         τ2, τ1 = τ1, noise
@@ -100,7 +103,9 @@ function pratio_ncomps(data; pratio=0.9)
     n = length(Λ)
     exp_var = @. Λ^2 / (n - 1)
     ratio_cumsum = cumsum(exp_var ./ sum(exp_var))
-    return last(searchsorted(ratio_cumsum, pratio))
+    k = last(searchsorted(ratio_cumsum, pratio))
+    @info "$(pratio*100)% of variance explained with $k components"
+    return k
 end
 
 """
@@ -124,7 +129,7 @@ function fit(alg::TPCA, data::AbstractMatrix; ref=data, kwargs...)
     # TODO using automatic methods is not valid for TPCA using different SVD methods
     k = get_ncomps(alg.ncomps, ref; alg.opts...)
     # fit SVD to get principal subspace of reference
-    U, Σ, V = tsvd(ref, k)
+    U, Σ, V = tsvd(collect(ref), k)
     # Get the principal components (principal subspace) and weights
     P = V'
     weights = data * P'

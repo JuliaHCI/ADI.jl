@@ -10,12 +10,13 @@ using StructArrays
 
 export reconstruct,
        subtract,
-       decompose,
+       process,
        Classic,
        PCA,
        GreeDS,
        TPCA,
        NMF,
+       Framewise,
        SingleSDI,
        DoubleSDI,
        SliceSDI
@@ -25,6 +26,7 @@ include("common.jl")
 include("design.jl")
 
 # further techniques
+include("framewise.jl")
 include("sdi.jl")
 
 # algorithms

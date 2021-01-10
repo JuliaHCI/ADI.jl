@@ -10,7 +10,7 @@ results = []
 
 # julia benchmarks
 
-julia_algs = (Median(), PCA(20), NMF(20))
+julia_algs = (Classic(), PCA(20), NMF(20))
 
 for dataset in (BetaPictoris, HR8799)
     @info "Benchmarking - $dataset ADI Reduction"

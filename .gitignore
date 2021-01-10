@@ -7,3 +7,6 @@ Manifest.toml
 /docs/src/examples/
 
 venv
+env
+
+/test.jl

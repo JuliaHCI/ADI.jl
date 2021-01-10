@@ -1,10 +1,12 @@
 # This file is machine-generated - editing it directly is not advised
 
 [[ADI]]
-deps = ["CoordinateTransformations", "Dierckx", "Distributions", "FillArrays", "HCIToolbox", "ImageTransformations", "LinearAlgebra", "NMF", "Parameters", "Photometry", "ProgressLogging", "Reexport", "Rotations", "Setfield", "StaticArrays", "StaticKernels", "Statistics", "StatsBase", "TSVD", "UnPack"]
-git-tree-sha1 = "db30d53ec949981e6bb22c16dd92147e0ff7699d"
+deps = ["CoordinateTransformations", "Dierckx", "Distributions", "FillArrays", "HCIToolbox", "ImageTransformations", "LinearAlgebra", "NMF", "Photometry", "ProgressLogging", "Reexport", "Rotations", "Setfield", "StaticArrays", "StaticKernels", "Statistics", "StatsBase", "StructArrays", "TSVD"]
+git-tree-sha1 = "90f939e1f1d857ef480749b054a26a4208ab854c"
+repo-rev = "master"
+repo-url = "https://github.com/JuliaHCI/ADI.jl.git"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"
-version = "0.5.5"
+version = "0.6.0"
 
 [[AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -896,6 +898,12 @@ deps = ["Rmath", "SpecialFunctions"]
 git-tree-sha1 = "3b9f665c70712af3264b61c27a7e1d62055dafd1"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "0.9.6"
+
+[[StructArrays]]
+deps = ["Adapt", "DataAPI", "Tables"]
+git-tree-sha1 = "8099ed9fb90b6e754d6ba8c6ed8670f010eadca0"
+uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
+version = "0.4.4"
 
 [[StructTypes]]
 deps = ["Dates", "UUIDs"]

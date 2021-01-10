@@ -39,7 +39,10 @@ function subtract(alg::NMF, cube; kwargs...)
     return target .- S
 end
 
-function fit(alg::NMF, data::AbstractMatrix{T}) where T
+function fit(alg::NMF, data::AbstractMatrix{T}; kwargs...) where T
+    if :ref in keys(kwargs)
+       throw(ArgumentError("RDI not supported for NMF (yet)"))
+    end
     if any(<(0), data)
         @warn "Negative values encountered in input. Make sure to rescale your data"
     end
@@ -49,7 +52,7 @@ function fit(alg::NMF, data::AbstractMatrix{T}) where T
         k = min(alg.ncomps, size(data, 1))
     end
 
-    W, H = nndsvd(data, k)
+    W, H = nndsvd(collect(data), k)
     solve!(CoordinateDescent{T}(), data, W, H)
     return LinearDesign(H, W)
 end

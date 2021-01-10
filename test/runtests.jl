@@ -1,5 +1,5 @@
 using ADI
-using HCIToolbox
+using HCIDatasets: BetaPictoris
 using LinearAlgebra
 using PSFModels
 using StableRNGs
@@ -20,5 +20,6 @@ rng = StableRNG(8799)
 end
 
 @testset "SDI" begin include("sdi.jl") end
+@testset "Framewise" begin include("framewise.jl") end
 @testset "Geometries" begin include("geometries.jl") end
 

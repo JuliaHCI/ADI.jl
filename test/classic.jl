@@ -1,6 +1,7 @@
 
+cube, angles = BetaPictoris[:cube, :pa]
+
 @testset "interface" begin
-    cube = randn(rng, 10, 101, 101) .+ 100
     X = flatten(cube)
     med = median(X, dims=1)
 
@@ -14,8 +15,6 @@
 end
 
 @testset "evaluation" begin
-    cube = randn(rng, 10, 101, 101) .+ 100
-    angles = 90 .* rand(rng, 10)
     res = Classic()(cube, angles)
     res2 = Classic()(cube, angles, ref=cube)
     @test res == res2

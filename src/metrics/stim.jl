@@ -1,5 +1,3 @@
-using Statistics
-
 """
     stimmap(residuals, angles)
 

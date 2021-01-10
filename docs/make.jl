@@ -1,11 +1,13 @@
 using ADI
 using Documenter
+using HCIToolbox
 using Literate: markdown
 
 # weave in examples using literate
 examplesdir(args...) = joinpath(@__DIR__, "..", "examples", args...)
 outdir = joinpath(@__DIR__, "src", "examples")
 markdown(examplesdir("betapictoris.jl"), outdir)
+markdown(examplesdir("geometries.jl"), outdir)
 
 # now do Documenter commands
 
@@ -17,8 +19,10 @@ end
 
 DocMeta.setdocmeta!(ADI, :DocTestSetup, setup; recursive = true)
 
+doctest(ADI)
+
 makedocs(;
-    modules = [ADI],
+    modules = [ADI, HCIToolbox],
     authors = "Miles Lucas <mdlucas@hawaii.edu>",
     repo = "https://github.com/juliahci/ADI.jl/blob/{commit}{path}#L{line}",
     sitename = "ADI.jl",
@@ -38,14 +42,17 @@ makedocs(;
             "algorithms/greeds.md",
             "algorithms/api.md"
         ],
+        "Framewise" => "framewise.md",
         "SDI" => "sdi.md",
         "Metrics" => "metrics.md",
         "Examples" => [
-            "examples/betapictoris.md"
+            "examples/betapictoris.md",
+            "examples/geometries.md"
         ],
         "Benchmarks" => "benchmarks.md",
         "Index" => "api.md"
     ],
+    doctest = false
 )
 
 deploydocs(;

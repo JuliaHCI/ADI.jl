@@ -14,7 +14,7 @@ To extend `ADIAlgorithm` you may implement the following
 
 Fit the data (flattened into a matrix). To support RDI, ensure the `ref` keyword argument is usable (`ref` is also a flattened matrix). This is the only method you *need* to implement for a new `ADIAlgorithm`, along with a suitable [`ADIDesign`](@ref).
 
-ADI.jl automatically coaxes the `cube` input into a matrix for use with `fit`, appropriately handling the various geometries. If a given algorithm doesn't support the default operations, all that needs to be done is override the default behavior (for an example, see the [`GreeDS`](@ref) implementation).
+ADI.jl automatically coaxes the `cube` input into a matrix for use with `fit`, appropriately handling the various geometries. When available, this input is a view, so if the algorithm requires dense arrays, make sure to call `collect` when appropriate. If a given algorithm doesn't support the default operations, all that needs to be done is override the default behavior (for an example, see the [`GreeDS`](@ref) implementation).
 
 ---
 
@@ -30,9 +30,10 @@ Fit the data using the algorithm and return a cube that has had the PSF estimate
 
 ---
 
+    process(::ADIAlgorithm, cube; kwargs...)
     (::ADIAlgorithm)(cube; kwargs...)
 
-Fully process the data (estimate, subtract, collapse). By default, derotates and collapses output from [`subtract`](@ref).
+Fully process the data (estimate, subtract, collapse). By default, derotates and collapses output from [`subtract`](@ref). You only need to define [`process`](@ref), since the functor version is supplied automatically.
 """
 abstract type ADIAlgorithm end
 
@@ -53,10 +54,10 @@ function fit(alg::ADIAlgorithm, cube::AbstractArray{T,3}; kwargs...) where T
     return fit(alg, data; kwargs...)
 end
 function fit(alg::ADIAlgorithm, cube::AnnulusView; kwargs...)
-    data = cube()
+    data = cube(true) # as view
     if :ref in keys(kwargs)
         kwargs[:ref] isa AnnulusView || error("reference data geometry does not match target data")
-        ref_data = kwargs[:ref]()
+        ref_data = kwargs[:ref](true)
         return fit(alg, data; kwargs..., ref=ref_data)
     end
     return fit(alg, data; kwargs...)
@@ -65,11 +66,24 @@ end
 function fit(alg::ADIAlgorithm, cube::MultiAnnulusView; kwargs...)
     if :ref in keys(kwargs)
         kwargs[:ref] isa MultiAnnulusView || error("reference data geometry does not match target data")
-        anns = eachannulus(cube)
-        ref_anns = eachannulus(kwargs[:ref])
+        anns = eachannulus(cube, true)
+        ref_anns = eachannulus(kwargs[:ref], true)
         return StructArray(fit(alg, ann; kwargs..., ref=ref_ann) for (ann, ref_ann) in zip(anns, ref_anns))
     else
-        return StructArray(fit(alg, ann; kwargs...) for ann in eachannulus(cube))
+        return StructArray(fit(alg, ann; kwargs...) for ann in eachannulus(cube, true))
+    end
+end
+
+function fit(algs::AbstractVector{<:ADIAlgorithm}, cube::MultiAnnulusView; kwargs...)
+    if :ref in keys(kwargs)
+        kwargs[:ref] isa MultiAnnulusView || error("reference data geometry does not match target data")
+        anns = eachannulus(cube, true)
+        ref_anns = eachannulus(kwargs[:ref], true)
+        itr = zip(algs, anns, ref_anns)
+        return StructArray(fit(alg, ann; kwargs..., ref=ref_ann) for (alg, ann, ref_ann) in itr)
+    else
+        itr = zip(algs, eachannulus(cube, true))
+        return StructArray(fit(alg, ann; kwargs...) for (alg, ann) in itr)
     end
 end
 
@@ -91,7 +105,7 @@ true
 julia> flat_res = collapse(cube .- S, angles); # form resid, derotate, and combine
 ```
 """
-function reconstruct(alg::ADIAlgorithm, cube; kwargs...)
+function reconstruct(alg, cube; kwargs...)
     design = fit(alg, cube; kwargs...)
     S = reconstruct(design)
     return expand_geometry(cube, S)
@@ -119,16 +133,26 @@ true
 julia> flat_res = collapse(R, angles); # derotate, and combine
 ```
 """
-function subtract(alg::ADIAlgorithm, cube; kwargs...)
+function subtract(alg, cube; kwargs...)
     S = reconstruct(alg, cube; kwargs...)
     return cube .- S
+end
+
+
+
+"""
+    process(::ADIAlgorithm, cube, angles; [ref], kwargs...)
+
+Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. Keyword arguments will be passed to [`ADI.fit`](@ref).
+"""
+function process(alg, cube, angles; method=:deweight, kwargs...)
+    R = subtract(alg, cube; angles=angles, kwargs...)
+    return collapse!(R, angles, method=method)
 end
 
 """
     (::ADIAlgorithm)(cube, angles; [ref], kwargs...)
 
-Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. Keyword arguments will be passed to [`ADI.fit`](@ref).
+Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. This is a convenient alias for calling [`process`](@ref) Keyword arguments will be passed to [`ADI.fit`](@ref).
 """
-function (alg::ADIAlgorithm)(cube, angles; method=:deweight, kwargs...)
-    return collapse!(subtract(alg, cube; kwargs...), angles, method=method)
-end
+(alg::ADIAlgorithm)(args...; kwargs...) = process(alg, args...; kwargs...)
