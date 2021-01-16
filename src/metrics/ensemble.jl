@@ -18,7 +18,7 @@ julia> cube, angles = # load data
 
 julia> algs = PCA.(5:25);
 
-julia> residual_cubes = subtract(algs, cube);
+julia> residual_cubes = subtract.(algs, Ref(cube));
 
 julia> stim_av, slimmask = slimmap(residual_cubes, angles; N=100);
 
@@ -33,26 +33,14 @@ julia> slim_prob_map = stim_av .* slimmask;
 
 [`stimmap`](@ref), [`stim`](@ref)
 """
-function slimmap(cubes::AbstractVector{CT}, angles; N) where {T,CT<:AbstractArray{T,3}}
-    # simulatenous calculate mask and mean map
-    stim_av = similar(first(cubes), size(first(cubes))[2:3]...)
-    mask_av = similar(stim_av)
-    η = 1 / length(cubes)
-    Threads.@threads for residual in cubes
-        stim_map = stimmap(residual, angles)
-        stim_av .+= stim_map
-        # get Nth brightest pixel as mask threshold
-        thresh = partialsort(vec(stim_map), N; rev=true)
-        @. mask_av[stim_map ≥ thresh] += η
-    end
-    # normalize to get mean
-    stim_av .*= η
-    return stim_av, mask_av
+function slimmap(cubes::AbstractVector{CT}, angles; kwargs...) where {T,CT<:AbstractArray{T,3}}
+    stimmaps = map(resid -> stimmap(resid, angles), cubes)
+    return slimmap(stimmaps; kwargs...)
 end
 
-function slimmap(stimmaps::AbstractVector{ST}; N) where {ST<:AbstractMatrix}
+function slimmap(stimmaps::AbstractVector{ST}; N) where {T,ST<:AbstractMatrix{T}}
     # simulatenous calculate mask and mean map
-    stim_av = similar(first(stimmaps))
+    stim_av = zero(first(stimmaps))
     mask_av = zero(stim_av)
     η = 1 / length(stimmaps)
     Threads.@threads for stim_map in stimmaps

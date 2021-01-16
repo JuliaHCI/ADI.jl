@@ -13,7 +13,7 @@ end
 
 @testset "significance" begin
     test_method(significance)
-    
+
     X = randn(rng, 101, 101) .+ 10
     # expect small sample to matter ~3fwhm out
     @test abs(significance(X, (58, 51), 3)) < abs(snr(X, (58, 51), 3))
@@ -49,4 +49,22 @@ end
     @test smt ≈ smt2
     @test smt ≈ 0.5 rtol=1e-2
 
+end
+
+@testset "slim map" begin
+    cube, angles = BetaPictoris[:cube, :pa]
+
+    resid_cubes = subtract.(PCA.(5:10), Ref(cube))
+    stim_maps = stimmap.(resid_cubes, Ref(angles))
+    # 1
+    stim_av, mask = slimmap(stim_maps; N=20)
+    slim1 = stim_av .* mask
+    #2
+    stim_av, mask = slimmap(resid_cubes, angles; N=20)
+    slim2 = stim_av .* mask
+
+    @test slim1 ≈ slim2
+
+    # make sure beta pic b was found
+    @test slim1[62, 62] > 0.5
 end
