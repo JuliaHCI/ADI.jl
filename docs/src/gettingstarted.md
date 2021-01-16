@@ -121,7 +121,7 @@ Some notable libraries for HCI tasks include [VIP](https://github.com/vortex-exo
 
 | - | Pre. | Algs. | Techs. | D.M. | F.M. |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| ADI.jl | ✗ | median, PCA, NMF, fixed-point GreeDS | Full-frame ADI/RDI, SDI (experimental), annular ADI* | detection maps, STIM, contrast curve | ✗ |
+| ADI.jl | ✗ | median, PCA, NMF, fixed-point GreeDS | Full-frame ADI/RDI, SDI (experimental), annular ADI* | detection maps, STIM, SLIMask, contrast curve | ✗ |
 | VIP | ✓ | median, LOCI, PCA, NMF, LLSG, ANDROMEDA, pairwise frame differencing | Full-frame ADI/RDI, SDI, annular ADI/RDI* | detection maps, blob detection, STIM, ROC, contrast curve | NegFC |
 | pyKLIP | ✗ | PCA, NMF, weighted PCA | Full-frame ADI/RDI, SDI, annular ADI/RDI | detection maps, blob detection, contrast curve, cross-correlation | KLIP-FM, Planet Evidence, matched filter (FMMF), spectrum fitting, DiskFM |
 | PynPoint | ✓ | median, PCA | Full-frame ADI/RDI, SDI | detection maps, contrast curve | ✗ |
