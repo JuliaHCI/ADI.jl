@@ -12,10 +12,12 @@ export detectionmap,
        contrast_curve,
        throughput,
        stimmap,
+       slimmap,
        stim_threshold
 
 include("contrast.jl")
 include("snr.jl")
 include("stim.jl")
+include("ensemble.jl")
 
 end

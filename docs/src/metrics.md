@@ -8,7 +8,7 @@ Modules = [ADI.Metrics]
 ADI.Metrics
 ```
 
-## Detection Maps
+## Detection maps
 
 ```@docs
 detectionmap
@@ -20,13 +20,21 @@ stim_threshold
 Metrics.stim
 ```
 
+## Ensemble methods
+
+The following methods utilize the results of multiple ADI reductions, in some form.
+
+```@docs
+slimmap
+```
+
 ## Throughput
 
 ```@docs
 throughput
 ```
 
-## Contrast Curve
+## Contrast curve
 
 ```@docs
 contrast_curve

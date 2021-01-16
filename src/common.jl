@@ -88,7 +88,7 @@ function fit(algs::AbstractVector{<:ADIAlgorithm}, cube::MultiAnnulusView; kwarg
 end
 
 """
-    reconstruct(::ADIAlgorithm, cube; [ref], kwargs...)
+    reconstruct(alg, cube; [ref], kwargs...)
 
 Reconstruct the PSF approximation for the given algorithm, using `ref` as the reference cube if given and supported by the algorithm.
 
@@ -116,7 +116,7 @@ expand_geometry(cube::AnnulusView, arr) = inverse(cube, arr)
 expand_geometry(cube::MultiAnnulusView, arrs) = inverse(cube, arrs)
 
 """
-    subtract(::ADIAlgorithm, cube; [ref], kwargs...)
+    subtract(alg, cube; [ref], kwargs...)
 
 Reconstruct the PSF approximation for the given algorithm and subtract it from `cube`, using `ref` as the reference cube if given and supported by the algorithm.
 
@@ -141,7 +141,7 @@ end
 
 
 """
-    process(::ADIAlgorithm, cube, angles; [ref], kwargs...)
+    process(alg, cube, angles; [ref], kwargs...)
 
 Fully process an ADI data cube using [`subtract`](@ref) and collapsing the residuals. Keyword arguments will be passed to [`ADI.fit`](@ref).
 """
