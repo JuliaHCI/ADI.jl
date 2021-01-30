@@ -6,6 +6,10 @@ using StableRNGs
 using Statistics
 using Test
 
+if get(ENV, "CI", "false") == "true"
+   ENV["DATADEPS_ALWAYS_ACCEPT"] = true 
+end
+
 rng = StableRNG(8799)
 
 @testset "Classic" begin include("classic.jl") end
