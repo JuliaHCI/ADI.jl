@@ -56,10 +56,10 @@ end
     data = ones(10, 100, 100) 
     angs = zeros(10)
 
-    reduced_3 = GreeDS(NMF(3))(data, angs)
     reduced_5 = GreeDS(NMF(5))(data, angs)
+    reduced_10 = GreeDS(NMF(10))(data, angs)
 
-    @test size(reduced_3) == size(reduced_5) == (100, 100)
-    @test all(≈(0, atol=1e-9), reduced_3)
+    @test size(reduced_5) == size(reduced_10) == (100, 100)
     @test all(≈(0, atol=1e-9), reduced_5)
+    @test all(≈(0, atol=1e-9), reduced_10)
 end
