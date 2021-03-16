@@ -26,7 +26,9 @@ end
 GreeDS(alg=PCA(); threshold=0) = GreeDS(alg, threshold)
 GreeDS(ncomps::Int; threshold=0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
 
-function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data, kwargs...) where {T,S}
+const PCALIKE = Union{PCA,TPCA,NMF}
+
+function fit(alg::GreeDS{<:PCALIKE}, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data, kwargs...) where {T,S}
     target = flatten(ref)
     # get the number of components as a range from the underlying alg
     max_ncomps = get_ncomps(alg.kernel.ncomps, target)
@@ -54,7 +56,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     return design
 end
 
-function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::AnnulusView=data, kwargs...)
+function fit(alg::GreeDS{<:PCALIKE}, data::AnnulusView; angles, ref::AnnulusView=data, kwargs...)
     target = data()
     tmpAnn = copy(data)
     # get the number of components as a range from the underlying alg
