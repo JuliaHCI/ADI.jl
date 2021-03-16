@@ -85,19 +85,6 @@ function fit(alg::GreeDS{<:PCALIKE}, data::AnnulusView; angles, ref::AnnulusView
     return design
 end
 
-# function reconstruct(alg::GreeDS, data::MultiAnnulusView; kwargs...)
-#     @warn "GreeDS does not support multi-annulus decomposition; converting to full-frame"
-#     X = flatten(collect())
-#     des = fit(alg, collect(data); kwargs...)
-#     return expand(reconstruct(des))
-# end
-
-# function fit(alg::GreeDS, data::MultiAnnulusView; kwargs...)
-#     @warn "GreeDS does not support multi-annulus decomposition; converting to full-frame"
-#     cube = collect(data)
-#     return fit(alg, cube; kwargs...)
-# end
-
 """
     expand_rotate(frame, angles, threshold; kwargs...)
 
@@ -105,7 +92,7 @@ Takes a frame, expands it into a cube, rotates it clockwise by `angles`, and min
 """
 function expand_rotate(frame, angles, threshold; kwargs...)
     N = length(angles)
-    _frame = @. ifelse(frame > threshold, frame, threshold)
+    _frame = max.(frame, threshold)
     cube = similar(frame, N, size(frame)...)
     Threads.@threads for idx in axes(cube, 1)
         cube[idx, :, :] .= derotate(_frame, -angles[idx]; kwargs...)
