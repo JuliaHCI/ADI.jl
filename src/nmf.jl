@@ -17,9 +17,6 @@ If `ncomps` is `nothing`, it will be set to the number of frames in the referenc
     ```
     When doing full-frame reduction (e.g. `NMF()(cube, angles)`) *this is handled automatically*, so this constraint only applies to the lower-level API and methods which rely on those, such as [`GreeDS`](@ref). **In general, if you see warnings, heed them.**
 
-!!! compat "RDI"
-    RDI is not currently supported for NMF due to upstream limitations in NMF.jl
-
 # References
 1. [Ren et al. 2018](http://adsabs.harvard.edu/abs/2018ApJ...852..104R) Non-negative Matrix Factorization: Robust Extraction of Extended Structures
 """

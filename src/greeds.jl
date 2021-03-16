@@ -13,7 +13,7 @@ This method is an iterative approach to standard ADI reduction which seeks to mi
     The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically. It is important to clarify, *these angles should correspond to the reference data in the case of RDI*, e.g. `GreeDS()(cube, angles; ref=ref_cube, angles=ref_angles)`
 
 # Algorithms
-Currently only [`PCA`](@ref) and [`TPCA`](@ref) work properly with the GreeDS algorithm.
+The following algorithms work natively with GreeDS: [`PCA`](@ref), [`TPCA`](@ref), and [`NMF`](@ref)
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
