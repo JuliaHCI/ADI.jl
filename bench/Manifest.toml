@@ -2,7 +2,7 @@
 
 [[ADI]]
 deps = ["CoordinateTransformations", "Dierckx", "Distributions", "FillArrays", "HCIToolbox", "ImageTransformations", "LinearAlgebra", "Logging", "NMF", "Photometry", "ProgressLogging", "Reexport", "Rotations", "Setfield", "StaticArrays", "StaticKernels", "Statistics", "StatsBase", "StructArrays", "TSVD"]
-git-tree-sha1 = "ef5b4fc2b6305a803ba0e324e1877c71d767fe05"
+git-tree-sha1 = "5e376604ed51755e64134fc914f3f8fcf3cb7ad9"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaHCI/ADI.jl.git"
 uuid = "904a6c7d-4c1b-562f-9573-ab2e7e1c7946"

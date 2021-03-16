@@ -9,14 +9,14 @@ The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is 
 The benchmarks here can be found in the [`bench/`](https://github.com/JuliaHCI/ADI.jl/blob/master/bench/) folder organized into Julia files. The benchmarks utilize BenchmarkTools.jl, PyCall.jl with `virtualenv`, and CSV.jl for accuracy, reproducibility, and organization.
 
 ```
-Julia Version 1.5.0
-Commit 96786e22cc (2020-08-01 23:44 UTC)
+Julia Version 1.6.0-beta1
+Commit b84990e1ac* (2021-01-08 12:42 UTC)
 Platform Info:
-  OS: macOS (x86_64-apple-darwin18.7.0)
+  OS: macOS (x86_64-apple-darwin19.6.0)
   CPU: Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz
   WORD_SIZE: 64
   LIBM: libopenlibm
-  LLVM: libLLVM-9.0.1 (ORCJIT, skylake)
+  LLVM: libLLVM-11.0.0 (ORCJIT, skylake)
 Environment:
   JULIA_NUM_THREADS = 4
 ```
