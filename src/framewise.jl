@@ -90,7 +90,7 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
             end
             # update progress
             i_ann += 1
-            @logprogress i_ann/N_ann thresh=pa_threshold
+            @logprogress i_ann/N_ann
             return S
         end
     end

@@ -37,6 +37,8 @@ Fully process the data (estimate, subtract, collapse). By default, derotates and
 """
 abstract type ADIAlgorithm end
 
+Base.broadcastable(alg::ADIAlgorithm) = Ref(alg)
+
 """
     ADI.fit(::ADIAlgorithm, cube; [ref], kwargs...)
 

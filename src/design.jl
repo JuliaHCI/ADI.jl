@@ -39,6 +39,9 @@ design(des::LinearDesign) = des.basis, des.coeffs
 reconstruct(des::LinearDesign) = des.coeffs * des.basis
 Base.iterate(des::LinearDesign, state=1) = iterate(design(des), state)
 
+design(mat::AbstractMatrix) = mat
+reconstruct(mat::AbstractMatrix) = mat
+
 """
     ADI.design(::ADIDesign)
 
