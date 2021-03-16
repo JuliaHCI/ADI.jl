@@ -53,7 +53,7 @@ end
     @test_throws ErrorException reconstruct(fill(ALG, N), mav; ref=cube)
 end
 
-@testset "av - framewise - $alg" for alg in [PCA(10), Classic()]
+@testset "av - framewise - $alg" for alg in [PCA(10), NMF(2), Classic()]
     fr_alg = Framewise(alg)
     # gets radius automatically
     S1 = reconstruct(fr_alg, av; angles=angles, fwhm=4.7)
@@ -61,7 +61,7 @@ end
     @test S1 ≈ S2
 end
 
-@testset "mav - framewise - $alg" for alg in [PCA(10), Classic()]
+@testset "mav - framewise - $alg" for alg in [PCA(10), NMF(2), Classic()]
     fr_alg = Framewise(alg)
     # gets fwhm automatically
     S1 = reconstruct(fr_alg, mav; angles=angles)

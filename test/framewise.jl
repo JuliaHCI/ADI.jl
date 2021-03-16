@@ -16,7 +16,7 @@ end
 
 cube, angles = BetaPictoris[:cube, :pa]
 
-@testset "framewise - $alg" for alg in [PCA(10), Classic()]
+@testset "framewise - $alg" for alg in [PCA(10), NMF(3), Classic()]
     fr_alg = Framewise(alg)
     S = reconstruct(fr_alg, cube; angles=angles, fwhm=4.7, r=15)
     @test size(S) == size(cube)

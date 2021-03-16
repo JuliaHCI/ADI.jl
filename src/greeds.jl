@@ -13,7 +13,7 @@ This method is an iterative approach to standard ADI reduction which seeks to mi
     The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically. It is important to clarify, *these angles should correspond to the reference data in the case of RDI*, e.g. `GreeDS()(cube, angles; ref=ref_cube, angles=ref_angles)`
 
 # Algorithms
-Currently only [`PCA`](@ref) and [`TPCA`](@ref) work properly with the GreeDS algorithm.
+The following algorithms work natively with GreeDS: [`PCA`](@ref), [`TPCA`](@ref), and [`NMF`](@ref)
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
@@ -26,7 +26,9 @@ end
 GreeDS(alg=PCA(); threshold=0) = GreeDS(alg, threshold)
 GreeDS(ncomps::Int; threshold=0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
 
-function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data, kwargs...) where {T,S}
+const PCALIKE = Union{PCA,TPCA,NMF}
+
+function fit(alg::GreeDS{<:PCALIKE}, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data, kwargs...) where {T,S}
     target = flatten(ref)
     # get the number of components as a range from the underlying alg
     max_ncomps = get_ncomps(alg.kernel.ncomps, target)
@@ -54,7 +56,7 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AbstractArray{T,3}; angles, r
     return design
 end
 
-function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::AnnulusView=data, kwargs...)
+function fit(alg::GreeDS{<:PCALIKE}, data::AnnulusView; angles, ref::AnnulusView=data, kwargs...)
     target = data()
     tmpAnn = copy(data)
     # get the number of components as a range from the underlying alg
@@ -83,19 +85,6 @@ function fit(alg::GreeDS{<:Union{PCA,TPCA}}, data::AnnulusView; angles, ref::Ann
     return design
 end
 
-# function reconstruct(alg::GreeDS, data::MultiAnnulusView; kwargs...)
-#     @warn "GreeDS does not support multi-annulus decomposition; converting to full-frame"
-#     X = flatten(collect())
-#     des = fit(alg, collect(data); kwargs...)
-#     return expand(reconstruct(des))
-# end
-
-# function fit(alg::GreeDS, data::MultiAnnulusView; kwargs...)
-#     @warn "GreeDS does not support multi-annulus decomposition; converting to full-frame"
-#     cube = collect(data)
-#     return fit(alg, cube; kwargs...)
-# end
-
 """
     expand_rotate(frame, angles, threshold; kwargs...)
 
@@ -103,7 +92,7 @@ Takes a frame, expands it into a cube, rotates it clockwise by `angles`, and min
 """
 function expand_rotate(frame, angles, threshold; kwargs...)
     N = length(angles)
-    _frame = @. ifelse(frame > threshold, frame, threshold)
+    _frame = max.(frame, threshold)
     cube = similar(frame, N, size(frame)...)
     Threads.@threads for idx in axes(cube, 1)
         cube[idx, :, :] .= derotate(_frame, -angles[idx]; kwargs...)

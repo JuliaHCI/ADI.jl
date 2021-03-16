@@ -20,7 +20,7 @@ end
 end
 
 @testset "ADI Trivial" begin
-    data = ones(10, 100, 100) 
+    data = ones(10, 100, 100)
     angs = zeros(10)
 
     reduced_5 = NMF(5)(data, angs)
@@ -31,10 +31,8 @@ end
     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_10)
 end
 
-# @testset "RDI Trivial" begin
-#     data = randn(rng, 30, 101, 101)
-#     angles = sort!(90rand(rng, 30)) |> normalize_par_angles
-    
-#     S = data .- reconstruct(NMF(1), data, angles, zeros(10, 101, 101))
-#     @test S ≈ data rtol=2e-2
-# end
+@testset "RDI Trivial" begin
+    S = subtract(NMF(1), cube; ref=zero(cube))
+    targ = cube .- minimum(cube)
+    @test S ≈ targ rtol=2e-2
+end

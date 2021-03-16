@@ -29,8 +29,8 @@ end
     reduced_10 = GreeDS(PCA(10))(data, angs)
 
     @test size(reduced_5) == size(reduced_10) == (100, 100)
-    @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_5)
-    @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_10)
+    @test all(x -> isapprox(x, 0, atol=1e-9), reduced_5)
+    @test all(x -> isapprox(x, 0, atol=1e-9), reduced_10)
 end
 
 @testset "RDI Trivial" begin
@@ -52,19 +52,14 @@ end
     @test size(S) == size(cube)
 end
 
-# @testset "Decomposition - NMF" begin
-#     data = 4 .* randn(rng, 10, 101, 101) .+ 10
-#     angles = sort!(90randn(rng, 10)) |> normalize_par_angles
+@testset "Decomposition - NMF" begin
+    data = ones(10, 100, 100) 
+    angs = zeros(10)
 
-#     # get sizes correct for ncomps
-#     N = 3
-#     A, w = decompose(GreeDS(NMF(N)), data, angles)
-#     @test size(A) == (N, 101 * 101)
-#     @test size(w) == (10, N)
+    reduced_8 = GreeDS(NMF(8))(data, angs)
+    reduced_10 = GreeDS(NMF(10))(data, angs)
 
-#     @test_throws ErrorException decompose(GreeDS(NMF(40)), data, angles)
-
-#     # default is to use whole cube
-#     S = reconstruct(GreeDS(NMF()), data, angles)
-#     @test size(S) == (10, 101, 101)
-# end
+    @test size(reduced_8) == size(reduced_10) == (100, 100)
+    @test all(x -> isapprox(x, 0, atol=1e-8), reduced_8)
+    @test all(x -> isapprox(x, 0, atol=1e-7), reduced_10)
+end
