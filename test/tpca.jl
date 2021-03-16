@@ -28,8 +28,8 @@ end
 #     reduced_10 = TPCA(10)(cube, angles)
 
 #     @test size(reduced_5) == size(reduced_10) == (100, 100)
-#     @test all(≈(0, atol = 1e-9), reduced_5)
-#     @test all(≈(0, atol = 1e-9), reduced_10)
+#     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_5)
+#     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_10)
 # end
 
 # @testset "RDI Trivial" begin

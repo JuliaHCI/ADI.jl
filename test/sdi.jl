@@ -16,7 +16,7 @@ end
     reduced= ALG(cube, angles, scales)
 
     @test size(reduced) == (100, 100)
-    @test all(≈(0, atol = 1e-9), reduced)
+    @test all(x -> isapprox(x, 0, atol = 1e-9), reduced)
 end
 
 @testset "Trivial Double SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic(), GreeDS(2)),
@@ -28,7 +28,7 @@ end
     reduced = DoubleSDI(ALG1, ALG2)(cube, angles, scales)
 
     @test size(reduced) == (100, 100)
-    @test all(≈(0, atol = 1e-9), reduced)
+    @test all(x -> isapprox(x, 0, atol = 1e-9), reduced)
 end
 
 @testset "Trivial Slice SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic(), GreeDS(2)),
@@ -40,5 +40,5 @@ end
     reduced = SliceSDI(ALG1, ALG2)(cube, angles, scales)
 
     @test size(reduced) == (100, 100)
-    @test all(≈(0, atol = 1e-9), reduced)
+    @test all(x -> isapprox(x, 0, atol = 1e-9), reduced)
 end
