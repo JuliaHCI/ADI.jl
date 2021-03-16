@@ -29,21 +29,25 @@ end
 NMF(; ncomps=nothing) = NMF(ncomps)
 
 function subtract(alg::NMF, cube; kwargs...)
-    if any(<(0), cube)
-        target = copy(cube)
-        target .-= minimum(target)
+    target = normalize_nmf_input(cube)
+    if :ref in keys(kwargs)
+        ref_ = normalize_nmf_input(kwargs[:ref])
+        S = reconstruct(alg, target; kwargs..., ref=ref_)
     else
-        target = cube
+        S = reconstruct(alg, target; kwargs...)
     end
-    S = reconstruct(alg, target; kwargs...)
     return target .- S
 end
 
-function fit(alg::NMF, data::AbstractMatrix{T}; kwargs...) where T
-    if :ref in keys(kwargs)
-       throw(ArgumentError("RDI not supported for NMF (yet)"))
-    end
+function normalize_nmf_input(data)
     if any(<(0), data)
+        return data .- minimum(data)
+    end
+    return data
+end
+
+function fit(alg::NMF, data::AbstractMatrix{T}; ref=data, kwargs...) where T
+    if any(<(0), data) || any(<(0), ref)
         @warn "Negative values encountered in input. Make sure to rescale your data"
     end
     if alg.ncomps === nothing
@@ -52,39 +56,13 @@ function fit(alg::NMF, data::AbstractMatrix{T}; kwargs...) where T
         k = min(alg.ncomps, size(data, 1))
     end
 
-    W, H = nndsvd(collect(data), k)
-    solve!(CoordinateDescent{T}(), data, W, H)
+    X = collect(ref)
+    W, H = nndsvd(X, k)
+    solve!(CoordinateDescent{T}(), X, W, H)
+    if ref !== data
+        Y = collect(data)
+        W = Y * H'
+        solve!(CoordinateDescent{T}(update_H=false), Y, W, H)
+    end
     return LinearDesign(H, W)
 end
-
-# # TODO this doesn't quite match what sklearn does
-# function ADI.decompose(alg::NMF, cube, angles, cube_ref; kwargs...)
-#     if any(<(0), cube) || any(<(0), cube_ref)
-#         @warn "Negative values encountered in `cube` or `cube_ref`. Make sure to rescale your inputs"
-#     end
-#     X = flatten(cube)
-#     X_ref = flatten(cube_ref)
-
-#     k = isnothing(alg.ncomps) ? size(cube, 1) : alg.ncomps
-#     k > size(cube, 1) && error("ncomps ($k) cannot be greater than the number of frames ($(size(cube, 1)))")
-#     # fit H using reference
-#     _, H = nndsvd(X_ref, k)
-#     W = X * H'
-#     solve!(CoordinateDescent{eltype(X)}(), X, W, H)
-#     return H, W
-# end
-
-# function ADI.decompose(alg::NMF, cube, angles; kwargs...)
-#     # X = clamp.(flatten(cube), 0, Inf) # clamp non-negative values
-#     if any(<(0), cube)
-#         @warn "Negative values encountered in `cube`. Make sure to rescale your inputs"
-#     end
-#     X = flatten(cube)
-
-#     k = isnothing(alg.ncomps) ? size(cube, 1) : alg.ncomps
-#     k > size(cube, 1) && error("ncomps ($k) cannot be greater than the number of frames ($(size(cube, 1)))")
-
-#     W, H = nndsvd(X, k)
-#     solve!(CoordinateDescent{eltype(X)}(), X, W, H)
-#     return H, W
-# end
