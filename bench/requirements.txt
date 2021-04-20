@@ -32,7 +32,7 @@ photutils==0.7.2
 Pillow==8.1.1
 pluggy==0.13.1
 psutil==5.7.3
-py==1.9.0
+py==1.10.0
 pyct==0.4.8
 pyparsing==2.4.7
 PyPrind==2.11.2
