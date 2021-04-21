@@ -1,9 +1,10 @@
 
 cube, angles = BetaPictoris[:cube, :pa]
+cube .-= minimum(cube) # rescale so min is > 0
 av = AnnulusView(cube; inner=10, outer=20)
 mav = MultiAnnulusView(cube, 5)
 
-@testset "Annulus - $ALG" for ALG in [PCA(10), Classic(), NMF(3), GreeDS(3)]
+@testset "Annulus - $(nameof(typeof(ALG)))" for ALG in [PCA(10), Classic(), NMF(3), GreeDS(3)]
     res = ALG(av, angles)
     @test size(res) == (101, 101)
     if !(ALG isa NMF)
@@ -25,14 +26,12 @@ mav = MultiAnnulusView(cube, 5)
     @test size(S) == size(X) != size(flatten(cube))
 end
 
-@testset "MultiAnnulus - $ALG" for ALG in [PCA(10), Classic(), NMF(3)]
+@testset "MultiAnnulus - $(nameof(typeof(ALG)))" for ALG in [PCA(10), Classic(), NMF(3)]
     res = ALG(mav, angles)
     @test size(res) == (101, 101)
-    if !(ALG isa NMF)
-        res_rdi = ALG(mav, angles; ref=mav)
-        @test res ≈ res_rdi
-        @test_throws ErrorException ALG(mav, angles; ref=cube)
-    end
+    res_rdi = ALG(mav, angles; ref=mav)
+    @test res ≈ res_rdi
+    @test_throws ErrorException ALG(mav, angles; ref=cube)
 
     des = ADI.fit(ALG, mav)
     N = length(mav.indices)
@@ -44,16 +43,14 @@ end
     # test vector algs
     S2 = reconstruct(fill(ALG, N), mav)
     @test S ≈ S2
-    if !(ALG isa NMF)
-        S3 = reconstruct(fill(ALG, N), mav; ref=mav)
-        @test S ≈ S3
-    end
+    S3 = reconstruct(fill(ALG, N), mav; ref=mav)
+    @test S ≈ S3
     
     # make sure ref is same type
     @test_throws ErrorException reconstruct(fill(ALG, N), mav; ref=cube)
 end
 
-@testset "av - framewise - $alg" for alg in [PCA(10), NMF(2), Classic()]
+@testset "av - framewise - $(nameof(typeof(ALG)))" for alg in [PCA(10), NMF(2), Classic()]
     fr_alg = Framewise(alg)
     # gets radius automatically
     S1 = reconstruct(fr_alg, av; angles=angles, fwhm=4.7)
@@ -61,7 +58,7 @@ end
     @test S1 ≈ S2
 end
 
-@testset "mav - framewise - $alg" for alg in [PCA(10), NMF(2), Classic()]
+@testset "mav - framewise - $(nameof(typeof(ALG)))" for alg in [PCA(10), NMF(2), Classic()]
     fr_alg = Framewise(alg)
     # gets fwhm automatically
     S1 = reconstruct(fr_alg, mav; angles=angles)

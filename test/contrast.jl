@@ -1,8 +1,9 @@
 
 cube, angles, _psf = BetaPictoris[:cube, :pa, :psf]
+cube .-= minimum(cube) # rescale so minimum is >0
 psf = _psf ./ maximum(_psf)
 
-@testset "throughput - $alg" for alg in [Classic(), PCA(10), GreeDS(3)]
+@testset "throughput - $(nameof(typeof(alg)))" for alg in [Classic(), PCA(10), GreeDS(3)]
     tt, meta = throughput(alg, cube, angles, psf; fwhm=4)
 
     @test length(tt) == 10
@@ -15,7 +16,7 @@ psf = _psf ./ maximum(_psf)
     @test t1 ≈ t2
 end
 
-@testset "contrast - $alg" for alg in [Classic(), PCA(10), GreeDS(3)]
+@testset "contrast - $(nameof(typeof(alg)))" for alg in [Classic(), PCA(10), GreeDS(3)]
     cc = contrast_curve(alg, cube, angles, psf; fwhm=4)
 
     @test keys(cc) == (:distance, :throughput, :contrast, :contrast_corr, :noise)
@@ -35,7 +36,7 @@ end
     end
 end
 
-@testset "throughput - AnnulusView - $alg" for alg in [Classic(), PCA(10), GreeDS(3)]
+@testset "throughput - AnnulusView - $(nameof(typeof(alg)))" for alg in [Classic(), PCA(10), GreeDS(3)]
     av = AnnulusView(cube; inner=8)
     tt, meta = throughput(alg, av, angles, psf; fwhm=4)
 
@@ -49,7 +50,7 @@ end
     @test t1 ≈ t2
 end
 
-@testset "throughput - MultiAnnulusView - $alg" for alg in [Classic(), PCA(10)]
+@testset "throughput - MultiAnnulusView - $(nameof(typeof(alg)))" for alg in [Classic(), PCA(10)]
     av = MultiAnnulusView(cube, 4; inner=8)
     tt, meta = throughput(alg, av, angles, psf; fwhm=4)
 

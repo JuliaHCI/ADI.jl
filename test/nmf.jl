@@ -1,5 +1,6 @@
 
 cube, angles = BetaPictoris[:cube, :pa]
+cube .-= minimum(cube) # rescale so min is > 0
 
 @testset "Interface" begin
     @test NMF(5) == NMF(ncomps=5)

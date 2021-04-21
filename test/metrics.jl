@@ -60,8 +60,8 @@ end
     stim_av, mask = slimmap(stim_maps; N=20)
     slim1 = stim_av .* mask
     #2
-    stim_av, mask = slimmap(resid_cubes, angles; N=20)
-    slim2 = stim_av .* mask
+    stim_av2, mask2 = slimmap(resid_cubes, angles; N=20)
+    slim2 = stim_av2 .* mask2
 
     @test slim1 ≈ slim2
 
