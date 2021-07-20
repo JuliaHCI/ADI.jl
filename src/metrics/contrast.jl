@@ -162,7 +162,7 @@ end
 # simple function to inline the contrast calculation _and_ clipping
 @inline function calculate_contrast(k, unit_contrast)
     contrast = k * unit_contrast
-    return 0 ≤ contrast ≤ 1 ? contrast : NaN
+    return ifelse(0 ≤ contrast ≤ 1, contrast, oftype(contrast, NaN))
 end
 
 function savgol_coeffs(window_size, order=2)
