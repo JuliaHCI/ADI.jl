@@ -52,7 +52,7 @@ function contrast_curve(alg, cube, angles, psf, args...;
         starphot=Metrics.estimate_starphot(cube, fwhm),
         fc_rad_sep=3, snr=100, k=2, smooth=true,
         subsample=true, kwargs...)
-
+    starphot > 0 || @warn "starphot should be positive but was $starphot"
     # measure the noise and throughput in consecutive resolution elements
     # across azimuthal branches
     @info "Calculating Throughput"
