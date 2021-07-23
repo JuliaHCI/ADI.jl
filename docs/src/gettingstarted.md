@@ -16,7 +16,7 @@ The parallactic angles should be stored as *degrees* in a vector. The parallacti
 
 For standard SDI data, we store the values in a 4-dimensional array, where the first dimension is spectral, the second is temporal, and the remaining dimensions are pixel coordinates. This is how *some* SDI data are stored on disk (typically in FITS files) and allow specifying operations like a tensor. For SDI data that is stored with the temporal axis first, the dimensions should be permuted before processing (see `permutedims`). This cube should also be registered with the star in the center of the frame.
 
-In addition to the SDI tensor and parallactic angles, the list of wavelengths are required (for scaling speckles) and a spectral template can be used. To create a scale list from the wavelengths, use [`scale_list`](@ref). Currently there is not support for spectral templates.
+In addition to the SDI tensor and parallactic angles, the list of wavelengths are required (for scaling speckles) and a spectral template can be used. To create a scale list from the wavelengths or a template, use [`scale_list`](@ref).
 
 ## Algorithms
 

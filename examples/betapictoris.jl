@@ -115,7 +115,7 @@ plot(
 )
 
 #=
-and now we can calculate the 5σ contrast curve using [`contrast_curve`](@ref). Contrast is defined by the ratio of astrophysical flux to Contrast is measured in comparison to the flux of the star; by default ADI.jl finds this flux by measuring the flux with a circular aperture in the central fwhm of the median-combined cube.
+and now we can calculate the 5σ contrast curve using [`contrast_curve`](@ref). Contrast is defined by the ratio of astrophysical flux between the host and the companion. Therefore, we need the flux of the star; by default ADI.jl finds this flux by measuring the flux with a circular aperture in the central fwhm of the median-combined cube. Be careful, if you are using a masked cube as input, you will need to calculate this manually, otherwise the stellar flux will appear to be 0!
 =#
 
 cc = contrast_curve(alg, cube, angles, psf; fwhm=fwhm, nbranch=6) |> DataFrame

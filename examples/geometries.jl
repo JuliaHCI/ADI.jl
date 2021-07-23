@@ -48,7 +48,7 @@ The four companions (HR8799b,c,d, and e) should be evident in this residual.
 
 Geometric filtering is the process of using sub-region(s) in each frame to use as the target and reference libraries. Geometric filtering is useful to select pixels with similar noise distributions, such as an annulus, as well as to reduce the total number of pixels, increasing runtime performance.
 
-For our example, lets start by looking at annuli for each companion and optimizing the number of principal components. We can use [`AnnulusView`](@ref) to wrap `cube` and filter the input. [`AnnulusView`](@ref) works by calculating the *indices* for a single annulus and creates a view into `cube` with those indices. It does not copy any data, and let's us access only the pixels within the annulus.
+For our example, lets start by looking at annuli for each companion and optimizing the number of principal components. We can use [`AnnulusView`](@ref) to wrap `cube` and filter the input. [`AnnulusView`](@ref) works by calculating the *indices* for a single annulus and creates a view into `cube` with those indices. It does not copy any data, and lets us access only the pixels within the annulus.
 =#
 av = AnnulusView(cube; inner=31, outer=51)
 imshow(av[1, :, :], xlim=(198, 304), ylim=(198, 304))
