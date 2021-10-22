@@ -20,7 +20,7 @@ If `ncomps` is `nothing`, it will be set to the number of frames in the referenc
 # References
 1. [Ren et al. 2018](http://adsabs.harvard.edu/abs/2018ApJ...852..104R) Non-negative Matrix Factorization: Robust Extraction of Extended Structures
 """
-struct NMF <: ADIAlgorithm
+@concrete struct NMF <: ADIAlgorithm
     ncomps
 end
 NMF(; ncomps=nothing) = NMF(ncomps)
