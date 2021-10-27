@@ -34,7 +34,7 @@ For more information, see the [Pkg documentation](https://docs.julialang.org/en/
 
 ## Citations
 
-If you use ADI.jl or derivates in your work, please consider citing both the JOSS paper and the code record. The JOSS paper citation can be found in [`CITATION.bib`](https://github.com/juliahci/ADI.jl/blob/master/CITATION.bib). The code will have a unique reference for each released version, so visit the [zenodo record](https://doi.org/10.5281/zenodo.3977789) to grab the BibTeX for whichever version you used.
+If you use ADI.jl or derivatives in your work, please consider citing both the JOSS paper and the code record. The JOSS paper citation can be found in [`CITATION.bib`](https://github.com/juliahci/ADI.jl/blob/master/CITATION.bib). The code will have a unique reference for each released version, so visit the [Zenodo record](https://doi.org/10.5281/zenodo.3977789) to grab the BibTeX for whichever version you used.
 
 ## Contributing and Support
 

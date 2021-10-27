@@ -1,5 +1,5 @@
-struct Framewise{AT} <: ADIAlgorithm
-    kernel::AT
+@concrete struct Framewise <: ADIAlgorithm
+    kernel
     limit
     delta_rot
 end

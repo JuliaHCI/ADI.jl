@@ -8,7 +8,7 @@ Classic PSF subtraction using the median of entire data cube. If another statist
 # References
 1. [Marois et al. 2006](http://adsabs.harvard.edu/abs/2006ApJ...641..556M) Angular Differential Imaging: A Powerful High-Contrast Imaging Technique
 """
-struct Classic <: ADIAlgorithm
+@concrete struct Classic <: ADIAlgorithm
     method
 end
 Classic(;method=median) = Classic(method)
