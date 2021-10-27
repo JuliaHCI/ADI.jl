@@ -4,7 +4,6 @@ authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
 version = "0.6.6"
 
 [deps]
-Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
@@ -28,7 +27,6 @@ StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
 TSVD = "9449cd9e-2762-5aa3-a617-5413e99d722e"
 
 [compat]
-Arpack = "0.5"
 ConcreteStructs = "0.2"
 CoordinateTransformations = "0.5, 0.6"
 Dierckx = "0.4, 0.5"
