@@ -1,6 +1,8 @@
 using FillArrays
 using Setfield
 
+const PCALIKE = Union{PCA,TPCA,NMF}
+
 """
     GreeDS(alg=PCA(); threshold=0)
     GreeDS(ncomps; threshold=0, options...)
@@ -19,16 +21,14 @@ The following algorithms work natively with GreeDS: [`PCA`](@ref), [`TPCA`](@ref
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
 2. [Pairet et al. 2020](https://ui.adsabs.harvard.edu/abs/2020arXiv200805170P) "MAYONNAISE: a morphological components analysis pipeline for circumstellar disks and exoplanets imaging in the near infrared"
 """
-struct GreeDS{AT} <: ADIAlgorithm
+@concrete struct GreeDS{AT<:PCALIKE} <: ADIAlgorithm
     kernel::AT
     threshold
 end
 GreeDS(alg=PCA(); threshold=0) = GreeDS(alg, threshold)
 GreeDS(ncomps::Int; threshold=0, kwargs...) = GreeDS(PCA(ncomps; kwargs...), threshold=threshold)
 
-const PCALIKE = Union{PCA,TPCA,NMF}
-
-function fit(alg::GreeDS{<:PCALIKE}, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data, kwargs...) where {T,S}
+function fit(alg::GreeDS, data::AbstractArray{T,3}; angles, ref::AbstractArray{S,3}=data, kwargs...) where {T,S}
     target = flatten(ref)
     # get the number of components as a range from the underlying alg
     max_ncomps = get_ncomps(alg.kernel.ncomps, target)
@@ -56,7 +56,7 @@ function fit(alg::GreeDS{<:PCALIKE}, data::AbstractArray{T,3}; angles, ref::Abst
     return design
 end
 
-function fit(alg::GreeDS{<:PCALIKE}, data::AnnulusView; angles, ref::AnnulusView=data, kwargs...)
+function fit(alg::GreeDS, data::AnnulusView; angles, ref::AnnulusView=data, kwargs...)
     target = data()
     tmpAnn = copy(data)
     # get the number of components as a range from the underlying alg

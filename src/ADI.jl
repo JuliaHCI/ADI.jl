@@ -1,5 +1,6 @@
 module ADI
 
+using ConcreteStructs
 using LinearAlgebra
 using ProgressLogging
 using Reexport

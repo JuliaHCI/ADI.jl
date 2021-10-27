@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliahci.github.io/ADI.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliahci.github.io/ADI.jl/dev) 
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliahci.github.io/ADI.jl/dev)
 [![JOSS](https://joss.theoj.org/papers/32605be405e024fcbd15cd81dfdf9985/status.svg)](https://joss.theoj.org/papers/32605be405e024fcbd15cd81dfdf9985)
 [![DOI](https://zenodo.org/badge/250468435.svg)](https://zenodo.org/badge/latestdoi/250468435)
 
@@ -33,7 +33,7 @@ For more information, see the [Pkg documentation](https://docs.julialang.org/en/
 
 ## Citations
 
-If you use ADI.jl or derivates in your work, please consider citing both the JOSS paper and the code record. The JOSS paper citation can be found in [`CITATION.bib`](CITATION.bib). The code will have a unique reference for each released version, so visit the [zenodo record](https://doi.org/10.5281/zenodo.3977789) to grab the BibTeX for whichever version you used.
+If you use ADI.jl or derivatives in your work, please consider citing both the JOSS paper and the code record. The JOSS paper citation can be found in [`CITATION.bib`](CITATION.bib). The code will have a unique reference for each released version, so visit the [Zenodo record](https://doi.org/10.5281/zenodo.3977789) to grab the BibTeX for whichever version you used.
 
 ## Usage
 
