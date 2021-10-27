@@ -11,7 +11,7 @@ Let's begin by importing the necessary libraries. You may need to add these pack
 ```julia
 (@v1.5) pkg> add HCIDatasets Plots
 ```
-In addition, a `Project.toml` file exists in the [examples/](https://github.com/JuliaHCI/ADI.jl/tree/master/examples) folder with the necessary dependencies. Start the REPL in the base ADI.jl folder, then from Pkg mode
+In addition, a `Project.toml` file exists in the [examples/](https://github.com/JuliaHCI/ADI.jl/tree/main/examples) folder with the necessary dependencies. Start the REPL in the base ADI.jl folder, then from Pkg mode
 ```julia
 (@v1.5) pkg> activate examples
 (examples) pkg> instantiate

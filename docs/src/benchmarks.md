@@ -6,7 +6,7 @@ The [Vortex Imaging Pipeline](https://github.com/vortex-exoplanet/vip) (VIP) is 
 
 ### System/Setup Information
 
-The benchmarks here can be found in the [`bench/`](https://github.com/JuliaHCI/ADI.jl/blob/master/bench/) folder organized into Julia files. The benchmarks utilize BenchmarkTools.jl, PyCall.jl with `virtualenv`, and CSV.jl for accuracy, reproducibility, and organization.
+The benchmarks here can be found in the [`bench/`](https://github.com/JuliaHCI/ADI.jl/blob/main/bench/) folder organized into Julia files. The benchmarks utilize BenchmarkTools.jl, PyCall.jl with `virtualenv`, and CSV.jl for accuracy, reproducibility, and organization.
 
 ```
 Julia Version 1.6.0-beta1
