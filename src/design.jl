@@ -30,9 +30,9 @@ A "linear" design implies the use of some linear basis for reconstructing data a
 
 [`ADI.design`](@ref) will return `(basis, ceoffs)`, and you can also extract them via iteration, like `Z, w = design`.
 """
-struct LinearDesign{BT,WT} <: ADIDesign
-    basis::BT
-    coeffs::WT
+@concrete struct LinearDesign <: ADIDesign
+    basis
+    coeffs
 end
 
 design(des::LinearDesign) = des.basis, des.coeffs

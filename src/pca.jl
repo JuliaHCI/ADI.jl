@@ -32,7 +32,7 @@ This technique progressively increases `ncomps` at each step measuring the pixel
 This technique chooses the number of components required to explain some ratio of the total variance in the data. This is known as the *principal ratio* or the *explained variance ratio*. The explained variance is measured by transforming the singular values of the SVD decomposition (`Λ = @. S^2 / (n - 1)`).
 * `pratio=0.9` - the target principal ratio (between 0 and 1)
 """
-struct PCA <: ADIAlgorithm
+@concrete struct PCA <: ADIAlgorithm
     ncomps
     opts
 end
@@ -117,7 +117,7 @@ Perform principal components analysis (PCA) using truncated SVD (TSVD; provided 
 # See Also
 * [`PCA`](@ref), [`TSVD.tsvd`](https://github.com/JuliaLinearAlgebra/TSVD.jl)
 """
-struct TPCA <: ADIAlgorithm
+@concrete struct TPCA <: ADIAlgorithm
     ncomps
     opts
 end
