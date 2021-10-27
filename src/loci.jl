@@ -12,12 +12,12 @@ If provided, the frames used for the reference are filtered to only include the 
 # References
 
 """
-struct LOCI <: ADIAlgorithm
+@concrete struct LOCI{M<:Metric} <: ADIAlgorithm
     dist_threshold
-    metric::Metric
+    metric::M
 end
 
-LOCI(; dist_threshold=nothing, metric=Cityblock()) = LOCI(dist_threshold, metric)
+LOCI(; dist_threshold=nothing, metric::Metric=Cityblock()) = LOCI(dist_threshold, metric)
 
 function fit(alg::LOCI, data::AbstractMatrix; ref=data, kwargs...)
     coeffs = ref' \ data'
@@ -31,8 +31,8 @@ function loci_distances_mask(ref::AbstractMatrix, dist_threshold=90, metric=City
 end
 loci_distances_mask(ref::AbstractMatrix, ::Nothing, metric) = trues(size(ref)...)
 
-function reconstruct(alg::Framewise{<:LOCI}, cube::AbstractArray{T,3}; angles, fwhm, r, kwargs...) where T
-    pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
+function reconstruct(alg::Framewise{<:LOCI}, cube::AbstractArray{T,3}; angles, kwargs...) where T
+    pa_threshold = compute_pa_thresh(angles, alg.delta_rot; kwargs...)
     data = flatten(cube)
     S = similar(data)
     dist_mask = loci_distances_mask(data, alg.kernel.dist_threshold, alg.kernel.metric)
@@ -48,8 +48,8 @@ function reconstruct(alg::Framewise{<:LOCI}, cube::AbstractArray{T,3}; angles, f
     return expand(S)
 end
 
-function reconstruct(alg::Framewise{<:LOCI}, cube::AnnulusView; angles, fwhm, r=_radius(cube), kwargs...)
-    pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
+function reconstruct(alg::Framewise{<:LOCI}, cube::AnnulusView; angles, r=_radius(cube), kwargs...)
+    pa_threshold = compute_pa_thresh(angles, alg.delta_rot; r=r, kwargs...)
     data = cube(true) # as view
     S = similar(data)
     dist_mask = loci_distances_mask(data, alg.kernel.dist_threshold, alg.kernel.metric)
@@ -72,8 +72,8 @@ function reconstruct(alg::Framewise{<:LOCI}, cube::MultiAnnulusView; angles, fwh
     delta_rots = _normalize_deltarot(alg.delta_rot, N_ann)
     @withprogress name="annulus" begin
         i_ann = 0
-        recons = map(anns, cube.radii, delta_rots) do ann, r, delta_rot
-            pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
+        recons = map(anns, cube.radii, delta_rots) do ann, r, delta_rot    
+            pa_threshold = compute_pa_thresh(angles, delta_rot; fwhm=fwhm, r=r)
             @debug "PA thresh: $pa_threshold Ann center: $r"
             S = similar(ann)
             dist_mask = loci_distances_mask(ann, alg.kernel.dist_threshold, alg.kernel.metric)
@@ -104,7 +104,7 @@ function reconstruct(alg::Framewise{<:AbstractVector{<:LOCI}}, cube::MultiAnnulu
     @withprogress name="annulus" begin
         i_ann = 0
         recons = map(anns, cube.radii, alg.kernel, delta_rots) do ann, r, _alg, delta_rot
-            pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
+            pa_threshold = compute_pa_thresh(angles, delta_rot; r=r, fwhm=fwhm)
             S = similar(ann)
             dist_mask = loci_distances_mask(ann, alg.kernel.dist_threshold, alg.kernel.metric)
             @views Threads.@threads for j in axes(S, 1)

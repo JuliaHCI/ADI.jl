@@ -35,10 +35,10 @@ julia> mav = MultiAnnulusView(cube, 5; inner=5);
 julia> res_ann = Framewise(alg, delta_rot=(0.1, 1))(mav, angles);
 ```
 """
-Framewise(alg; limit=Inf, delta_rot=1) = Framewise(alg, limit, delta_rot)
+Framewise(alg; limit=Inf, delta_rot=nothing) = Framewise(alg, limit, delta_rot)
 
-function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, kwargs...) where T
-    pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
+function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, kwargs...) where T
+    pa_threshold = compute_pa_thresh(angles, alg.delta_rot; kwargs...)
     data = flatten(cube)
     S = similar(data)
     @views Threads.@threads for i in axes(data, 1)
@@ -52,8 +52,8 @@ function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, 
     return expand(S)
 end
 
-function reconstruct(alg::Framewise, cube::AnnulusView; angles, fwhm, r=_radius(cube), kwargs...)
-    pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
+function reconstruct(alg::Framewise, cube::AnnulusView; angles, r=_radius(cube), kwargs...)
+    pa_threshold = compute_pa_thresh(angles, alg.delta_rot; r=r, kwargs...)
     data = cube(true) # as view
     S = similar(data)
     Threads.@threads for i in axes(S, 1)
@@ -77,7 +77,7 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
     @withprogress name="annulus" begin
         i_ann = 0
         recons = map(anns, cube.radii, delta_rots) do ann, r, delta_rot
-            pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
+            pa_threshold = compute_pa_thresh(angles, delta_rot; r=r, fwhm=fwhm)
             @debug "PA thresh: $pa_threshold Ann center: $r"
             S = similar(ann)
             @views Threads.@threads for j in axes(S, 1)
@@ -110,7 +110,7 @@ function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; a
     @withprogress name="annulus" begin
         i_ann = 0
         recons = map(anns, cube.radii, alg.kernel, delta_rots) do ann, r, _alg, delta_rot
-            pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
+            pa_threshold = compute_pa_thresh(angles, delta_rot; fwhm=fwhm, r=r)
             S = similar(ann)
             @views Threads.@threads for j in axes(S, 1)
                 @debug "PA thresh: $pa_threshold Ann center: $r"
@@ -132,7 +132,9 @@ end
 
 #######################################
 
-function compute_pa_thresh(angles, r, fwhm, delta_rot)
+compute_pa_thresh(angles, delta_rot::Nothing; kwargs...) = nothing
+
+function compute_pa_thresh(angles, delta_rot; r, fwhm, kwargs...)
     pa_threshold = 2 * atand(delta_rot * fwhm,  2r)
     mid_range = abs(maximum(angles) - minimum(angles)) / 2
     k = mid_range * 0.9
@@ -143,7 +145,15 @@ function compute_pa_thresh(angles, r, fwhm, delta_rot)
     return pa_threshold
 end
 
+function find_angles(angles, idx, thresh::Nothing; limit=Inf)
+    isfinite(limit) || return vcat(1:idx - 1, idx + 1:length(angles))
+    window = limit ÷ 2
+    first_half = max(idx - 1 - window, 1):idx - 1
+    last_half = idx + 1:min(idx + 1 + window, length(angles))
+    return vcat(first_half, last_half)
+end
 function find_angles(angles, idx, thresh; limit=Inf)
+    iszero(thresh) && return vcat(1:idx - 1, idx + 1:length(angles))
     fidx, lidx = firstindex(angles), lastindex(angles)
     p, n = fidx, idx
     for i in fidx:idx-1
