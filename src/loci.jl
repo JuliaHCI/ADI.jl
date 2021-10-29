@@ -36,7 +36,7 @@ function loci_distances_mask(ref::AbstractMatrix, dist_threshold=0.90, metric=Ci
     thresh = quantile(vec(distances), dist_threshold)
     return @. 0 < distances ≤ thresh
 end
-loci_distances_mask(ref::AbstractMatrix, ::Nothing, metric) = Fill(trues, size(ref))
+loci_distances_mask(ref::AbstractMatrix, ::Nothing, metric) = Fill(true, size(ref))
 
 function reconstruct(alg::Framewise{<:LOCI}, cube::AbstractArray{T,3}; angles, kwargs...) where T
     pa_threshold = compute_pa_thresh(angles, alg.delta_rot; kwargs...)
