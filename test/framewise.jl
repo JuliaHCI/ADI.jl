@@ -10,8 +10,8 @@ using ADI: find_angles, compute_pa_thresh
     @test find_angles(angles, idx, 3) == setdiff(full_inds, idx)
     @test find_angles(angles, idx, 3, limit=4) == [4, 5, 7, 8]
 
-    @test compute_pa_thresh(angles, 1.5; r, fwhm) ≈ 26.449102384427057
-    @test compute_pa_thresh(angles, 5; r, fwhm) ≈ 36
+    @test compute_pa_thresh(angles, 1.5; r=r, fwhm=fwhm) ≈ 26.449102384427057
+    @test compute_pa_thresh(angles, 5; r=r, fwhm=fwhm) ≈ 36
 end
 
 cube, angles = BetaPictoris[:cube, :pa]
