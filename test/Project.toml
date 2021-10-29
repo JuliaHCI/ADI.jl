@@ -1,4 +1,5 @@
 [deps]
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 HCIDatasets = "1893dc6a-5236-4cb8-aa54-62ea411c10cd"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 PSFModels = "9ba017d1-7760-46cd-84a3-1e79e9ae9ddc"

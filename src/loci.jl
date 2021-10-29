@@ -1,13 +1,19 @@
 
 using Distances
-using StatsBase: percentile
+using StatsBase: quantile
 
 """
     LOCI(; dist_threshold=nothing, metric=Cityblock())
 
 Local optimal combination of images (LOCI).
 
-If provided, the frames used for the reference are filtered to only include the frames whose pairwise distances are within the `dist_threshold` percentile. The distances are measured using [Distances.jl](https://github.com/JuliaStats/Distances.jl) and the metric used for measuring the distacnes can be specified with `metric` (by default uses the Manhattan/cityblock metric).
+If provided, the frames used for the reference are filtered to only include the frames whose pairwise distances are within the `dist_threshold` quantile. The distances are measured using [Distances.jl](https://github.com/JuliaStats/Distances.jl) and the metric used for measuring the distacnes can be specified with `metric` (by default uses the Manhattan/cityblock metric).
+
+!!! note "Traditional LOCI"
+    Unless [`LOCI`](@ref) is applied [`Framewise`](@ref), no distance thresholding will occur. In order to recreate the traditional LOCI algorithm, consider constructing an algorithm like
+    ```jldoctest
+    alg = Framewise(LOCI(dist_threshold=0.90)) # only use the most-similar 90th-percentile frames
+    ```
 
 # References
 
@@ -24,9 +30,9 @@ function fit(alg::LOCI, data::AbstractMatrix; ref=data, kwargs...)
     return LinearDesign(ref, coeffs')
 end
 
-function loci_distances_mask(ref::AbstractMatrix, dist_threshold=90, metric=Cityblock())
+function loci_distances_mask(ref::AbstractMatrix, dist_threshold=0.90, metric=Cityblock())
     distances = pairwise(metric, ref; dims=1)
-    thresh = percentile(vec(distances), dist_threshold)
+    thresh = quantile(vec(distances), dist_threshold)
     return @. 0 < distances ≤ thresh
 end
 loci_distances_mask(ref::AbstractMatrix, ::Nothing, metric) = trues(size(ref)...)
@@ -36,7 +42,7 @@ function reconstruct(alg::Framewise{<:LOCI}, cube::AbstractArray{T,3}; angles, k
     data = flatten(cube)
     S = similar(data)
     dist_mask = loci_distances_mask(data, alg.kernel.dist_threshold, alg.kernel.metric)
-    @views Threads.@threads for i in axes(data, 1)
+    @views Threads.@threads for i in axes(S, 1)
         ang_inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
         inds = ang_inds[dist_mask[i, ang_inds]]
         target = data[i:i, :]
@@ -106,7 +112,7 @@ function reconstruct(alg::Framewise{<:AbstractVector{<:LOCI}}, cube::MultiAnnulu
         recons = map(anns, cube.radii, alg.kernel, delta_rots) do ann, r, _alg, delta_rot
             pa_threshold = compute_pa_thresh(angles, delta_rot; r=r, fwhm=fwhm)
             S = similar(ann)
-            dist_mask = loci_distances_mask(ann, alg.kernel.dist_threshold, alg.kernel.metric)
+            dist_mask = loci_distances_mask(ann, _alg.dist_threshold, _alg.metric)
             @views Threads.@threads for j in axes(S, 1)
                 @debug "PA thresh: $pa_threshold Ann center: $r"
                 ang_inds = find_angles(angles, j, pa_threshold; limit=alg.limit)

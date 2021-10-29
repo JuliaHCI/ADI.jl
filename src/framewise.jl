@@ -5,14 +5,16 @@
 end
 
 """
-    Framewise(alg; limit=Inf, delta_rot=1)
-    Framewise(algs::AbstractVector; limit=Inf, delta_rot=1)
+    Framewise(alg; limit=Inf, delta_rot=nothing)
+    Framewise(algs::AbstractVector; limit=Inf, delta_rot=nothing)
 
-Wrap an algorithm such that the underlying data will be processed frame by frame. For each frame a reference library is created from the data. This reference can be filtered by rejecting frames which have not rotated a sufficient parallactic angle. `delta_rot` sets the required arc length for rotation in units of the FWHM. The number of frames retained can be specified with `limit`, e.g. the 4 closest frames in time with the target frame.
+Wrap an algorithm such that the underlying data will be processed frame by frame. For each frame a reference library is created from the data. This reference can be filtered by rejecting frames which have not rotated a sufficient parallactic angle. `delta_rot` sets the required arc length for rotation in units of the FWHM. If `delta_rot` is `nothing` there will be now temporal filtering. The number of frames retained can be specified with `limit`, e.g. the 4 closest frames in time with the target frame.
 
-Because the framewise application of an algorithm requires additional information, the following keyword arguments must be provided to [`reconstruct`](@ref) or [`subtract`](@ref).
-* `fwhm` - the FWHM of the instrument in pixels. Will be set to the width of a [`MultiAnnulusView`](@ref)
+The following keyword arguments must be provided to [`reconstruct`](@ref) or [`subtract`](@ref)
 * `angles` - the measured parallactic angles for each frame
+
+If `delta_rot` is provided, the following additional keyword arguments must be provided to [`reconstruct`](@ref) or [`subtract`](@ref).
+* `fwhm` - the FWHM of the instrument in pixels. Will be set to the width of a [`MultiAnnulusView`](@ref)
 * `r` - The radius of the arc to calculate the parallactic angle threshold. Will be set automatically if using [`AnnulusView`](@ref) or [`MultiAnnulusView`](@ref).
 
 In addition, `Framewise` versions of algorithms do not implement [`ADI.fit`](@ref) and do not currently support RDI.
@@ -28,7 +30,7 @@ julia> cube, angles = # load data
 
 julia> alg = PCA(10) # the algorithm to use on each reference
 
-julia> res = Framewise(alg)(cube, angles; r=10, fwhm=5);
+julia> res = Framewise(alg)(cube, angles);
 
 julia> mav = MultiAnnulusView(cube, 5; inner=5);
 
