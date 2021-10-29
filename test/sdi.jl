@@ -8,7 +8,7 @@
     @test PCA(15)(cube, angles, scales) == SingleSDI(PCA(15))(cube, angles, scales)
 end
 
-@testset "Trivial SDI - $(typeof(ALG))" for ALG in (PCA(5), GreeDS(5), Classic())
+@testset "Trivial SDI - $(typeof(ALG))" for ALG in (PCA(5), GreeDS(5), Classic(), LOCI())
     cube = ones(5, 10, 100, 100) 
     angles = zeros(10)
     scales = collect(range(1.2, 1, length=5))
@@ -19,8 +19,8 @@ end
     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced)
 end
 
-@testset "Trivial Double SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic(), GreeDS(2)),
-                                                 ALG2 in (PCA(5), GreeDS(5), Classic())
+@testset "Trivial Double SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic(), GreeDS(2), LOCI()),
+                                                 ALG2 in (PCA(5), GreeDS(5), Classic(), LOCI())
     cube = ones(5, 10, 100, 100) 
     angles = zeros(10)
     scales = collect(range(1.2, 1, length=5))
@@ -31,8 +31,8 @@ end
     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced)
 end
 
-@testset "Trivial Slice SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic(), GreeDS(2)),
-                                                 ALG2 in (PCA(5), GreeDS(5), Classic())
+@testset "Trivial Slice SDI - $(typeof(ALG1)), $(typeof(ALG2))" for ALG1 in (PCA(2), Classic(), GreeDS(2), LOCI()),
+                                                 ALG2 in (PCA(5), GreeDS(5), Classic(), LOCI())
     cube = ones(5, 10, 100, 100) 
     angles = zeros(10)
     scales = collect(range(1.2, 1, length=5))
