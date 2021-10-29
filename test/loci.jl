@@ -30,10 +30,12 @@ end
     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_full)
 
     betapic_reduced_full = LOCI()(cube, angles)
-    betapic_reduced_trunc = Framewise(LOCI(dist_threshold=0.90))(cube, angles)
-    betapic_reduced_trunc2 = Framewise(LOCI(dist_threshold=0.90, metric=Euclidean()))(cube, angles)
+    betapic_reduced_trunc = Framewise(LOCI())(cube, angles)
+    betapic_reduced_trunc2 = Framewise(LOCI(dist_threshold=0.90))(cube, angles)
+    betapic_reduced_trunc3 = Framewise(LOCI(dist_threshold=0.90, metric=Euclidean()))(cube, angles)
     @test betapic_reduced_full ≉ betapic_reduced_trunc
     @test betapic_reduced_trunc ≉ betapic_reduced_trunc2
+    @test betapic_reduced_trunc ≉ betapic_reduced_trunc3
 end
 
 @testset "RDI Trivial" begin    
