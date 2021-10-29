@@ -11,12 +11,13 @@ If provided, the frames used for the reference are filtered to only include the 
 
 !!! note "Traditional LOCI"
     Unless [`LOCI`](@ref) is applied [`Framewise`](@ref), no distance thresholding will occur. In order to recreate the traditional LOCI algorithm, consider constructing an algorithm like
-    ```jldoctest
-    alg = Framewise(LOCI(dist_threshold=0.90)) # only use the most-similar 90th-percentile frames
+    ```julia
+    # only use the most-similar 90th-percentile frames
+    alg = Framewise(LOCI(dist_threshold=0.90))
     ```
 
 # References
-
+1. [Lafreniere et al. (2007)](http://adsabs.harvard.edu/abs/2007ApJ...660..770L) "A New Algorithm for Point-Spread Function Subtraction in High-Contrast Imaging: A Demonstration with Angular Differential Imaging"
 """
 @concrete struct LOCI{M<:Metric} <: ADIAlgorithm
     dist_threshold
@@ -35,7 +36,7 @@ function loci_distances_mask(ref::AbstractMatrix, dist_threshold=0.90, metric=Ci
     thresh = quantile(vec(distances), dist_threshold)
     return @. 0 < distances ≤ thresh
 end
-loci_distances_mask(ref::AbstractMatrix, ::Nothing, metric) = trues(size(ref)...)
+loci_distances_mask(ref::AbstractMatrix, ::Nothing, metric) = Fill(trues, size(ref))
 
 function reconstruct(alg::Framewise{<:LOCI}, cube::AbstractArray{T,3}; angles, kwargs...) where T
     pa_threshold = compute_pa_thresh(angles, alg.delta_rot; kwargs...)

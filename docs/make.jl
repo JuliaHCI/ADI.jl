@@ -37,6 +37,7 @@ makedocs(;
         "Getting Started with ADI.jl" => "gettingstarted.md",
         "Algorithms" => [
             "algorithms/classic.md",
+            "algorithms/loci.md",
             "algorithms/pca.md",
             "algorithms/nmf.md",
             "algorithms/greeds.md",
@@ -57,5 +58,6 @@ makedocs(;
 
 deploydocs(;
     repo = "github.com/JuliaHCI/ADI.jl",
+    devbranch = "main",
     push_preview = true
 )

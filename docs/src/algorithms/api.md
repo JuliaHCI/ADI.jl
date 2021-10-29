@@ -4,6 +4,7 @@
 Pages = ["algorithms/api.md",
          "algorithms/classic.md",
          "algorithms/greeds.md",
+         "algorithms/loci.md",
          "algorithms/nmf.md",
          "algorithms/pca.md"]
 ```
