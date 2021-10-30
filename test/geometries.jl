@@ -4,7 +4,7 @@ cube .-= minimum(cube) # rescale so min is > 0
 av = AnnulusView(cube; inner=10, outer=20)
 mav = MultiAnnulusView(cube, 5)
 
-@testset "Annulus - $(nameof(typeof(alg)))" for alg in [PCA(10), Classic(), NMF(3), GreeDS(3)]
+@testset "Annulus - $(nameof(typeof(alg)))" for alg in [PCA(10), Classic(), NMF(3), GreeDS(3), LOCI(dist_threshold=0.9)]
     res = alg(av, angles)
     @test size(res) == (101, 101)
     if !(alg isa NMF)
@@ -27,7 +27,7 @@ mav = MultiAnnulusView(cube, 5)
 end
 
 # TODO can't test NMF because it's non-deterministic somehow????
-@testset "MultiAnnulus - $(nameof(typeof(alg)))" for alg in [PCA(10), Classic()]
+@testset "MultiAnnulus - $(nameof(typeof(alg)))" for alg in [PCA(10), Classic(), LOCI(dist_threshold=0.9)]
     res = alg(mav, angles)
     @test size(res) == (101, 101)
     res_rdi = alg(mav, angles; ref=mav)
@@ -51,16 +51,16 @@ end
     @test_throws ErrorException reconstruct(fill(alg, N), mav; ref=cube)
 end
 
-@testset "av - framewise - $(nameof(typeof(alg)))" for alg in [PCA(10), NMF(2), Classic()]
-    fr_alg = Framewise(alg)
+@testset "av - framewise - $(nameof(typeof(alg)))" for alg in [PCA(10), NMF(2), Classic(), LOCI(dist_threshold=0.9)]
+    fr_alg = Framewise(alg, delta_rot=1)
     # gets radius automatically
     S1 = reconstruct(fr_alg, av; angles=angles, fwhm=4.7)
     S2 = reconstruct(fr_alg, av; angles=angles, r=15, fwhm=4.7)
     @test S1 ≈ S2
 end
 
-@testset "mav - framewise - $(nameof(typeof(alg)))" for alg in [PCA(10), NMF(2), Classic()]
-    fr_alg = Framewise(alg)
+@testset "mav - framewise - $(nameof(typeof(alg)))" for alg in [PCA(10), NMF(2), Classic(), LOCI(dist_threshold=0.9)]
+    fr_alg = Framewise(alg, delta_rot=1)
     # gets fwhm automatically
     S1 = reconstruct(fr_alg, mav; angles=angles)
     S2 = reconstruct(fr_alg, mav; angles=angles, fwhm=5)
@@ -68,7 +68,7 @@ end
 
     # test repeated
     k = length(mav.indices)
-    algs = Framewise(fill(alg, k))
+    algs = Framewise(fill(alg, k), delta_rot=1)
     S3 = reconstruct(algs, mav; angles=angles)
     @test S1 ≈ S3
 

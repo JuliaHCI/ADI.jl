@@ -5,14 +5,16 @@
 end
 
 """
-    Framewise(alg; limit=Inf, delta_rot=1)
-    Framewise(algs::AbstractVector; limit=Inf, delta_rot=1)
+    Framewise(alg; limit=Inf, delta_rot=nothing)
+    Framewise(algs::AbstractVector; limit=Inf, delta_rot=nothing)
 
-Wrap an algorithm such that the underlying data will be processed frame by frame. For each frame a reference library is created from the data. This reference can be filtered by rejecting frames which have not rotated a sufficient parallactic angle. `delta_rot` sets the required arc length for rotation in units of the FWHM. The number of frames retained can be specified with `limit`, e.g. the 4 closest frames in time with the target frame.
+Wrap an algorithm such that the underlying data will be processed frame by frame. For each frame a reference library is created from the data. This reference can be filtered by rejecting frames which have not rotated a sufficient parallactic angle. `delta_rot` sets the required arc length for rotation in units of the FWHM. If `delta_rot` is `nothing` there will be now temporal filtering. The number of frames retained can be specified with `limit`, e.g. the 4 closest frames in time with the target frame.
 
-Because the framewise application of an algorithm requires additional information, the following keyword arguments must be provided to [`reconstruct`](@ref) or [`subtract`](@ref).
-* `fwhm` - the FWHM of the instrument in pixels. Will be set to the width of a [`MultiAnnulusView`](@ref)
+The following keyword arguments must be provided to [`reconstruct`](@ref) or [`subtract`](@ref)
 * `angles` - the measured parallactic angles for each frame
+
+If `delta_rot` is provided, the following additional keyword arguments must be provided to [`reconstruct`](@ref) or [`subtract`](@ref).
+* `fwhm` - the FWHM of the instrument in pixels. Will be set to the width of a [`MultiAnnulusView`](@ref)
 * `r` - The radius of the arc to calculate the parallactic angle threshold. Will be set automatically if using [`AnnulusView`](@ref) or [`MultiAnnulusView`](@ref).
 
 In addition, `Framewise` versions of algorithms do not implement [`ADI.fit`](@ref) and do not currently support RDI.
@@ -28,17 +30,17 @@ julia> cube, angles = # load data
 
 julia> alg = PCA(10) # the algorithm to use on each reference
 
-julia> res = Framewise(alg)(cube, angles; r=10, fwhm=5);
+julia> res = Framewise(alg)(cube, angles);
 
 julia> mav = MultiAnnulusView(cube, 5; inner=5);
 
 julia> res_ann = Framewise(alg, delta_rot=(0.1, 1))(mav, angles);
 ```
 """
-Framewise(alg; limit=Inf, delta_rot=1) = Framewise(alg, limit, delta_rot)
+Framewise(alg; limit=Inf, delta_rot=nothing) = Framewise(alg, limit, delta_rot)
 
-function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, kwargs...) where T
-    pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
+function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, kwargs...) where T
+    pa_threshold = compute_pa_thresh(angles, alg.delta_rot; kwargs...)
     data = flatten(cube)
     S = similar(data)
     @views Threads.@threads for i in axes(data, 1)
@@ -52,8 +54,8 @@ function reconstruct(alg::Framewise, cube::AbstractArray{T,3}; angles, fwhm, r, 
     return expand(S)
 end
 
-function reconstruct(alg::Framewise, cube::AnnulusView; angles, fwhm, r=_radius(cube), kwargs...)
-    pa_threshold = compute_pa_thresh(angles, r, fwhm, alg.delta_rot)
+function reconstruct(alg::Framewise, cube::AnnulusView; angles, r=_radius(cube), kwargs...)
+    pa_threshold = compute_pa_thresh(angles, alg.delta_rot; r=r, kwargs...)
     data = cube(true) # as view
     S = similar(data)
     Threads.@threads for i in axes(S, 1)
@@ -77,7 +79,7 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
     @withprogress name="annulus" begin
         i_ann = 0
         recons = map(anns, cube.radii, delta_rots) do ann, r, delta_rot
-            pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
+            pa_threshold = compute_pa_thresh(angles, delta_rot; r=r, fwhm=fwhm)
             @debug "PA thresh: $pa_threshold Ann center: $r"
             S = similar(ann)
             @views Threads.@threads for j in axes(S, 1)
@@ -90,7 +92,7 @@ function reconstruct(alg::Framewise, cube::MultiAnnulusView; angles, fwhm=cube.w
             end
             # update progress
             i_ann += 1
-            @logprogress i_ann/N_ann thresh=pa_threshold
+            @logprogress i_ann/N_ann
             return S
         end
     end
@@ -110,7 +112,7 @@ function reconstruct(alg::Framewise{<:AbstractVector}, cube::MultiAnnulusView; a
     @withprogress name="annulus" begin
         i_ann = 0
         recons = map(anns, cube.radii, alg.kernel, delta_rots) do ann, r, _alg, delta_rot
-            pa_threshold = compute_pa_thresh(angles, r, fwhm, delta_rot)
+            pa_threshold = compute_pa_thresh(angles, delta_rot; fwhm=fwhm, r=r)
             S = similar(ann)
             @views Threads.@threads for j in axes(S, 1)
                 @debug "PA thresh: $pa_threshold Ann center: $r"
@@ -132,7 +134,9 @@ end
 
 #######################################
 
-function compute_pa_thresh(angles, r, fwhm, delta_rot)
+compute_pa_thresh(angles, delta_rot::Nothing; kwargs...) = nothing
+
+function compute_pa_thresh(angles, delta_rot; r, fwhm, kwargs...)
     pa_threshold = 2 * atand(delta_rot * fwhm,  2r)
     mid_range = abs(maximum(angles) - minimum(angles)) / 2
     k = mid_range * 0.9
@@ -143,7 +147,15 @@ function compute_pa_thresh(angles, r, fwhm, delta_rot)
     return pa_threshold
 end
 
+function find_angles(angles, idx, thresh::Nothing; limit=Inf)
+    isfinite(limit) || return vcat(1:idx - 1, idx + 1:length(angles))
+    window = limit ÷ 2
+    first_half = max(idx - 1 - window, 1):idx - 1
+    last_half = idx + 1:min(idx + 1 + window, length(angles))
+    return vcat(first_half, last_half)
+end
 function find_angles(angles, idx, thresh; limit=Inf)
+    iszero(thresh) && return vcat(1:idx - 1, idx + 1:length(angles))
     fidx, lidx = firstindex(angles), lastindex(angles)
     p, n = fidx, idx
     for i in fidx:idx-1

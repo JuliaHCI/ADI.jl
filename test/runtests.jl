@@ -17,6 +17,7 @@ rng = StableRNG(8799)
 @testset "TPCA" begin include("tpca.jl") end
 @testset "NMF" begin include("nmf.jl") end
 @testset "GreeDS" begin include("greeds.jl") end
+@testset "LOCI" begin include("loci.jl") end
 
 @testset "Metrics" begin 
     include("metrics.jl")

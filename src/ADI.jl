@@ -13,6 +13,7 @@ export reconstruct,
        subtract,
        process,
        Classic,
+       LOCI,
        PCA,
        GreeDS,
        TPCA,
@@ -32,6 +33,7 @@ include("sdi.jl")
 
 # algorithms
 include("classic.jl")
+include("loci.jl")
 include("pca.jl")
 include("nmf.jl")
 include("greeds.jl")

@@ -63,7 +63,7 @@ end
     stim_av2, mask2 = slimmap(resid_cubes, angles; N=20)
     slim2 = stim_av2 .* mask2
 
-    @test slim1 ≈ slim2
+    @test all(slim1 .≈ slim2)
 
     # make sure beta pic b was found
     @test slim1[62, 62] > 0.5
