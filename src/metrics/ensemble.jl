@@ -43,7 +43,7 @@ function slimmap(stimmaps::AbstractVector{ST}; N) where {T,ST<:AbstractMatrix{T}
     stim_av = zero(first(stimmaps))
     mask_av = zero(stim_av)
     η = 1 / length(stimmaps)
-    Threads.@threads for stim_map in stimmaps
+    for stim_map in stimmaps
         stim_av .+= stim_map
         # get Nth brightest pixel as mask threshold
         thresh = partialsort(vec(stim_map), N; rev=true)
