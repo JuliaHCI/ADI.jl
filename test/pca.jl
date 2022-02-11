@@ -10,16 +10,16 @@ end
     # get sizes correct for ncomps
     for N in [1, 3, 5]
         A, w = @inferred ADI.fit(PCA(ncomps=N), cube)
-        @test size(A) == (N, 101 * 101)
-        @test size(w) == (size(cube, 1), N)
+        @test size(A) == (101 * 101, N)
+        @test size(w) == (N, size(cube, 1))
     end
     A, w = ADI.fit(PCA(:pratio; pratio=0.5), cube)
-    @test size(A, 1) < size(cube, 1)
-    @test size(w, 2) < size(cube, 1)
+    @test size(A, 1) < size(cube, 3)
+    @test size(w, 2) < size(cube, 3)
 
     A, w = ADI.fit(PCA(:noise), cube)
-    @test size(A, 1) ≤ size(cube, 1)
-    @test size(w, 2) ≤ size(cube, 1)
+    @test size(A, 1) ≤ size(cube, 3)
+    @test size(w, 2) ≤ size(cube, 3)
 
     # default is to use whole cube
     S = reconstruct(PCA(), cube)
@@ -27,7 +27,7 @@ end
 end
 
 @testset "ADI Trivial" begin
-    data = ones(10, 100, 100) 
+    data = ones(100, 100, 10)
     angs = zeros(10)
 
     reduced_5 = PCA(5)(data, angs)
@@ -38,7 +38,7 @@ end
     @test all(x -> isapprox(x, 0, atol = 1e-9), reduced_10)
 end
 
-@testset "RDI Trivial" begin    
+@testset "RDI Trivial" begin
     S = subtract(PCA(1), cube; ref=zero(cube))
     @test S ≈ cube rtol=2e-2
 end

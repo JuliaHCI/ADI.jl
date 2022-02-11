@@ -12,7 +12,7 @@ end
     A, w = @inferred ADI.fit(LOCI(), cube)
     @test A ≈ flatten(cube)
 
-    @test size(w) == (size(cube, 1), size(cube, 1))
+    @test size(w) == (size(cube, 3), size(cube, 3))
 
     # no effect without Framewise
     A2, w2 = ADI.fit(LOCI(dist_threshold=90), cube)
@@ -21,7 +21,7 @@ end
 end
 
 @testset "ADI Trivial" begin
-    data = ones(10, 100, 100) 
+    data = ones(100, 100, 10)
     angs = zeros(10)
 
     reduced_full = LOCI()(data, angs)
@@ -38,7 +38,7 @@ end
     @test betapic_reduced_trunc ≉ betapic_reduced_trunc3
 end
 
-@testset "RDI Trivial" begin    
+@testset "RDI Trivial" begin
     S = subtract(LOCI(), cube; ref=zero(cube))
     @test S ≈ cube rtol=2e-2
 end

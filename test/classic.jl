@@ -3,7 +3,7 @@ cube, angles = BetaPictoris[:cube, :pa]
 
 @testset "interface" begin
     X = flatten(cube)
-    med = median(X, dims=1)
+    med = median(X, dims=3)
 
     d = ADI.fit(Classic(), cube)
     @test ADI.design(d) ≈ med

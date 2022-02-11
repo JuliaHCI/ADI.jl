@@ -11,8 +11,8 @@ end
     # get sizes correct for ncomps
     for N in [1, 3, 5]
         A, w = ADI.fit(NMF(ncomps=N), cube)
-        @test size(A) == (N, 101 * 101)
-        @test size(w) == (size(cube, 1), N)
+        @test size(A) == (101 * 101, N)
+        @test size(w) == (N, size(cube, 3))
     end
 
     # default is to use whole cube
@@ -21,7 +21,7 @@ end
 end
 
 @testset "ADI Trivial" begin
-    data = ones(10, 100, 100)
+    data = ones(100, 100, 10)
     angs = zeros(10)
 
     reduced_5 = NMF(5)(data, angs)
