@@ -24,18 +24,18 @@ abstract type ADIDesign end
 reconstruct(designs::AbstractVector{<:ADIDesign}) = map(reconstruct, designs)
 
 """
-    ADI.LinearDesign(basis, coeffs)
+    ADI.LinearDesign(coeffs, basis)
 
 A "linear" design implies the use of some linear basis for reconstructing data along with a set of coefficients or weights. The reconstruction will be the matrix product of the weights and the basis, `w * Z`. 
 
 [`ADI.design`](@ref) will return `(basis, ceoffs)`, and you can also extract them via iteration, like `Z, w = design`.
 """
 @concrete struct LinearDesign <: ADIDesign
-    basis
     coeffs
+    basis
 end
 
-design(des::LinearDesign) = des.basis, des.coeffs
+design(des::LinearDesign) = des.coeffs, des.basis
 reconstruct(des::LinearDesign) = des.coeffs * des.basis
 Base.iterate(des::LinearDesign, state=1) = iterate(design(des), state)
 
