@@ -128,13 +128,14 @@ function subsample_contrast(empty_frame, distance, throughput;
     # at every pixel instead of every resolution element
     cx, cy = center(empty_frame)
     radii_subsample = first(distance):1:last(distance) + 1
+    sint, cost = sincosd(theta)
     noise_subsample = map(radii_subsample) do r
         x = cx + r * cost
         y = cy + r * sint
         Metrics.noise(empty_frame, (x, y), fwhm)
     end
     through_subsample = Spline1D(distance, throughput, k=k)(radii_subsample)
-        
+
     if smooth
         window_size = min(length(noise_subsample) - 2, round(Int, 2 * fwhm))
         iseven(window_size) && (window_size += 1)
@@ -253,9 +254,9 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
 
                 A = snr * noise[ann]
 
-                inject!(fake_comps, psf_model; x, y, A)
+                inject!(fake_comps, psf_model; x, y, amp=A)
                 fake_comps_full .+= fake_comps
-                inject!(cube_fake_comps, angles, psf_model; x, y, A)
+                inject!(cube_fake_comps, psf_model, angles; x, y, amp=A)
 
                 return CircularAperture(x, y, fwhm / 2)
             end
@@ -280,7 +281,8 @@ end
 
 """
     throughput(alg, cube, angles, psf, position;
-               fwhm, snr=100, reduced_empty=nothing,
+               fwhm, snr=100,
+               reduced_empty=nothing,
                verbose=true, kwargs...)
 
 Calculate the throughput of `alg` by injecting `psf` into `cube` at the given `position` and measuring the relative photometry of the companion in the reduced frame. The photometry is measured using a circular aperture with a diameter matching the `fwhm`. Any additional `kwargs` will be passed to `alg` when it is called.
@@ -293,7 +295,7 @@ If `position` is a tuple or a vector, it will be parsed as the cartesian coordin
 * `reduced_empty` - the collapsed residual frame for estimating the noise. Will process using `alg` if not provided.
 * `verbose` - show informative messages during process
 """
-function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model; x, y, fwhm,
+function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, (x, y); fwhm,
     snr=100, reduced_empty=nothing, verbose=true, kwargs...) where T
 
     if reduced_empty === nothing
@@ -301,14 +303,13 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model; x, y, fwhm
         reduced_empty = alg(cube, angles; kwargs...)
     end
 
-    # find amplitude of 
-    cent = Base.front(center(cube))
+    # find amplitude of
     noise = Metrics.noise(reduced_empty, (x, y), fwhm)
     A = snr * noise
 
-    verbose && @info "Injecting companion at r=$r θ=$θ with A=$A"
-    fake_comp = inject!(zero(reduced_empty), psf_model; x, y, A=A)
-    fake_comp_cube = inject(cube, angles, psf_model; x, y, A=A)
+    verbose && @info "Injecting companion at x=$x y=$y with amp=$A"
+    fake_comp = inject!(zero(reduced_empty), psf_model; x, y, amp=A)
+    fake_comp_cube = inject(cube, psf_model, angles; x, y, amp=A)
 
     verbose && @info "Calculating reduced frame with fake companion injected"
     reduced = alg(fake_comp_cube, angles; kwargs...)

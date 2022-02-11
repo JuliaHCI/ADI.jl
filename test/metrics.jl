@@ -36,11 +36,11 @@ end
 end
 
 @testset "stim map" begin
-    S = randn(rng, 100, 512, 512)
+    S = randn(rng, 512, 512, 100)
     angles = sort!(90rand(rng, 100))
 
     sm = stimmap(S, angles)
-    @test size(sm) == (size(S, 2), size(S, 3))
+    @test size(sm) == Base.front(size(S))
     @test all(isfinite, sm)
     @test eltype(sm) == eltype(S)
 
@@ -63,7 +63,7 @@ end
     stim_av2, mask2 = slimmap(resid_cubes, angles; N=20)
     slim2 = stim_av2 .* mask2
 
-    @test all(slim1 .≈ slim2)
+    @test all(isapprox.(slim1, slim2, atol=1e-6))
 
     # make sure beta pic b was found
     @test slim1[62, 62] > 0.5
