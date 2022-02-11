@@ -11,15 +11,15 @@ end
     for N in [1, 3, 5]
         A, w = @inferred ADI.fit(PCA(ncomps=N), cube)
         @test size(A) == (101 * 101, N)
-        @test size(w) == (N, size(cube, 1))
+        @test size(w) == (N, size(cube, 3))
     end
     A, w = ADI.fit(PCA(:pratio; pratio=0.5), cube)
-    @test size(A, 1) < size(cube, 3)
-    @test size(w, 2) < size(cube, 3)
+    @test size(A, 2) < size(cube, 3)
+    @test size(w, 1) < size(cube, 3)
 
     A, w = ADI.fit(PCA(:noise), cube)
-    @test size(A, 1) ≤ size(cube, 3)
-    @test size(w, 2) ≤ size(cube, 3)
+    @test size(A, 2) ≤ size(cube, 3)
+    @test size(w, 1) ≤ size(cube, 3)
 
     # default is to use whole cube
     S = reconstruct(PCA(), cube)
