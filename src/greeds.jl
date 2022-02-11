@@ -50,7 +50,7 @@ function fit(alg::GreeDS, data::AbstractArray{T,3}; angles, ref::AbstractArray{S
     # RDI not defined in Pairet 18,20; project onto components
     if ref !== data
         A = design.basis
-        weights = flatten(data) * A'
+        weights = A' * flatten(data)
         return LinearDesign(A, weights)
     end
     return design
@@ -79,7 +79,7 @@ function fit(alg::GreeDS, data::AnnulusView; angles, ref::AnnulusView=data, kwar
     end
     if ref !== data
         A = design.basis
-        weights = data() * A'
+        weights = A' * data()
         return LinearDesign(A, weights)
     end
     return design
@@ -88,14 +88,14 @@ end
 """
     expand_rotate(frame, angles, threshold; kwargs...)
 
-Takes a frame, expands it into a cube, rotates it clockwise by `angles`, and min-clips at `threshold`. Keyword arguments will be passed to `HCIToolbox.derotate!`.
+Takes a frame, expands it into a cube, rotates it clockwise by `angles`, and min-clips at `threshold`. Keyword arguments will be passed to `HCIToolbox.derotate`.
 """
 function expand_rotate(frame, angles, threshold; kwargs...)
     N = length(angles)
     _frame = max.(frame, threshold)
-    cube = similar(frame, N, size(frame)...)
-    Threads.@threads for idx in axes(cube, 1)
-        cube[idx, :, :] .= derotate(_frame, -angles[idx]; kwargs...)
+    cube = similar(frame, size(frame)..., N)
+    Threads.@threads for idx in axes(cube, 3)
+        cube[:, :, idx] .= derotate(_frame, -angles[idx]; kwargs...)
     end
     return cube
 end
