@@ -49,8 +49,8 @@ function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
 end
 
 # get ncomps using given value or num frames, whichever is smaller
-get_ncomps(n::Int, data; kwargs...) = min(n, size(data, 1))
-get_ncomps(::Nothing, data; kwargs...) = size(data, 1)
+get_ncomps(n::Int, data; kwargs...) = min(n, size(data, 2))
+get_ncomps(::Nothing, data; kwargs...) = size(data, 2)
 
 # get ncomps using automatic methods
 function get_ncomps(s::Symbol, data; kwargs...)
@@ -65,22 +65,22 @@ end
 
 function noise_decay_ncomps(data; collapse=false, noise_error=1e-3)
     if collapse
-        μ = mean(data; dims=1)
-        σ2 = var(data; dims=1, mean=μ)
+        μ = mean(data; dims=2)
+        σ2 = var(data; dims=2, mean=μ)
         X = @. (data - μ) / σ2
     else
-        X = data .- mean(data, dims=1)
+        X = data .- mean(data, dims=2)
     end
     P = svd(X).Vt
     tmpr = similar(data)
     τ1 = τ2 = 0
-    @progress name="Optimizing ncomps using residual noise" for ncomp in axes(data, 1)
-        Pv = @view P[1:ncomp, :]
-        tmpr .= X * (I - Pv'Pv)
+    @progress name="Optimizing ncomps using residual noise" for ncomp in axes(data, 2)
+        Pv = @view P[begin:begin + ncomp - 1, :]
+        tmpr .= (I - Pv * Pv') * X
         # calculate noise (standard deviation) optionally collapsing
-        noise = collapse ? std(median(tmpr, dims=1)) : std(tmpr)
+        noise = collapse ? std(median(tmpr, dims=2)) : std(tmpr)
         # test if we've reached the noise decay tolerance
-        if ncomp > firstindex(data, 1) + 2
+        if ncomp > firstindex(data, 2) + 2
             px_noise_decay = τ2 - noise
             @debug noise_decay=px_noise_decay noise=noise
             if px_noise_decay < noise_error
@@ -91,12 +91,12 @@ function noise_decay_ncomps(data; collapse=false, noise_error=1e-3)
         # update recursion variables
         τ2, τ1 = τ1, noise
     end
-    return lastindex(data, 1)
+    return lastindex(data, 2)
 end
 
 function pratio_ncomps(data; pratio=0.9)
     @debug "Choosing ncomps required to explain $(pratio*100)% of data's temporal variance"
-    X = data .- mean(data, dims=1)
+    X = data .- mean(data, dims=2)
     Λ = svd!(X).S
     n = length(Λ)
     exp_var = @. Λ^2 / (n - 1)
