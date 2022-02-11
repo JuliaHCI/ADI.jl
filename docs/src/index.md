@@ -7,7 +7,7 @@ CurrentModule = ADI
 [![GitHub](https://img.shields.io/badge/Code-GitHub-black.svg)](https://github.com/juliahci/ADI.jl)
 [![Build Status](https://github.com/juliahci/ADI.jl/workflows/CI/badge.svg?branch=main)](https://github.com/juliahci/ADI.jl/actions)
 [![Coverage](https://codecov.io/gh/juliahci/ADI.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/juliahci/ADI.jl)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/github/license/JuliaHCI/ADI.jl?color=yellow)](https://github.com/JuliaHCI/ADI.jl/blob/main/LICENSE)
 
 [![JOSS](https://joss.theoj.org/papers/32605be405e024fcbd15cd81dfdf9985/status.svg)](https://joss.theoj.org/papers/32605be405e024fcbd15cd81dfdf9985)
 [![DOI](https://zenodo.org/badge/250468435.svg)](https://zenodo.org/badge/latestdoi/250468435)

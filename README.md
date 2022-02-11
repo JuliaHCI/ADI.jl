@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/juliahci/ADI.jl/workflows/CI/badge.svg?branch=main)](https://github.com/juliahci/ADI.jl/actions)
 [![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/A/ADI.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
 [![Coverage](https://codecov.io/gh/juliahci/ADI.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/juliahci/ADI.jl)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/github/license/JuliaHCI/ADI.jl?color=yellow)](LICENSE)
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliahci.github.io/ADI.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliahci.github.io/ADI.jl/dev)
