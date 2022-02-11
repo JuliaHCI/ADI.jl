@@ -107,31 +107,3 @@ function pratio_ncomps(data; pratio=0.9)
     @info "$(pratio*100)% of variance explained with $k components"
     return k
 end
-
-"""
-    TPCA(;ncomps=nothing, options...)
-    TPCA(ncomps; options...)
-
-Perform principal components analysis (PCA) using truncated SVD (TSVD; provided by TSVD.jl) instead of deterministic SVD. This is often faster than [`PCA`](@ref) but is non-deterministic, so the results may be different. See the [`PCA`](@ref) docstring for more information about the options.
-
-# See Also
-* [`PCA`](@ref), [`TSVD.tsvd`](https://github.com/JuliaLinearAlgebra/TSVD.jl)
-"""
-@concrete struct TPCA <: ADIAlgorithm
-    ncomps
-    opts
-end
-TPCA(ncomps; options...) = TPCA(ncomps, options)
-TPCA(; ncomps=nothing, options...) = TPCA(ncomps, options)
-
-function fit(alg::TPCA, data::AbstractMatrix; ref=data, kwargs...)
-    # get number of components (using dispatch for symbolic args)
-    # TODO using automatic methods is not valid for TPCA using different SVD methods
-    k = get_ncomps(alg.ncomps, ref; alg.opts...)
-    # fit SVD to get principal subspace of reference
-    U, Σ, V = tsvd(collect(ref), k)
-    # Get the principal components (principal subspace) and weights
-    P = V'
-    weights = data * P'
-    return LinearDesign(P, weights)
-end

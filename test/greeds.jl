@@ -39,19 +39,6 @@ end
     @test S ≈ cube rtol=2e-1
 end
 
-@testset "Decomposition - TPCA" begin
-    # get sizes correct for ncomps
-    for N in [1, 3, 5]
-        A, w = ADI.fit(GreeDS(TPCA(N)), cube; angles=angles)
-        @test size(A) == (N, 101 * 101)
-        @test size(w) == (size(cube, 1), N)
-    end
-
-    # default is to use whole cube
-    S = reconstruct(GreeDS(TPCA()), cube; angles=angles)
-    @test size(S) == size(cube)
-end
-
 @testset "Decomposition - NMF" begin
     data = ones(10, 100, 100) 
     angs = zeros(10)

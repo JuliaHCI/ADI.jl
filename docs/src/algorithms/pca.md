@@ -5,5 +5,4 @@
 
 ```@docs
 PCA
-TPCA
 ```
