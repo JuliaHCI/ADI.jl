@@ -43,8 +43,8 @@ function fit(alg::PCA, data::AbstractMatrix; ref=data, kwargs...)
     # fit SVD to get principal subspace of reference
     decomp = svd!(collect(ref))
     # Get the principal components (principal subspace) and weights
-    P = decomp.Vt[1:k, :]
-    weights = data * P'
+    weights = decomp.Vt[begin:begin + k - 1, :]
+    P = data * transpose(weights)
     return LinearDesign(P, weights)
 end
 
