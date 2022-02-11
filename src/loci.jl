@@ -32,7 +32,7 @@ function fit(alg::LOCI, data::AbstractMatrix; ref=data, kwargs...)
 end
 
 function loci_distances_mask(ref::AbstractMatrix, dist_threshold=0.90, metric=Cityblock())
-    distances = pairwise(metric, ref; dims=3)
+    distances = pairwise(metric, ref; dims=2)
     thresh = quantile(vec(distances), dist_threshold)
     return @. 0 < distances ≤ thresh
 end
