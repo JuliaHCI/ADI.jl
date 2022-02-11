@@ -1,5 +1,3 @@
-using TSVD: tsvd
-
 
 """
     PCA(ncomps; options...)
