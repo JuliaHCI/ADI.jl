@@ -50,7 +50,7 @@ function fit(alg::GreeDS, data::AbstractArray{T,3}; angles, ref::AbstractArray{S
     # RDI not defined in Pairet 18,20; project onto components
     if ref !== data
         A = design.basis
-        weights = A' * flatten(data)
+        weights = transpose(A) * flatten(data)
         return LinearDesign(A, weights)
     end
     return design
@@ -79,7 +79,7 @@ function fit(alg::GreeDS, data::AnnulusView; angles, ref::AnnulusView=data, kwar
     end
     if ref !== data
         A = design.basis
-        weights = A' * data()
+        weights = transpose(A) * data()
         return LinearDesign(A, weights)
     end
     return design
