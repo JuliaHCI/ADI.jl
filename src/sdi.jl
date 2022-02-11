@@ -9,7 +9,7 @@ Spectral differential imaging (SDI) algorithms. These work on 4-D SDI tensors. T
 (::SDIAlgorithm)(data::AbstractArray{T,4}, angles, scales; [ref] kwargs...)
 ```
 
-The data is expected to be laid out in `(nλ, nf, ny, nx)` format, so you may need to `permutedims` before processing the data. The `scales` correspond to the relative wavelength scales for each spectrum, and can be retrieved with `HCIToolbox.scale_list`.
+The data is expected to be laid out in `(nx, ny, nλ, nf)` format, so you may need to `permutedims` before processing the data. The `scales` correspond to the relative wavelength scales for each spectrum, and can be retrieved with `HCIToolbox.scale_list`.
 
 # Algorithms
 
@@ -23,7 +23,7 @@ abstract type SDIAlgorithm <: ADIAlgorithm end
 """
     SingleSDI(alg)
 
-A wrapper algorithm for spectral differential imaging (SDI) data reduced in a single pass. This means that each channel will be scaled and then concatenated together, so an SDI tensor `(nλ, nf, y, x)` becomes a stack `(nλ * nf, y, x)` which is processed by the underlying `alg` like ADI data.
+A wrapper algorithm for spectral differential imaging (SDI) data reduced in a single pass. This means that each channel will be scaled and then concatenated together, so an SDI tensor `(nx, ny, nλ, nf)` becomes a stack `(nx, ny, nλ * nf)` which is processed by the underlying `alg` like ADI data.
 
 !!! tip
     `SingleSDI` is the default SDI mode. This means instead of writing
@@ -43,8 +43,7 @@ process(alg, spcube::AbstractArray{T,4}, angles, scales; kwargs...) where {T} =
     process(SingleSDI(alg), spcube, angles, scales; kwargs...)
 
 function process(sdi::SingleSDI, spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
-    nλ, n, ny, nx = size(spcube)
-    frame_size = (ny, nx)
+    nλ = size(spcube, 3)
     big_cube = scale_and_stack(spcube, scales)
     angs = repeat(angles, inner=nλ)
     # do single-pass reconstruction
@@ -56,7 +55,7 @@ function process(sdi::SingleSDI, spcube::AbstractArray{T,4}, angles, scales; met
     end
 
     # bin across spectral dim
-    resid_cube = invscale_and_collapse(big_resid_cube, scales, frame_size)
+    resid_cube = invscale_and_collapse(big_resid_cube, scales)
     # derotate and combine
     return collapse!(resid_cube, angles; method=method, kwargs...)
 end
@@ -87,23 +86,22 @@ end
 DoubleSDI(alg) = DoubleSDI(alg, alg)
 
 function process(sdi::DoubleSDI, spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
-    nλ, n, ny, nx = size(spcube)
-    frame_size = (ny, nx)
-    spec_resids = similar(spcube, n, ny, nx)
+    nx, ny, nλ, n = size(spcube)
+    spec_resids = similar(spcube, nx, ny, n)
     # do first pass in spectral domain
-    Threads.@threads for n in axes(spcube, 2)
-        cube = @view spcube[:, n, :, :]
+    Threads.@threads for tidx in axes(spcube, 4)
+        cube = @view spcube[:, :, :, tidx]
         scaled_cube = scale(cube, scales)
         angs = Zeros(nλ)
         if :ref in keys(kwargs)
-            cube_ref = view(kwargs[:ref], :, n, :, :)
+            cube_ref = view(kwargs[:ref], :, :, :, tidx)
             scaled_cube_ref = scale(cube_ref, scales)
             R = subtract(sdi.alg_spec, scaled_cube; angles=angs, kwargs..., ref=scaled_cube_ref)
         else
             R = subtract(sdi.alg_spec, scaled_cube; angles=angs, kwargs...)
         end
-        spec_resid = invscale(R, scales, frame_size)
-        spec_resids[n, :, :] .= collapse(spec_resid)
+        spec_resid = invscale(R, scales)
+        spec_resids[:, :, tidx] .= collapse(spec_resid)
     end
     # do second pass in temporal domain
     return sdi.alg_temp(spec_resids, angles; method=method, angles=angles, kwargs...)
@@ -135,17 +133,16 @@ end
 SliceSDI(alg) = SliceSDI(alg, alg)
 
 function process(sdi::SliceSDI, spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
-    nλ, n, ny, nx = size(spcube)
-    frame_size = (ny, nx)
-    temp_resids = similar(spcube, nλ, ny, nx)
+    nλ = size(spcube, 3)
+    temp_resids = similar(spcube, Base.front(size(spcube)))
     # do first pass in temporal domain
-    Threads.@threads for n in axes(spcube, 1)
-        cube = @view spcube[n, :, :, :]
+    Threads.@threads for waveidx in axes(spcube, 3)
+        cube = @view spcube[:, :, waveidx, :]
         if :ref in keys(kwargs)
-            cube_ref = @view kwargs[:ref][n, :, :, :]
-            temp_resids[n, :, :] .= sdi.alg_temp(cube, angles; kwargs..., ref=cube_ref)
+            cube_ref = @view kwargs[:ref][:, :, waveidx, :]
+            temp_resids[:, :, waveidx] .= sdi.alg_temp(cube, angles; kwargs..., ref=cube_ref)
         else
-            temp_resids[n, :, :] .= sdi.alg_temp(cube, angles; kwargs...)
+            temp_resids[:, :, waveidx] .= sdi.alg_temp(cube, angles; kwargs...)
         end
     end
     # do second pass in temporal domain
