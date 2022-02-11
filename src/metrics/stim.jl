@@ -26,7 +26,7 @@ julia> sm = stimmap(S, angles);
 [`stim_threshold`](@ref)
 """
 function stimmap(residuals::AbstractArray{T,3}, angles) where T
-    return stim(derotate(residuals, angles); dims=1)
+    return stim(derotate(residuals, angles); dims=3)
 end
 
 """
@@ -60,7 +60,7 @@ julia> τ = stim_threshold(sm, S, angles);
 function stim_threshold(stimmap, residuals, angles)
     # estimate noise map by getting STIM map of cube
     # rotated with opposite angles
-    d_opp = Metrics.stim(derotate(residuals, -angles); dims=1)
+    d_opp = Metrics.stim(derotate(residuals, -angles); dims=3)
     # return ratio of values above the noise
     n_ϵ = count(stimmap .> d_opp)
     n = length(stimmap)
@@ -69,7 +69,7 @@ end
 
 function stim_threshold(residuals, angles)
     # calculate stimmap first
-    d = stim(derotate(residuals, angles); dims=1)
+    d = stim(derotate(residuals, angles); dims=3)
     return stim_threshold(d, residuals, angles)
 end
 

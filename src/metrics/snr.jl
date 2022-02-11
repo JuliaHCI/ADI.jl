@@ -22,7 +22,7 @@ function detectionmap(method, data::AbstractMatrix{T}, fwhm; fill=zero(T)) where
     out = fill!(similar(data), fill)
     width = minimum(size(data)) / 2 - 1.5 * fwhm
 
-    masked = get_annulus_segments(data, fwhm/2 + 2, width, mode=:apply)
+    masked = get_annulus_segments(data, fwhm / 2 + 2, width, mode=:apply)
     coords = findall(!iszero, masked)
 
     Threads.@threads for coord in coords
@@ -47,7 +47,7 @@ Uses the method of Mawet et al. 2014 which includes penalties for small sample s
 """
 function snr(data::AbstractMatrix, position, fwhm)
     x, y = position
-    cy, cx = center(data)
+    cx, cy = center(data)
     separation = sqrt((x - cx)^2 + (y - cy)^2)
     separation > fwhm / 2 + 1 || return NaN
     r = fwhm / 2
@@ -70,12 +70,12 @@ function snr(data::AbstractMatrix, position, fwhm)
         fluxes[idx] = photometry(ap, data).aperture_sum
     end
 
-    other_elements = @view fluxes[2:end]
+    other_elements = @view fluxes[begin + 1:end]
     bkg_σ = std(other_elements) # ddof = 1 by default
-    return (fluxes[1] - mean(other_elements)) / (bkg_σ * sqrt(1 + 1/(N - 1)))
+    return (first(fluxes) - mean(other_elements)) / (bkg_σ * sqrt(1 + inv(N - 1)))
 end
 
-snr(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, reverse(idx.I), fwhm)
+snr(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, idx.I, fwhm)
 
 """
     significance(data, position, fwhm)
@@ -93,13 +93,13 @@ where the degrees of freedom ``\\nu`` is given as ``2\\pi r / \\Gamma - 2`` wher
 """
 function significance(data::AbstractMatrix, position, fwhm)
     x, y = position
-    cy, cx = center(data)
+    cx, cy = center(data)
     separation = sqrt((x - cx)^2 + (y - cy)^2)
     _snr = snr(data, position, fwhm)
     # put in one line to allow broadcast fusion
     return snr_to_sig(_snr, separation, fwhm)
 end
-significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = significance(data, reverse(idx.I), fwhm)
+significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = significance(data, idx.I, fwhm)
 
 function snr_to_sig(snr, separation, fwhm)
     dof = 2 * π * separation / fwhm - 2
@@ -121,7 +121,7 @@ Uses the standard deviation of the apertures in the entire annulus. This is dist
 """
 function noise(data::AbstractMatrix, position, fwhm)
     x, y = position
-    cy, cx = center(data)
+    cx, cy = center(data)
     separation = sqrt((x - cx)^2 + (y - cy)^2)
     separation > fwhm / 2 + 1 || return NaN
     r = fwhm / 2
@@ -147,4 +147,4 @@ function noise(data::AbstractMatrix, position, fwhm)
     return std(fluxes)
 end
 
-noise(data::AbstractMatrix, idx::CartesianIndex, fwhm) = noise(data, reverse(idx.I), fwhm)
+noise(data::AbstractMatrix, idx::CartesianIndex, fwhm) = noise(data, idx.I, fwhm)
