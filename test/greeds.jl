@@ -48,5 +48,5 @@ end
 
     @test size(reduced_4) == size(reduced_8) == (100, 100)
     @test all(x -> isapprox(x, 0, atol=1e-8), reduced_4)
-    @test all(x -> isapprox(x, 0, atol=1e-4), reduced_8)
+    @test all(x -> isapprox(x, 0, atol=1e-8), reduced_8)
 end

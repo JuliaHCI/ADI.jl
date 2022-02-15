@@ -52,17 +52,15 @@ function fit(alg::NMF, data::AbstractMatrix{T}; ref=data, kwargs...) where T
     else
         k = min(alg.ncomps, size(data, 2))
     end
-
-    X = collect(ref)
-    H, W = nndsvd(X, k)
-    solve!(CoordinateDescent{T}(), X, H, W)
+    # transpose data to accommadate NMF.jl interface
+    X = collect(transpose(ref))
+    W, H = nndsvd(X, k)
+    solve!(CoordinateDescent{T}(), X, W, H)
     if ref !== data
         Y = collect(transpose(data))
-        W = Y * H
+        W = Y * transpose(H)
         # have to transpose to use `update_H=false`
-        Ht = collect(transpose(H))
-        solve!(CoordinateDescent{T}(update_H=false), Y, W, Ht)
-        W = transpose(W)
+        solve!(CoordinateDescent{T}(update_H=false), Y, W, H)
     end
-    return LinearDesign(H, W)
+    return LinearDesign(transpose(H), transpose(W))
 end
