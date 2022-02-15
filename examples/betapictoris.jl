@@ -132,9 +132,7 @@ plot(
     xlabel="radius [px]"
 )
 #=
-You'll notice a pretty severe bump indicating poor contrast where the original companion is! Because this companion is very bright it will bias the contrast measurement.
-
-Typically you'd like to fit the companion signal and remove it in a maximum likelihood framework. For convenience here, let's use the `:cube_empty` entry for `BetaPictoris`, which already has the companion removed.
+The contrast uses a robust estimator for the noise, which means the bright companion doesn't overly bias the contrast measurement. Nonetheless, it is good form to remove the companion signal in a maximum likelihood framework. For convenience here, let's use the `:cube_empty` entry for `BetaPictoris`, which already has the companion removed.
 =#
 cube_empty = BetaPictoris[:cube_empty]
 reduced_empty = alg(cube_empty, angles)

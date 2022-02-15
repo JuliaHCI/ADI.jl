@@ -326,5 +326,5 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, (x, y); fw
     recovered_flux = photometry(ap, reduced .- reduced_empty).aperture_sum
     throughput = max(zero(T), recovered_flux / injected_flux)
 
-    return throughput, (;fake_comp, fake_comp_cube, reduced, injected_flux, recovered_flux)
+    return throughput
 end

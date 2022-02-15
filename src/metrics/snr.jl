@@ -86,7 +86,6 @@ significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = significance(dat
 function snr_to_sig(snr, separation, fwhm)
     dof = floor(Int, 2 * π * separation / fwhm) - 2
     dof > 0 || return NaN
-    @show dof
     return quantile(Normal(), cdf(TDist(dof), float(snr)))
 end
 function sig_to_snr(sig, separation, fwhm)
@@ -100,7 +99,7 @@ end
 
 Calculate the statistical noise for a test point at `position` using apertures of diameter `fwhm` in a residual frame.
 
-Uses the standard deviation of the apertures in the entire annulus. This is distinct from the [`snr`](@ref) noise calculation, which defines a confidence interval using student-t statistics. This means you cannot simply create a noise map and divide it from the signal to create an equivalent S/N map.
+Uses the biweight middeviance (square root of biweight midvariance, a robust estimator of the standard deviation) of the apertures in the entire annulus. This is distinct from the [`snr`](@ref) noise calculation, which defines a confidence interval using student-t statistics. This means you cannot simply create a noise map and divide it from the signal to create an equivalent S/N map.
 """
 function noise(data::AbstractMatrix, position, fwhm)
     separation = radial_distance(position, center(data))
