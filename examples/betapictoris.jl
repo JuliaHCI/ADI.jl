@@ -28,9 +28,9 @@ using Plots
 
 ## set up plotting
 function imshow(img; kwargs...)
-    ylim = extrema(axes(img, 1))
-    xlim = extrema(axes(img, 2))
-    heatmap(axes(img)..., img; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
+    xs, ys = axes(img)
+    heatmap(xs, ys, transpose(img); aspect_ratio=1, 
+            xlim=extrema(xs), ylim=extrema(ys), kwargs...)
 end;
 
 #=
@@ -103,11 +103,11 @@ Before we move on, we need to create a PSF model for our data. [PSFModels.jl](ht
 =#
 using PSFModels
 psf = BetaPictoris[:psf] ./ maximum(BetaPictoris[:psf])
-kern_psf = PSFModels.Gaussian(fwhm);
+synthpsf = gaussian(eltype(psf); x=0, y=0, fwhm)
 #-
 plot(
     imshow(psf),
-    plot(kern_psf, -19:19, -19:19),
+    psfplot(synthpsf, -19:19, -19:19),
     layout=2,
     size=(500, 250),
     cbar=false,
