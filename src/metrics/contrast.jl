@@ -237,33 +237,38 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
     angle_per_branch = 360 / nbranch
     output = similar(cube, length(radii), nbranch)
 
+    tmp_cube = similar(cube)
     fake_comps_full = zero(reduced_empty)
+    tmp_frame = similar(reduced_empty)
     @progress name="branch" for branch in 1:nbranch
         θ = theta + angle_per_branch * (branch - 1)
+        δy, δx = sincosd(θ)
         @progress name="pattern" for init_rad in 1:fc_rad_sep
             slice = init_rad:fc_rad_sep:lastindex(radii)
-            fake_comps = zero(reduced_empty)
-
-            cube_fake_comps = copy(cube)
+            
+            # reset work arrays
+            fill!(tmp_frame, zero(T))
+            copyto!(tmp_cube, cube)
 
             apertures = map(slice) do ann
                 r = radii[ann]
-                δy, δx = sincosd(θ)
                 x = r * δx + cx
                 y = r * δy + cy
 
                 A = snr * noise[ann]
 
-                inject!(fake_comps, psf_model; x, y, amp=A)
-                fake_comps_full .+= fake_comps
-                inject!(cube_fake_comps, psf_model, angles; x, y, amp=A)
+                inject!(tmp_frame, psf_model; x, y, amp=A, fwhm)
+                inject!(tmp_cube, psf_model, angles; x, y, amp=A, fwhm)
 
                 return CircularAperture(x, y, fwhm / 2)
             end
-            # make sure geometries are maintained
-            reduced = alg(cube_fake_comps, angles; kwargs...)
+            # add fake comps to output frame
+            fake_comps_full .+= tmp_frame
 
-            injected_flux = photometry(apertures, fake_comps).aperture_sum
+            # get reduced output after subtracting and collapsing
+            reduced = alg(tmp_cube, angles; kwargs...)
+
+            injected_flux = photometry(apertures, tmp_frame).aperture_sum
             recovered_flux = photometry(apertures, reduced .- reduced_empty).aperture_sum
             @. output[slice, branch] = max(zero(T), recovered_flux / injected_flux)
         end
@@ -303,13 +308,13 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, (x, y); fw
         reduced_empty = alg(cube, angles; kwargs...)
     end
 
-    # find amplitude of
+    # find amplitude of injected PSF
     noise = Metrics.noise(reduced_empty, (x, y), fwhm)
     A = snr * noise
 
     verbose && @info "Injecting companion at x=$x y=$y with amp=$A"
-    fake_comp = inject!(zero(reduced_empty), psf_model; x, y, amp=A)
-    fake_comp_cube = inject(cube, psf_model, angles; x, y, amp=A)
+    fake_comp = inject!(zero(reduced_empty), psf_model; x, y, amp=A, fwhm)
+    fake_comp_cube = inject(cube, psf_model, angles; x, y, amp=A, fwhm)
 
     verbose && @info "Calculating reduced frame with fake companion injected"
     reduced = alg(fake_comp_cube, angles; kwargs...)
@@ -321,5 +326,5 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, (x, y); fw
     recovered_flux = photometry(ap, reduced .- reduced_empty).aperture_sum
     throughput = max(zero(T), recovered_flux / injected_flux)
 
-    return throughput
+    return throughput, (;fake_comp, fake_comp_cube, reduced, injected_flux, recovered_flux)
 end

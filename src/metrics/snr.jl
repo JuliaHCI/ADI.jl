@@ -108,7 +108,7 @@ function noise(data::AbstractMatrix, position, fwhm)
 
     fluxes = get_aperture_fluxes(data, position, separation, fwhm)
 
-    return std(fluxes; corrected=false)
+    return robuststd(fluxes)
 end
 
 noise(data::AbstractMatrix, idx::CartesianIndex, fwhm) = noise(data, idx.I, fwhm)
@@ -140,4 +140,23 @@ function get_aperture_fluxes(data, position, separation, fwhm)
     end
 
     return fluxes
+end
+
+# biweight midvariance
+function robuststd(values; c=9)
+    T = eltype(values)
+    min_points = 3
+
+    med = median(values)
+    Δ = @. values - med
+    MAD = median(abs.(Δ)) * 1.482602218505602
+    MAD < 0 && return zero(T)
+
+    u = @. (Δ / (c * MAD))^2
+    N = count(<(1), u)
+    N < min_points && return zero(T)
+    f1 = mapreduce((d, u) -> u < 1 ? d^2 * (1 - u)^4 : zero(d), +, Δ, u)
+    f2 = sum(u -> u < 1 ? (1 - u) * (1 - 5 * u) : zero(u), u)
+    variance = max(zero(T), N * f1 / (f2 * (f2 - 1)))
+    return sqrt(variance)
 end
