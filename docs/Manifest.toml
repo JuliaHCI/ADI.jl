@@ -587,9 +587,9 @@ version = "0.3.0"
 
 [[deps.HCIToolbox]]
 deps = ["CoordinateTransformations", "FillArrays", "ImageTransformations", "Interpolations", "LinearAlgebra", "PaddedViews", "Rotations", "SpecialFunctions", "StaticArrays", "Statistics", "StatsBase"]
-git-tree-sha1 = "f9238b1f4b8b52d9f4edeae8e44c143174d42d4f"
+git-tree-sha1 = "0bf77d4dd1b3e19e34038373feeb8a7f28afab56"
 uuid = "b6cd55e5-4d02-4e12-b82c-005f67e784bf"
-version = "0.6.1"
+version = "0.6.2"
 
 [[deps.HTTP]]
 deps = ["Base64", "Dates", "IniFile", "Logging", "MbedTLS", "NetworkOptions", "Sockets", "URIs"]

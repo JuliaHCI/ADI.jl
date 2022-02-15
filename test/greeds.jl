@@ -43,10 +43,10 @@ end
     data = ones(100, 100, 10)
     angs = zeros(10)
 
+    reduced_4 = GreeDS(NMF(4))(data, angs)
     reduced_8 = GreeDS(NMF(8))(data, angs)
-    reduced_10 = GreeDS(NMF(10))(data, angs)
 
-    @test size(reduced_8) == size(reduced_10) == (100, 100)
-    @test all(x -> isapprox(x, 0, atol=1e-8), reduced_8)
-    @test all(x -> isapprox(x, 0, atol=1e-6), reduced_10)
+    @test size(reduced_4) == size(reduced_8) == (100, 100)
+    @test all(x -> isapprox(x, 0, atol=1e-8), reduced_4)
+    @test all(x -> isapprox(x, 0, atol=1e-4), reduced_8)
 end
