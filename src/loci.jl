@@ -27,12 +27,12 @@ end
 LOCI(; dist_threshold=nothing, metric::Metric=Cityblock()) = LOCI(dist_threshold, metric)
 
 function fit(alg::LOCI, data::AbstractMatrix; ref=data, kwargs...)
-    coeffs = ref' \ data'
-    return LinearDesign(ref, coeffs')
+    coeffs = ref \ data
+    return LinearDesign(ref, coeffs)
 end
 
 function loci_distances_mask(ref::AbstractMatrix, dist_threshold=0.90, metric=Cityblock())
-    distances = pairwise(metric, ref; dims=1)
+    distances = pairwise(metric, ref; dims=2)
     thresh = quantile(vec(distances), dist_threshold)
     return @. 0 < distances ≤ thresh
 end
@@ -43,14 +43,14 @@ function reconstruct(alg::Framewise{<:LOCI}, cube::AbstractArray{T,3}; angles, k
     data = flatten(cube)
     S = similar(data)
     dist_mask = loci_distances_mask(data, alg.kernel.dist_threshold, alg.kernel.metric)
-    @views Threads.@threads for i in axes(S, 1)
+    @views Threads.@threads for i in axes(S, 2)
         ang_inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
         inds = ang_inds[dist_mask[i, ang_inds]]
-        target = data[i:i, :]
-        ref = data[inds, :]
+        target = data[:, i:i]
+        ref = data[:, inds]
         angs = angles[inds]
         des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
-        S[i, :] = reconstruct(des)
+        S[:, i] = reconstruct(des)
     end
     return expand(S)
 end
@@ -60,14 +60,14 @@ function reconstruct(alg::Framewise{<:LOCI}, cube::AnnulusView; angles, r=_radiu
     data = cube(true) # as view
     S = similar(data)
     dist_mask = loci_distances_mask(data, alg.kernel.dist_threshold, alg.kernel.metric)
-    Threads.@threads for i in axes(S, 1)
+    Threads.@threads for i in axes(S, 2)
         ang_inds = find_angles(angles, i, pa_threshold; limit=alg.limit)
-        inds = ang_inds[dist_mask[i, ang_inds]]
-        target = data[i:i, :]
-        ref = data[inds, :]
+        inds = ang_inds[dist_mask[ang_inds, i]]
+        target = data[:, i:i]
+        ref = data[:, inds]
         angs = angles[inds]
         des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
-        S[i, :] = reconstruct(des)
+        S[:, i] = reconstruct(des)
     end
     return inverse(cube, S)
 end
@@ -84,14 +84,14 @@ function reconstruct(alg::Framewise{<:LOCI}, cube::MultiAnnulusView; angles, fwh
             @debug "PA thresh: $pa_threshold Ann center: $r"
             S = similar(ann)
             dist_mask = loci_distances_mask(ann, alg.kernel.dist_threshold, alg.kernel.metric)
-            @views Threads.@threads for j in axes(S, 1)
+            @views Threads.@threads for j in axes(S, 2)
                 ang_inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
-                inds = ang_inds[dist_mask[j, ang_inds]]
-                target = ann[j:j, :]
-                ref = ann[inds, :]
+                inds = ang_inds[dist_mask[ang_inds, j]]
+                target = ann[:, j:j]
+                ref = ann[:, inds]
                 angs = angles[inds]
                 des = fit(alg.kernel, target; kwargs..., ref=ref, angles=angs)
-                S[j, :] = reconstruct(des)
+                S[:, j] = reconstruct(des)
             end
             # update progress
             i_ann += 1
@@ -114,15 +114,15 @@ function reconstruct(alg::Framewise{<:AbstractVector{<:LOCI}}, cube::MultiAnnulu
             pa_threshold = compute_pa_thresh(angles, delta_rot; r=r, fwhm=fwhm)
             S = similar(ann)
             dist_mask = loci_distances_mask(ann, _alg.dist_threshold, _alg.metric)
-            @views Threads.@threads for j in axes(S, 1)
+            @views Threads.@threads for j in axes(S, 2)
                 @debug "PA thresh: $pa_threshold Ann center: $r"
                 ang_inds = find_angles(angles, j, pa_threshold; limit=alg.limit)
-                inds = ang_inds[dist_mask[j, ang_inds]]
-                target = ann[j:j, :]
-                ref = ann[inds, :]
+                inds = ang_inds[dist_mask[ang_inds, j]]
+                target = ann[:, j:j]
+                ref = ann[:, inds]
                 angs = angles[inds]
                 des = fit(_alg, target; kwargs..., ref=ref, angles=angs)
-                S[j, :] = reconstruct(des)
+                S[:, j] = reconstruct(des)
             end
             # update progress
             i_ann += 1

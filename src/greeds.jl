@@ -1,7 +1,7 @@
 using FillArrays
 using Setfield
 
-const PCALIKE = Union{PCA,TPCA,NMF}
+const PCALIKE = Union{PCA,NMF}
 
 """
     GreeDS(alg=PCA(); threshold=0)
@@ -15,7 +15,7 @@ This method is an iterative approach to standard ADI reduction which seeks to mi
     The GreeDS algorithm requires fully reconstructing a cube at each iteration, which requires knowing the geometry of the input (full-frame, annulus, etc.) and the corresponding parallactic angles. These angles must be passed as a keyword argument `angles`. In the case of reducing data, e.g. `GreeDS()(cube, angles)` the angles will be passed automatically. It is important to clarify, *these angles should correspond to the reference data in the case of RDI*, e.g. `GreeDS()(cube, angles; ref=ref_cube, angles=ref_angles)`
 
 # Algorithms
-The following algorithms work natively with GreeDS: [`PCA`](@ref), [`TPCA`](@ref), and [`NMF`](@ref)
+The following algorithms work natively with GreeDS: [`PCA`](@ref) and [`NMF`](@ref)
 
 # References
 1. [Pairet et al. 2018](https://ui.adsabs.harvard.edu/abs/2018arXiv181201333P) "Reference-less algorithm for circumstellar disks imaging"
@@ -50,7 +50,7 @@ function fit(alg::GreeDS, data::AbstractArray{T,3}; angles, ref::AbstractArray{S
     # RDI not defined in Pairet 18,20; project onto components
     if ref !== data
         A = design.basis
-        weights = flatten(data) * A'
+        weights = transpose(A) * flatten(data)
         return LinearDesign(A, weights)
     end
     return design
@@ -79,7 +79,7 @@ function fit(alg::GreeDS, data::AnnulusView; angles, ref::AnnulusView=data, kwar
     end
     if ref !== data
         A = design.basis
-        weights = data() * A'
+        weights = transpose(A) * data()
         return LinearDesign(A, weights)
     end
     return design
@@ -88,14 +88,14 @@ end
 """
     expand_rotate(frame, angles, threshold; kwargs...)
 
-Takes a frame, expands it into a cube, rotates it clockwise by `angles`, and min-clips at `threshold`. Keyword arguments will be passed to `HCIToolbox.derotate!`.
+Takes a frame, expands it into a cube, rotates it clockwise by `angles`, and min-clips at `threshold`. Keyword arguments will be passed to `HCIToolbox.derotate`.
 """
 function expand_rotate(frame, angles, threshold; kwargs...)
     N = length(angles)
     _frame = max.(frame, threshold)
-    cube = similar(frame, N, size(frame)...)
-    Threads.@threads for idx in axes(cube, 1)
-        cube[idx, :, :] .= derotate(_frame, -angles[idx]; kwargs...)
+    cube = similar(frame, size(frame)..., N)
+    Threads.@threads for idx in axes(cube, 3)
+        cube[:, :, idx] .= derotate(_frame, -angles[idx]; kwargs...)
     end
     return cube
 end

@@ -1,5 +1,5 @@
 using Distributions
-using HCIToolbox: get_annulus_segments
+using HCIToolbox: get_annulus_segments, inside_annulus
 using ImageTransformations: center
 using Photometry
 using Rotations
@@ -20,14 +20,14 @@ The following methods are provided in the [`Metrics`](@ref) module:
 """
 function detectionmap(method, data::AbstractMatrix{T}, fwhm; fill=zero(T)) where T
     out = fill!(similar(data), fill)
-    width = minimum(size(data)) / 2 - 1.5 * fwhm
+    inner_rad = 0.5 * fwhm + 2
+    outer_rad = 0.5 * (minimum(size(data)) - fwhm)
+    ctr = center(data)
 
-    masked = get_annulus_segments(data, fwhm/2 + 2, width, mode=:apply)
-    coords = findall(!iszero, masked)
-
-    Threads.@threads for coord in coords
-        val = method(data, coord, fwhm)
-        @inbounds out[coord] = isfinite(val) ? val : fill
+    Threads.@threads for idx in  CartesianIndices(data)
+        inside_annulus(inner_rad, outer_rad, ctr, idx) || continue
+        val = method(data, idx, fwhm)
+        @inbounds out[idx] = ifelse(isfinite(val), val, fill)
     end
 
     return out
@@ -40,42 +40,26 @@ detectionmap(data, fwhm) = detectionmap(snr, data, fwhm)
 
 Calculate the signal to noise ratio (SNR, S/N) for a test point at `position` using apertures of diameter `fwhm` in a residual frame.
 
-Uses the method of Mawet et al. 2014 which includes penalties for small sample statistics. These are encoded by using a student's t-test for calculating the SNR.
+Uses the method of Mawet et al. (2014) which includes penalties for small sample statistics. These are encoded by using a student's t-test for calculating the SNR.
 
 !!! note
     SNR is not equivalent to significance, use [`significance`](@ref) instead
 """
 function snr(data::AbstractMatrix, position, fwhm)
-    x, y = position
-    cy, cx = center(data)
-    separation = sqrt((x - cx)^2 + (y - cy)^2)
+    separation = radial_distance(position, center(data))
     separation > fwhm / 2 + 1 || return NaN
-    r = fwhm / 2
 
-    N = floor(Int, 2 * π  * separation / fwhm)
-    dθ = 2π / N
-    R = RotMatrix{2}(dθ)
+    fluxes = get_aperture_fluxes(data, position, separation, fwhm)
 
-    # initial points
-    rx = x - cx
-    ry = y - cy
-
-    fluxes = similar(data, N)
-
-    for idx in eachindex(fluxes)
-        ap_x = rx + cx
-        ap_y = ry + cy
-        rx, ry = R * SA[rx, ry]
-        ap = CircularAperture(ap_x, ap_y, r)
-        fluxes[idx] = photometry(ap, data).aperture_sum
-    end
-
-    other_elements = @view fluxes[2:end]
-    bkg_σ = std(other_elements) # ddof = 1 by default
-    return (fluxes[1] - mean(other_elements)) / (bkg_σ * sqrt(1 + 1/(N - 1)))
+    # fluxes of elements which are NOT the test element
+    other_elements = @view fluxes[begin + 1:end]
+    bkg_μ = mean(other_elements)
+    bkg_σ = std(other_elements; corrected=false, mean=bkg_μ)
+    sig_factor = sqrt(1 + inv(length(fluxes) - 1))
+    return (first(fluxes) - bkg_μ) / (bkg_σ * sig_factor)
 end
 
-snr(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, reverse(idx.I), fwhm)
+snr(data::AbstractMatrix, idx::CartesianIndex, fwhm) = snr(data, idx.I, fwhm)
 
 """
     significance(data, position, fwhm)
@@ -92,22 +76,20 @@ where the degrees of freedom ``\\nu`` is given as ``2\\pi r / \\Gamma - 2`` wher
 [`snr`](@ref)
 """
 function significance(data::AbstractMatrix, position, fwhm)
-    x, y = position
-    cy, cx = center(data)
-    separation = sqrt((x - cx)^2 + (y - cy)^2)
+    separation = radial_distance(position, center(data))
     _snr = snr(data, position, fwhm)
     # put in one line to allow broadcast fusion
     return snr_to_sig(_snr, separation, fwhm)
 end
-significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = significance(data, reverse(idx.I), fwhm)
+significance(data::AbstractMatrix, idx::CartesianIndex, fwhm) = significance(data, idx.I, fwhm)
 
 function snr_to_sig(snr, separation, fwhm)
-    dof = 2 * π * separation / fwhm - 2
+    dof = floor(Int, 2 * π * separation / fwhm) - 2
     dof > 0 || return NaN
     return quantile(Normal(), cdf(TDist(dof), float(snr)))
 end
 function sig_to_snr(sig, separation, fwhm)
-    dof = 2 * π * separation / fwhm - 2
+    dof = floor(Int, 2 * π * separation / fwhm) - 2
     dof > 0 || return NaN
     return quantile(TDist(dof), cdf(Normal(), float(sig)))
 end
@@ -117,34 +99,63 @@ end
 
 Calculate the statistical noise for a test point at `position` using apertures of diameter `fwhm` in a residual frame.
 
-Uses the standard deviation of the apertures in the entire annulus. This is distinct from the [`snr`](@ref) noise calculation, which defines a confidence interval using student-t statistics. This means you cannot simply create a noise map and divide it from the signal to create an equivalent S/N map.
+Uses the biweight middeviance (square root of biweight midvariance, a robust estimator of the standard deviation) of the apertures in the entire annulus. This is distinct from the [`snr`](@ref) noise calculation, which defines a confidence interval using student-t statistics. This means you cannot simply create a noise map and divide it from the signal to create an equivalent S/N map.
 """
 function noise(data::AbstractMatrix, position, fwhm)
-    x, y = position
-    cy, cx = center(data)
-    separation = sqrt((x - cx)^2 + (y - cy)^2)
+    separation = radial_distance(position, center(data))
     separation > fwhm / 2 + 1 || return NaN
-    r = fwhm / 2
 
-    N = floor(Int, 2 * π  * separation / fwhm)
-    dθ = 2π / N
-    R = RotMatrix{2}(dθ)
+    fluxes = get_aperture_fluxes(data, position, separation, fwhm)
 
-    # initial points
-    rx = x - cx
-    ry = y - cy
-
-    fluxes = similar(data, N)
-
-    for idx in eachindex(fluxes)
-        ap_x = rx + cx
-        ap_y = ry + cy
-        rx, ry = R * SA[rx, ry]
-        ap = CircularAperture(ap_x, ap_y, r)
-        fluxes[idx] = photometry(ap, data).aperture_sum
-    end
-
-    return std(fluxes)
+    return robuststd(fluxes)
 end
 
-noise(data::AbstractMatrix, idx::CartesianIndex, fwhm) = noise(data, reverse(idx.I), fwhm)
+noise(data::AbstractMatrix, idx::CartesianIndex, fwhm) = noise(data, idx.I, fwhm)
+
+@inline function radial_distance(point, center)
+    return sqrt((point[1] - center[1])^2 + (point[2] - center[2])^2)
+end
+
+function get_aperture_fluxes(data, position, separation, fwhm)
+    r = fwhm / 2
+
+    # number of apertures
+    N = floor(Int, 2 * π  * separation / fwhm)
+    # rotation per annulus (CW) NB direction doesn't matter?
+    dθ = 2 * π / N
+    # create affine map rotates points CW by dθ
+    transform = recenter(RotMatrix{2}(dθ), center(data))
+
+    # first point
+    point = position
+
+    fluxes = similar(data, N)
+    @inbounds for idx in eachindex(fluxes)
+        # get aperture flux
+        ap = CircularAperture(point..., r)
+        fluxes[idx] = photometry(ap, data).aperture_sum
+        # rotate point
+        point = transform(point)
+    end
+
+    return fluxes
+end
+
+# biweight midvariance
+function robuststd(values; c=9)
+    T = eltype(values)
+    min_points = 3
+
+    med = median(values)
+    Δ = @. values - med
+    MAD = median(abs.(Δ)) * 1.482602218505602
+    MAD < 0 && return zero(T)
+
+    u = @. (Δ / (c * MAD))^2
+    N = count(≤(1), u)
+    N < min_points && return zero(T)
+    f1 = mapreduce((d, u) -> u ≤ 1 ? d^2 * (1 - u)^4 : zero(d), +, Δ, u)
+    f2 = sum(u -> u ≤ 1 ? (1 - u) * (1 - 5 * u) : zero(u), u)
+    variance = max(zero(T), N * f1 / (f2 * (f2 - 1)))
+    return sqrt(variance)
+end

@@ -48,18 +48,19 @@ function fit(alg::NMF, data::AbstractMatrix{T}; ref=data, kwargs...) where T
         @warn "Negative values encountered in input. Make sure to rescale your data"
     end
     if alg.ncomps === nothing
-        k = size(data, 1)
+        k = size(data, 2)
     else
-        k = min(alg.ncomps, size(data, 1))
+        k = min(alg.ncomps, size(data, 2))
     end
-
-    X = collect(ref)
+    # transpose data to accommadate NMF.jl interface
+    X = collect(transpose(ref))
     W, H = nndsvd(X, k)
     solve!(CoordinateDescent{T}(), X, W, H)
     if ref !== data
-        Y = collect(data)
-        W = Y * H'
+        Y = collect(transpose(data))
+        W = Y * transpose(H)
+        # have to transpose to use `update_H=false`
         solve!(CoordinateDescent{T}(update_H=false), Y, W, H)
     end
-    return LinearDesign(H, W)
+    return LinearDesign(transpose(H), transpose(W))
 end

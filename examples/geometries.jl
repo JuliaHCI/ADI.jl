@@ -25,9 +25,9 @@ using Plots
 
 ## set up plotting
 function imshow(img; kwargs...)
-    ylim = extrema(axes(img, 1))
-    xlim = extrema(axes(img, 2))
-    heatmap(axes(img)..., img; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
+    xs, ys = axes(img)
+    heatmap(xs, ys, transpose(img); aspect_ratio=1, 
+            xlim=extrema(xs), ylim=extrema(ys), kwargs...)
 end;
 #=
 ## Initial Reduction
@@ -51,7 +51,7 @@ Geometric filtering is the process of using sub-region(s) in each frame to use a
 For our example, lets start by looking at annuli for each companion and optimizing the number of principal components. We can use [`AnnulusView`](@ref) to wrap `cube` and filter the input. [`AnnulusView`](@ref) works by calculating the *indices* for a single annulus and creates a view into `cube` with those indices. It does not copy any data, and lets us access only the pixels within the annulus.
 =#
 av = AnnulusView(cube; inner=31, outer=51)
-imshow(av[1, :, :], xlim=(198, 304), ylim=(198, 304))
+imshow(av[:, :, 1], xlim=(198, 304), ylim=(198, 304))
 #=
 because this annulus should have similar noise characteristics, we can automatically choose the number of components by trying to minimize the noise in the residual frame. The algorithm will increase `ncomps` until the noise does not improve by at least `noise_error`.
 =#
@@ -140,7 +140,7 @@ imshow(res, title=name, xlim=(57, 445), ylim=(57, 445))
 p = plot(layout=(2, 3), ticks=false, xlim=(57, 445), ylim=(57, 445),
         aspect_ratio=1, size=(800, 400), titlefontsize=9)
 for (i, (name, res)) in enumerate(results)
-    heatmap!(res; title=name, sp=i)
+    heatmap!(transpose(res); title=name, sp=i)
 end
 p #hide
 #=
@@ -152,6 +152,6 @@ p = plot(layout=(2, 3), size=(800, 550), clim=(0, 13),
         ylim=(57, 445), titlefontsize=9)
 for (i, (name, res)) in enumerate(results)
     sn = detectionmap(res, fwhm)
-    heatmap!(sn; title=name, sp=i)
+    heatmap!(transpose(sn); title=name, sp=i)
 end
 p #hide

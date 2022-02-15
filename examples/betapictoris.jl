@@ -28,9 +28,9 @@ using Plots
 
 ## set up plotting
 function imshow(img; kwargs...)
-    ylim = extrema(axes(img, 1))
-    xlim = extrema(axes(img, 2))
-    heatmap(axes(img)..., img; aspect_ratio=1, xlim=xlim, ylim=ylim, kwargs...)
+    xs, ys = axes(img)
+    heatmap(xs, ys, transpose(img); aspect_ratio=1, 
+            xlim=extrema(xs), ylim=extrema(ys), kwargs...)
 end;
 
 #=
@@ -103,11 +103,11 @@ Before we move on, we need to create a PSF model for our data. [PSFModels.jl](ht
 =#
 using PSFModels
 psf = BetaPictoris[:psf] ./ maximum(BetaPictoris[:psf])
-kern_psf = PSFModels.Gaussian(fwhm);
+synthpsf = gaussian(eltype(psf); x=0, y=0, fwhm)
 #-
 plot(
     imshow(psf),
-    plot(kern_psf, -19:19, -19:19),
+    psfplot(synthpsf, -19:19, -19:19),
     layout=2,
     size=(500, 250),
     cbar=false,
@@ -132,9 +132,7 @@ plot(
     xlabel="radius [px]"
 )
 #=
-You'll notice a pretty severe bump indicating poor contrast where the original companion is! Because this companion is very bright it will bias the contrast measurement.
-
-Typically you'd like to fit the companion signal and remove it in a maximum likelihood framework. For convenience here, let's use the `:cube_empty` entry for `BetaPictoris`, which already has the companion removed.
+The contrast uses a robust estimator for the noise, which means the bright companion doesn't overly bias the contrast measurement. Nonetheless, it is good form to remove the companion signal in a maximum likelihood framework. For convenience here, let's use the `:cube_empty` entry for `BetaPictoris`, which already has the companion removed.
 =#
 cube_empty = BetaPictoris[:cube_empty]
 reduced_empty = alg(cube_empty, angles)
