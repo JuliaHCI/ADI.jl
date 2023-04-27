@@ -1,3 +1,4 @@
+ENV["DATADEPS_ALWAYS_ACCEPT"] = true 
 using ADI
 using HCIDatasets: BetaPictoris
 using LinearAlgebra
@@ -5,10 +6,6 @@ using PSFModels
 using StableRNGs
 using Statistics
 using Test
-
-if get(ENV, "CI", "false") == "true"
-   ENV["DATADEPS_ALWAYS_ACCEPT"] = true 
-end
 
 rng = StableRNG(8799)
 
