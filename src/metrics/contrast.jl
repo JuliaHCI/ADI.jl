@@ -56,7 +56,7 @@ function contrast_curve(alg, cube, angles, psf, args...;
     # measure the noise and throughput in consecutive resolution elements
     # across azimuthal branches
     @info "Calculating Throughput"
-    reduced_empty = alg(cube, angles; kwargs...)
+    reduced_empty = alg(cube, angles, args...; kwargs...)
 
     through, meta = throughput(alg, cube, angles, psf, args...;
                                fwhm=fwhm, inner_rad=inner_rad, fc_rad_sep=fc_rad_sep, theta=theta,
@@ -284,6 +284,76 @@ function _fix_range(radii, cube::MultiAnnulusView)
     filter(r -> rmin ≤ r ≤ rmax, radii)
 end
 
+
+function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales;
+    fwhm, nbranch=1, theta=0, inner_rad=1, fc_rad_sep=3,
+    snr=100, reduced_empty = nothing, flux_scale=ones(size(cube, 3)), kwargs...) where T
+    maxfcsep = minimum(size(cube)[begin:begin + 1]) ÷ (2 * fwhm) - 1
+    # too large separation between companions in the radial patterns
+    3 ≤ fc_rad_sep ≤ maxfcsep || error("`fc_rad_sep` should lie ∈[3, $(maxfcsep)], got $fc_rad_sep")
+
+    # compute noise in concentric annuli on the empty frame
+    if isnothing(reduced_empty)
+        reduced_empty = alg(cube, angles, scales; kwargs...)
+    end
+
+    cx, cy = center(reduced_empty)
+
+    n_annuli = minimum(floor.(Int, ((cx, cy) .- fwhm) ./ fwhm) .- 1)
+    radii = _fix_range(fwhm .* (inner_rad:n_annuli), cube)
+
+    sint, cost = sincosd(theta)
+    noise = map(radii) do r
+        x = cx + r * cost
+        y = cy + r * sint
+        Metrics.noise(reduced_empty, (x, y), fwhm)
+    end
+
+    angle_per_branch = 360 / nbranch
+    output = similar(cube, length(radii), nbranch)
+
+    tmp_cube = similar(cube)
+    fake_comps_full = zero(reduced_empty)
+    tmp_frame = similar(reduced_empty)
+    @progress name="branch" for branch in 1:nbranch
+        θ = theta + angle_per_branch * (branch - 1)
+        δy, δx = sincosd(θ)
+        @progress name="pattern" for init_rad in 1:fc_rad_sep
+            slice = init_rad:fc_rad_sep:lastindex(radii)
+
+            # reset work arrays
+            fill!(tmp_frame, zero(T))
+            copyto!(tmp_cube, cube)
+
+            apertures = map(slice) do ann
+                r = radii[ann]
+                x = r * δx + cx
+                y = r * δy + cy
+
+                A = snr * noise[ann]
+
+                inject!(tmp_frame, psf_model; x, y, amp=mean(A .* flux_scale), fwhm)
+                for wl_idx in axes(tmp_cube, 3)
+                    inject!(tmp_cube, psf_model, angles; x, y, amp=A * flux_scale[wl_idx], fwhm)
+                end
+
+                return CircularAperture(x, y, fwhm / 2)
+            end
+            # add fake comps to output frame
+            fake_comps_full .+= tmp_frame
+
+            # get reduced output after subtracting and collapsing
+            reduced = alg(tmp_cube, angles; kwargs...)
+
+            injected_flux = photometry(apertures, tmp_frame).aperture_sum
+            recovered_flux = photometry(apertures, reduced .- reduced_empty).aperture_sum
+            @. output[slice, branch] = max(zero(T), recovered_flux / injected_flux)
+        end
+    end
+
+    return output, (distance=radii, fake_comps=fake_comps_full, noise=noise)
+end
+
 """
     throughput(alg, cube, angles, psf, position;
                fwhm, snr=100,
@@ -325,6 +395,46 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model, (x, y); fw
     injected_flux = photometry(ap, fake_comp).aperture_sum
     recovered_flux = photometry(ap, reduced .- reduced_empty).aperture_sum
     throughput = max(zero(T), recovered_flux / injected_flux)
+
+    return throughput
+end
+
+"""
+    throughput(alg, sdi_cube, angles, scales, psf, position;
+               fwhm, snr=100, flux_scale=1,
+               reduced_empty=nothing,
+               verbose=true, kwargs...)
+
+Calculate throughput for an SDI cube with radially scaling list `scales` and flux scaling list `flux_scale`.
+"""
+function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales, (x, y); fwhm,
+    snr=100, reduced_empty=nothing, verbose=true, flux_scale=ones(size(cube, 3)), kwargs...) where T
+
+    if reduced_empty === nothing
+        verbose && @info "Calculating empty reduced frame"
+        reduced_empty = alg(cube, angles, scales; kwargs...)
+    end
+
+    # find amplitude of injected PSF
+    noise = Metrics.noise(reduced_empty, (x, y), fwhm)
+    A = snr * noise
+    
+    ap = CircularAperture(x, y, fwhm/2)
+    fake_comp_cube = copy(cube)
+    injected_fluxes = zeros(size(cube, 3))
+    for i in axes(cube, 3)
+        verbose && @info "Injecting companion at x=$x y=$y with amp=$A"
+        fake_comp = inject!(zero(reduced_empty), psf_model; x, y, amp=A * flux_scale[i], fwhm)
+        injected_fluxes[i] = photometry(ap, fake_comp).aperture_sum
+        inject!(fake_comp_cube[:, :, i, :], psf_model, angles; x, y, amp=A, fwhm)
+    end
+    verbose && @info "Calculating reduced frame with fake companion injected"
+    reduced = alg(fake_comp_cube, angles, scales; kwargs...)
+
+
+    verbose && @info "Calculating throughput"
+    recovered_flux = photometry(ap, reduced .- reduced_empty).aperture_sum
+    throughput = max(zero(T), recovered_flux / mean(injected_fluxes))
 
     return throughput
 end
