@@ -277,7 +277,7 @@ function throughput(alg, cube::AbstractArray{T,3}, angles, psf_model;
     return output, (distance=radii, fake_comps=fake_comps_full, noise=noise)
 end
 
-_fix_range(radii, cube::AbstractArray{T,3}) where {T} = radii
+_fix_range(radii, cube::AbstractArray{T}) where {T} = radii
 _fix_range(radii, cube::AnnulusView) = filter(r -> cube.rmin ≤ r ≤ cube.rmax, radii)
 function _fix_range(radii, cube::MultiAnnulusView)
     rmin, rmax = extrema(cube.radii) .- cube.width / 2
@@ -334,7 +334,7 @@ function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales;
 
                 inject!(tmp_frame, psf_model; x, y, amp=mean(A .* flux_scale), fwhm)
                 for wl_idx in axes(tmp_cube, 3)
-                    inject!(tmp_cube, psf_model, angles; x, y, amp=A * flux_scale[wl_idx], fwhm)
+                    inject!(tmp_cube[:, :, wl_idx, :], psf_model, angles; x, y, amp=A * flux_scale[wl_idx], fwhm)
                 end
 
                 return CircularAperture(x, y, fwhm / 2)
@@ -343,7 +343,7 @@ function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales;
             fake_comps_full .+= tmp_frame
 
             # get reduced output after subtracting and collapsing
-            reduced = alg(tmp_cube, angles; kwargs...)
+            reduced = alg(tmp_cube, angles, scales; kwargs...)
 
             injected_flux = photometry(apertures, tmp_frame).aperture_sum
             recovered_flux = photometry(apertures, reduced .- reduced_empty).aperture_sum
