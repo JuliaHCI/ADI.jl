@@ -85,13 +85,17 @@ end
 
 DoubleSDI(alg) = DoubleSDI(alg, alg)
 
-function process(sdi::DoubleSDI, spcube::AbstractArray{T,4}, angles, scales; method=:deweight, kwargs...) where T
+function process(sdi::DoubleSDI, spcube::AbstractArray{T,4}, angles, scales; method=:deweight, flux_scale=ones(T, size(spcube, 3)),kwargs...) where T
     nx, ny, nλ, n = size(spcube)
     spec_resids = similar(spcube, nx, ny, n)
     # do first pass in spectral domain
     Threads.@threads for tidx in axes(spcube, 4)
         cube = @view spcube[:, :, :, tidx]
         scaled_cube = scale(cube, scales)
+        # apply scaling factor to better subtract speckles
+        for wl_idx in axes(scaled_cube, 3)
+            @. scaled_cube[:, :, wl_idx] *= flux_scale[wl_idx]
+        end
         angs = Zeros(nλ)
         if :ref in keys(kwargs)
             cube_ref = view(kwargs[:ref], :, :, :, tidx)
@@ -101,6 +105,10 @@ function process(sdi::DoubleSDI, spcube::AbstractArray{T,4}, angles, scales; met
             R = subtract(sdi.alg_spec, scaled_cube; angles=angs, kwargs...)
         end
         spec_resid = invscale(R, scales)
+        # renormalize by dividing scale factor
+        for wl_idx in axes(spec_resid, 3)
+            @. spec_resid[:, :, wl_idx] /= flux_scale[wl_idx]
+        end
         spec_resids[:, :, tidx] .= collapse(spec_resid)
     end
     # do second pass in temporal domain
@@ -125,14 +133,14 @@ julia> data, angles, scales = # load data...
 julia> res = SliceSDI(Classic(), GreeDS(15))(data, angles, scales)
 ```
 """
-struct SliceSDI{ALG<:ADIAlgorithm, ALG2<:ADIAlgorithm} <: SDIAlgorithm
+struct SliceSDI{ALG<:Union{ADIAlgorithm,Nothing}, ALG2<:ADIAlgorithm} <: SDIAlgorithm
     alg_spec::ALG
     alg_temp::ALG2
 end
 
 SliceSDI(alg) = SliceSDI(alg, alg)
 
-function process(sdi::SliceSDI, spcube::AbstractArray{T,4}, angles, scales; kwargs...) where T
+function process(sdi::SliceSDI, spcube::AbstractArray{T,4}, angles, scales; flux_scale=ones(T, size(spcube, 3)), kwargs...) where T
     nλ = size(spcube, 3)
     temp_resids = similar(spcube, Base.front(size(spcube)))
     # do first pass in temporal domain
@@ -145,9 +153,23 @@ function process(sdi::SliceSDI, spcube::AbstractArray{T,4}, angles, scales; kwar
             temp_resids[:, :, waveidx] .= sdi.alg_temp(cube, angles; kwargs...)
         end
     end
-    # do second pass in temporal domain
-    scaled_resid_cube = scale(temp_resids, scales)
-    angs = Zeros(nλ)
-    resid = sdi.alg_spec(scaled_resid_cube, angs; angles=angs, kwargs...)
-    return invscale(resid, maximum(scales))
+    # do second pass in spectral domain
+    # scale residuals by ~wavelength (resids have alread been derotated!)
+    if sdi.alg_spec !== nothing
+        scaled_resid_cube = scale(temp_resids, scales)
+        for wl_idx in axes(scaled_resid_cube, 3)
+            @. scaled_resid_cube[:, :, wl_idx] *= flux_scale[wl_idx]
+        end
+        resid_cube = subtract(sdi.alg_spec, scaled_resid_cube; angles=Zeros(nλ), kwargs...)
+        # invscale back to astrometric
+        rescaled_resid = invscale(resid_cube, scales)
+        # collapse
+        # apply flux scaling before collapsing
+        for wl_idx in axes(rescaled_resid, 3)
+            @. rescaled_resid[:, :, wl_idx] /= flux_scale[wl_idx]
+        end
+        return collapse(rescaled_resid)
+    else
+        return collapse(temp_resids)
+    end
 end

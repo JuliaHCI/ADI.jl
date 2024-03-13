@@ -6,6 +6,7 @@ using LinearAlgebra: dot
 using Photometry
 using ProgressLogging
 using StaticKernels
+using Setfield
 
 """
     contrast_curve(alg, cube, angles, psf;
@@ -56,7 +57,7 @@ function contrast_curve(alg, cube, angles, psf, args...;
     # measure the noise and throughput in consecutive resolution elements
     # across azimuthal branches
     @info "Calculating Throughput"
-    reduced_empty = alg(cube, angles, args...; kwargs...)
+    reduced_empty = alg(cube, angles, args...; angles=angles, kwargs...)
 
     through, meta = throughput(alg, cube, angles, psf, args...;
                                fwhm=fwhm, inner_rad=inner_rad, fc_rad_sep=fc_rad_sep, theta=theta,
@@ -285,9 +286,9 @@ function _fix_range(radii, cube::MultiAnnulusView)
 end
 
 
-function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales;
+function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model::AbstractArray{V,3}, scales;
     fwhm, nbranch=1, theta=0, inner_rad=1, fc_rad_sep=3,
-    snr=100, reduced_empty = nothing, flux_scale=ones(size(cube, 3)), kwargs...) where T
+    snr=100, reduced_empty = nothing, kwargs...) where {T,V}
     maxfcsep = minimum(size(cube)[begin:begin + 1]) ÷ (2 * fwhm) - 1
     # too large separation between companions in the radial patterns
     3 ≤ fc_rad_sep ≤ maxfcsep || error("`fc_rad_sep` should lie ∈[3, $(maxfcsep)], got $fc_rad_sep")
@@ -312,6 +313,7 @@ function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales;
     angle_per_branch = 360 / nbranch
     output = similar(cube, length(radii), nbranch)
 
+    mean_psf = mean(psf_model, dims=3)[:, :, begin]
     tmp_cube = similar(cube)
     fake_comps_full = zero(reduced_empty)
     tmp_frame = similar(reduced_empty)
@@ -332,9 +334,11 @@ function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales;
 
                 A = snr * noise[ann]
 
-                inject!(tmp_frame, psf_model; x, y, amp=mean(A .* flux_scale), fwhm)
+                inject!(tmp_frame, mean_psf; x, y, amp=A, fwhm)
                 for wl_idx in axes(tmp_cube, 3)
-                    inject!(tmp_cube[:, :, wl_idx, :], psf_model, angles; x, y, amp=A * flux_scale[wl_idx], fwhm)
+                    wave_slice = @view tmp_cube[:, :, wl_idx, :]
+                    psf_slice = @view psf_model[:, :, wl_idx]
+                    inject!(wave_slice, psf_slice, angles; x, y, amp=A, fwhm)
                 end
 
                 return CircularAperture(x, y, fwhm / 2)
@@ -353,6 +357,7 @@ function throughput(alg, cube::AbstractArray{T,4}, angles, psf_model, scales;
 
     return output, (distance=radii, fake_comps=fake_comps_full, noise=noise)
 end
+
 
 """
     throughput(alg, cube, angles, psf, position;

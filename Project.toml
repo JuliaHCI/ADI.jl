@@ -4,6 +4,7 @@ authors = ["Miles Lucas <mdlucas@hawaii.edu>"]
 version = "0.9.1"
 
 [deps]
+BiweightStats = "5bf8a1e9-d5f8-4697-9608-80edd97af0ad"
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
